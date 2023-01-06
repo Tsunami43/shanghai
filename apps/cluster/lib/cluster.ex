@@ -1,6 +1,6 @@
-defmodule Shanghai do
+defmodule Cluster do
   @moduledoc """
-  Documentation for `Shanghai`.
+  Documentation for `Cluster`.
   """
 
   @doc """
@@ -8,7 +8,7 @@ defmodule Shanghai do
 
   ## Examples
 
-      iex> Shanghai.hello()
+      iex> Cluster.hello()
       :world
 
   """
