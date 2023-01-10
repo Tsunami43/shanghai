@@ -17,11 +17,11 @@ defmodule Storage.Supervisor do
   @impl true
   def init(_init_arg) do
     children = [
-      # TODO: Configure Writer and Reader with proper data_dir
+      # TODO: Configure Writer, Reader, and Snapshot.Manager with proper directories
       # {Storage.WAL.Writer, []},
       # {Storage.WAL.Reader, []},
-      {Storage.Compaction.Compactor, []},
-      {Storage.Snapshot.Manager, []}
+      # {Storage.Snapshot.Manager, []},
+      {Storage.Compaction.Compactor, []}
       # TODO: Add Storage.WAL.SegmentManager (DynamicSupervisor)
       # TODO: Add Storage.Index.SegmentIndex
       # TODO: Add Storage.Compaction.Scheduler
