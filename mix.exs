@@ -3,26 +3,45 @@ defmodule Shanghai.MixProject do
 
   def project do
     [
-      app: :shanghai,
+      apps_path: "apps",
       version: "0.1.0",
-      elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
-    ]
-  end
-
-  # Run "mix help compile.app" to learn about applications.
-  def application do
-    [
-      extra_applications: [:logger]
+      deps: deps(),
+      aliases: aliases(),
+      releases: releases()
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      # Shared development dependencies
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false}
+    ]
+  end
+
+  defp aliases do
+    [
+      test: ["test --color"],
+      "test.all": ["cmd mix test --color"],
+      quality: ["format --check-formatted", "credo --strict", "dialyzer"]
+    ]
+  end
+
+  defp releases do
+    [
+      shanghai: [
+        applications: [
+          core_domain: :permanent,
+          storage: :permanent,
+          cluster: :permanent,
+          replication: :permanent,
+          query: :permanent,
+          admin: :permanent
+        ]
+      ]
     ]
   end
 end
