@@ -17,10 +17,13 @@ defmodule Cluster.MixProject do
 
   # Run "mix help compile.app" to learn about applications.
   def application do
-    [
-      extra_applications: [:logger],
-      mod: {Cluster.Application, []}
-    ]
+    extra_applications = [:logger]
+
+    if Mix.env() == :test do
+      [extra_applications: extra_applications]
+    else
+      [extra_applications: extra_applications, mod: {Cluster.Application, []}]
+    end
   end
 
   # Run "mix help deps" to learn about dependencies.
