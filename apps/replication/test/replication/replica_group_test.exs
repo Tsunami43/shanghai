@@ -97,16 +97,19 @@ defmodule Replication.ReplicaGroupTest do
 
     test "emits ReplicaCaughtUp when lagging replica catches up" do
       group = ReplicaGroup.new("shard-1")
-      node_id = NodeId.new("node1")
+      leader_id = NodeId.new("leader")
+      follower_id = NodeId.new("follower")
 
-      {:ok, group} = ReplicaGroup.add_replica(group, node_id)
-      {:ok, group} = ReplicaGroup.mark_replica_lagging(group, node_id, ReplicationOffset.zero())
+      {:ok, group} = ReplicaGroup.add_replica(group, leader_id)
+      {:ok, group} = ReplicaGroup.add_replica(group, follower_id)
+      {:ok, group} = ReplicaGroup.elect_leader(group, leader_id)
+      {:ok, group} = ReplicaGroup.mark_replica_lagging(group, follower_id, ReplicationOffset.zero())
 
       offset = ReplicationOffset.new(10)
-      {:ok, updated_group} = ReplicaGroup.update_replica_offset(group, node_id, offset)
+      {:ok, updated_group} = ReplicaGroup.update_replica_offset(group, follower_id, offset)
 
-      # Should have caught up event (plus the fell behind event from mark_lagging)
-      assert length(updated_group.events) >= 1
+      # Should have caught up event (plus the fell behind event from mark_lagging and leader elected)
+      assert length(updated_group.events) >= 2
     end
   end
 
