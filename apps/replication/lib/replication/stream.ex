@@ -78,6 +78,14 @@ defmodule Replication.Stream do
     GenServer.call(via_tuple(group_id), :get_follower_states)
   end
 
+  @doc """
+  Requests catch-up for a follower from a specific offset.
+  """
+  @spec request_catch_up(String.t(), NodeId.t(), ReplicationOffset.t()) :: :ok
+  def request_catch_up(group_id, follower_node_id, from_offset) do
+    GenServer.cast(via_tuple(group_id), {:catch_up, follower_node_id, from_offset})
+  end
+
   # Server Callbacks
 
   @impl true
@@ -146,6 +154,31 @@ defmodule Replication.Stream do
     )
 
     {:noreply, %{state | followers: updated_followers}}
+  end
+
+  @impl true
+  def handle_cast({:catch_up, follower_node_id, from_offset}, state) do
+    Logger.info(
+      "Catch-up requested for follower #{follower_node_id.value} from offset #{from_offset.value}"
+    )
+
+    case Map.get(state.followers, follower_node_id) do
+      nil ->
+        Logger.warning("Catch-up requested for unknown follower #{follower_node_id.value}")
+        {:noreply, state}
+
+      follower_state ->
+        # In production, would fetch missing entries from WAL storage
+        # For now, mark follower as needing catch-up
+        updated_follower = %{follower_state | last_ack_offset: from_offset}
+        updated_followers = Map.put(state.followers, follower_node_id, updated_follower)
+
+        Logger.info(
+          "Follower #{follower_node_id.value} catch-up initiated from offset #{from_offset.value}"
+        )
+
+        {:noreply, %{state | followers: updated_followers}}
+    end
   end
 
   @impl true
