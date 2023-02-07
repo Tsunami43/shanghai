@@ -100,7 +100,7 @@ defmodule Replication.LeaderFollowerTest do
       group_id = "test-group-#{:rand.uniform(10000)}"
       leader_id = NodeId.new("leader")
 
-      start_supervised!({Leader, [group_id: group_id, node_id: leader_id]})
+      start_supervised!({Leader, [group_id: group_id, node_id: leader_id, replica_count: 1]})
 
       # Write with short timeout (will complete immediately for single node)
       {:ok, offset} = Leader.write(group_id, "test-data", timeout: 1000)
@@ -115,7 +115,7 @@ defmodule Replication.LeaderFollowerTest do
       group_id = "test-group-#{:rand.uniform(10000)}"
       leader_id = NodeId.new("leader")
 
-      start_supervised!({Leader, [group_id: group_id, node_id: leader_id]})
+      start_supervised!({Leader, [group_id: group_id, node_id: leader_id, replica_count: 1]})
 
       {:ok, offset1} = Leader.write(group_id, "data1")
       {:ok, offset2} = Leader.write(group_id, "data2")

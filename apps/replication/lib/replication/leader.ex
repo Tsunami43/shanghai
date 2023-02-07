@@ -14,7 +14,7 @@ defmodule Replication.Leader do
   require Logger
 
   alias Replication.ReplicaGroup
-  alias Replication.ValueObjects.ReplicationOffset
+  alias Replication.ValueObjects.{ReplicationOffset, ConsistencyLevel}
   alias CoreDomain.Types.NodeId
 
   @type state :: %{
@@ -22,7 +22,8 @@ defmodule Replication.Leader do
           node_id: NodeId.t(),
           current_offset: ReplicationOffset.t(),
           pending_writes: %{reference() => map()},
-          follower_offsets: %{NodeId.t() => ReplicationOffset.t()}
+          follower_offsets: %{NodeId.t() => ReplicationOffset.t()},
+          replica_count: pos_integer()
         }
 
   # Client API
@@ -38,12 +39,17 @@ defmodule Replication.Leader do
 
   @doc """
   Writes an entry through the leader.
-  Returns when write is replicated to quorum.
+  Returns when write satisfies the specified consistency level.
+
+  Options:
+  - `:consistency_level` - ConsistencyLevel.t() or atom (:local, :quorum, :leader)
+  - `:timeout` - Write timeout in milliseconds (default: 5000)
   """
   @spec write(String.t(), binary(), keyword()) :: {:ok, ReplicationOffset.t()} | {:error, atom()}
   def write(group_id, data, opts \\ []) do
     timeout = Keyword.get(opts, :timeout, 5000)
-    GenServer.call(via_tuple(group_id), {:write, data}, timeout)
+    consistency_level = parse_consistency_level(Keyword.get(opts, :consistency_level, :quorum))
+    GenServer.call(via_tuple(group_id), {:write, data, consistency_level}, timeout)
   end
 
   @doc """
@@ -68,13 +74,15 @@ defmodule Replication.Leader do
   def init(opts) do
     group_id = Keyword.fetch!(opts, :group_id)
     node_id = Keyword.get(opts, :node_id, get_local_node_id())
+    replica_count = Keyword.get(opts, :replica_count, 3)
 
     state = %{
       group_id: group_id,
       node_id: node_id,
       current_offset: ReplicationOffset.zero(),
       pending_writes: %{},
-      follower_offsets: %{}
+      follower_offsets: %{},
+      replica_count: replica_count
     }
 
     Logger.info("Leader started for group #{group_id} on node #{node_id.value}")
@@ -83,12 +91,15 @@ defmodule Replication.Leader do
   end
 
   @impl true
-  def handle_call({:write, data}, from, state) do
+  def handle_call({:write, data, consistency_level}, from, state) do
     # Generate write reference
     write_ref = make_ref()
 
     # Increment offset
     new_offset = ReplicationOffset.increment(state.current_offset)
+
+    # Calculate required acks based on consistency level
+    required_acks = ConsistencyLevel.required_acks(consistency_level, state.replica_count)
 
     # Store pending write
     pending_write = %{
@@ -97,6 +108,8 @@ defmodule Replication.Leader do
       data: data,
       from: from,
       acks: [state.node_id],
+      consistency_level: consistency_level,
+      required_acks: required_acks,
       timestamp: System.monotonic_time(:millisecond)
     }
 
@@ -204,13 +217,14 @@ defmodule Replication.Leader do
         state
 
       write ->
-        # Calculate required quorum (majority)
-        # In a 3-replica group, need 2 acks
-        # For now, assume 1 ack is enough (will be configurable)
-        required_acks = 1
+        ack_count = length(write.acks)
 
-        if length(write.acks) >= required_acks do
-          # We have quorum, reply to client
+        if ack_count >= write.required_acks do
+          # We have satisfied consistency requirement, reply to client
+          Logger.debug(
+            "Write at offset #{write.offset.value} satisfied #{ConsistencyLevel.to_string(write.consistency_level)} (#{ack_count}/#{write.required_acks} acks)"
+          )
+
           GenServer.reply(write.from, {:ok, write.offset})
 
           # Remove from pending
@@ -221,4 +235,14 @@ defmodule Replication.Leader do
         end
     end
   end
+
+  defp parse_consistency_level(level) when is_atom(level) do
+    case ConsistencyLevel.parse(level) do
+      {:ok, cl} -> cl
+      {:error, _} -> ConsistencyLevel.default()
+    end
+  end
+
+  defp parse_consistency_level(%ConsistencyLevel{} = level), do: level
+  defp parse_consistency_level(_), do: ConsistencyLevel.default()
 end
