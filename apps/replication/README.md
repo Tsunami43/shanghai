@@ -1,21 +1,43 @@
 # Replication
 
-**TODO: Add description**
+Log-based replication system for Shanghai distributed database.
 
-## Installation
+## Overview
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `replication` to your list of dependencies in `mix.exs`:
+The Replication app provides leader-follower replication with configurable consistency levels, enabling distributed data durability and high availability.
 
-```elixir
-def deps do
-  [
-    {:replication, "~> 0.1.0"}
-  ]
-end
-```
+## Architecture
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/replication>.
+### Core Components
 
+- **Leader** - Coordinates writes and tracks follower acknowledgments
+- **Follower** - Applies replicated entries and reports offset progress
+- **Stream** - Batches and broadcasts WAL entries to followers
+- **Monitor** - Tracks replication lag and health metrics
+- **ReplicaGroup** - Domain aggregate managing replica state
+
+### Value Objects
+
+- **ReplicationOffset** - Position in replication log
+- **ConsistencyLevel** - Write consistency guarantees
+
+### Domain Events
+
+- **LeaderElected** - New leader elected with term
+- **ReplicaCaughtUp** - Lagging replica recovered
+- **ReplicaFellBehind** - Replica detected lagging
+
+## Consistency Levels
+
+### :local
+Fast writes with no durability guarantee. Completes on leader acknowledgment only.
+
+### :leader
+Balanced writes with ordering guarantee. Ensures strict ordering through leader.
+
+### :quorum (default)
+Durable writes requiring majority acknowledgment. Survives minority failures.
+
+## Usage
+
+See `Replication.Docs.ConsistencyGuide` for detailed examples and best practices.
