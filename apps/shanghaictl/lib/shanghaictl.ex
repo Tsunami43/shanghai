@@ -18,6 +18,7 @@ defmodule Shanghaictl do
   defp parse_args([]), do: :help
   defp parse_args(["help"]), do: :help
   defp parse_args(["version"]), do: :version
+  defp parse_args(["status" | opts]), do: {:status, opts}
   defp parse_args(args), do: {:unknown, args}
 
   defp execute(:help) do
@@ -30,9 +31,14 @@ defmodule Shanghaictl do
     Commands:
       help          Show this help message
       version       Show version information
+      status        Show cluster status and node health
 
     For more information, see the documentation.
     """)
+  end
+
+  defp execute({:status, opts}) do
+    Shanghaictl.Commands.Status.run(opts)
   end
 
   defp execute(:version) do
