@@ -122,7 +122,15 @@ defmodule Cluster.Heartbeat do
 
     updated_heartbeats = Map.put(state.heartbeats, node_id, heartbeat_state)
 
-    Logger.debug("Recorded heartbeat from #{node_id.value} (seq=#{heartbeat.sequence})")
+    # Emit telemetry metric for heartbeat RTT
+    age_ms = HeartbeatVO.age_ms(heartbeat)
+    Observability.Metrics.heartbeat_completed(
+      age_ms,
+      node_id.value,
+      state.local_node_id.value
+    )
+
+    Logger.debug("Recorded heartbeat from #{node_id.value} (seq=#{heartbeat.sequence}, age=#{age_ms}ms)")
 
     {:noreply, %{state | heartbeats: updated_heartbeats}}
   end
