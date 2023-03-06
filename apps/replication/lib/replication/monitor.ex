@@ -91,6 +91,14 @@ defmodule Replication.Monitor do
     GenServer.call(__MODULE__, :get_stale_replicas)
   end
 
+  @doc """
+  Gets all replication groups.
+  """
+  @spec all_groups() :: [group_metrics()]
+  def all_groups do
+    GenServer.call(__MODULE__, :all_groups)
+  end
+
   # Server Callbacks
 
   @impl true
@@ -204,6 +212,12 @@ defmodule Replication.Monitor do
       |> Enum.filter(&(&1.status == :stale))
 
     {:reply, stale, state}
+  end
+
+  @impl true
+  def handle_call(:all_groups, _from, state) do
+    groups = Map.values(state.groups)
+    {:reply, groups, state}
   end
 
   @impl true
