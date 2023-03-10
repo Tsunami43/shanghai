@@ -74,6 +74,26 @@ defmodule Cluster.Heartbeat do
     GenServer.call(__MODULE__, :all_heartbeats)
   end
 
+  @doc """
+  Manually sends a heartbeat to all nodes.
+
+  **Deprecated**: Heartbeats are sent automatically. Manual sending
+  can cause timing issues and is rarely needed.
+
+  This function will be removed in v2.0.0.
+  """
+  @deprecated "Use automatic heartbeats instead. Will be removed in v2.0.0"
+  @spec send_heartbeat() :: :ok
+  def send_heartbeat do
+    Logger.warning(
+      "Cluster.Heartbeat.send_heartbeat/0 is deprecated. " <>
+        "Heartbeats are automatic. This API will be removed in v2.0.0"
+    )
+
+    send(__MODULE__, :send_heartbeat)
+    :ok
+  end
+
   # Server Callbacks
 
   @impl true
