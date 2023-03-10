@@ -20,7 +20,8 @@ defmodule Cluster.Membership do
   @type state :: %{
           cluster: State.t(),
           local_node_id: NodeId.t(),
-          subscribers: [pid()]
+          subscribers: [pid()],
+          monitors: %{pid() => reference()}
         }
 
   # Client API
@@ -117,7 +118,8 @@ defmodule Cluster.Membership do
     state = %{
       cluster: cluster,
       local_node_id: local_node_id,
-      subscribers: []
+      subscribers: [],
+      monitors: %{}
     }
 
     Logger.info("Membership server started with node_id=#{local_node_id.value}")
@@ -140,11 +142,18 @@ defmodule Cluster.Membership do
           node.id.value
         )
 
-        Logger.info("Node joined: #{node.id.value}")
+        Observability.Logger.info("Node joined cluster",
+          node_id: node.id.value,
+          node_count: node_count
+        )
+
         {:reply, :ok, %{state | cluster: cluster_with_no_events}}
 
       {:error, reason} = error ->
-        Logger.warning("Failed to join node #{node.id.value}: #{reason}")
+        Observability.Logger.warning("Failed to join node",
+          node_id: node.id.value,
+          reason: reason
+        )
         {:reply, error, state}
     end
   end
@@ -164,11 +173,19 @@ defmodule Cluster.Membership do
           node_id.value
         )
 
-        Logger.info("Node left: #{node_id.value} (reason: #{reason})")
+        Observability.Logger.info("Node left cluster",
+          node_id: node_id.value,
+          reason: reason,
+          node_count: node_count
+        )
+
         {:reply, :ok, %{state | cluster: cluster_with_no_events}}
 
       {:error, reason} = error ->
-        Logger.warning("Failed to remove node #{node_id.value}: #{reason}")
+        Observability.Logger.warning("Failed to remove node",
+          node_id: node_id.value,
+          reason: reason
+        )
         {:reply, error, state}
     end
   end
@@ -197,22 +214,35 @@ defmodule Cluster.Membership do
 
   @impl true
   def handle_call({:subscribe, pid}, _from, state) do
-    Process.monitor(pid)
+    # Monitor subscriber to detect crashes
+    ref = Process.monitor(pid)
     updated_subscribers = [pid | state.subscribers]
-    {:reply, :ok, %{state | subscribers: updated_subscribers}}
+    updated_monitors = Map.put(state.monitors, pid, ref)
+
+    {:reply, :ok, %{state | subscribers: updated_subscribers, monitors: updated_monitors}}
   end
 
   @impl true
   def handle_call({:unsubscribe, pid}, _from, state) do
+    # Remove monitor
+    case Map.get(state.monitors, pid) do
+      nil -> :ok
+      ref -> Process.demonitor(ref, [:flush])
+    end
+
     updated_subscribers = List.delete(state.subscribers, pid)
-    {:reply, :ok, %{state | subscribers: updated_subscribers}}
+    updated_monitors = Map.delete(state.monitors, pid)
+
+    {:reply, :ok, %{state | subscribers: updated_subscribers, monitors: updated_monitors}}
   end
 
   @impl true
   def handle_cast({:mark_suspect, node_id}, %{cluster: cluster} = state) do
     case State.mark_node_suspect(cluster, node_id) do
       {:ok, updated_cluster} ->
-        Logger.info("Node marked suspect: #{node_id.value}")
+        Observability.Logger.info("Node marked suspect",
+          node_id: node_id.value
+        )
         {:noreply, %{state | cluster: updated_cluster}}
 
       {:error, _reason} ->
@@ -235,7 +265,11 @@ defmodule Cluster.Membership do
           node_id.value
         )
 
-        Logger.warning("Node marked down: #{node_id.value} (#{detection_method})")
+        Observability.Logger.warning("Node marked down",
+          node_id: node_id.value,
+          detection_method: detection_method
+        )
+
         {:noreply, %{state | cluster: cluster_with_no_events}}
 
       {:error, _reason} ->
@@ -247,7 +281,9 @@ defmodule Cluster.Membership do
   def handle_cast({:mark_up, node_id}, %{cluster: cluster} = state) do
     case State.mark_node_up(cluster, node_id) do
       {:ok, updated_cluster} ->
-        Logger.info("Node marked up: #{node_id.value}")
+        Observability.Logger.info("Node marked up",
+          node_id: node_id.value
+        )
         {:noreply, %{state | cluster: updated_cluster}}
 
       {:error, _reason} ->
@@ -257,14 +293,18 @@ defmodule Cluster.Membership do
 
   @impl true
   def handle_info({:nodeup, erlang_node, _info}, state) do
-    Logger.info("Erlang node up: #{erlang_node}")
+    Observability.Logger.info("Erlang node up",
+      erlang_node: erlang_node
+    )
     # In future iterations, we'll handle automatic node discovery here
     {:noreply, state}
   end
 
   @impl true
   def handle_info({:nodedown, erlang_node, _info}, %{cluster: cluster} = state) do
-    Logger.info("Erlang node down: #{erlang_node}")
+    Observability.Logger.warning("Erlang node down",
+      erlang_node: erlang_node
+    )
 
     # Find the node by Erlang node name and mark it down
     node_id = find_node_by_erlang_name(cluster, erlang_node)
@@ -290,10 +330,22 @@ defmodule Cluster.Membership do
   end
 
   @impl true
-  def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
+  def handle_info({:DOWN, ref, :process, pid, reason}, state) do
     # Remove crashed subscriber
-    updated_subscribers = List.delete(state.subscribers, pid)
-    {:noreply, %{state | subscribers: updated_subscribers}}
+    case Map.get(state.monitors, pid) do
+      ^ref ->
+        Observability.Logger.debug("Subscriber process down",
+          pid: inspect(pid),
+          reason: reason
+        )
+
+        updated_subscribers = List.delete(state.subscribers, pid)
+        updated_monitors = Map.delete(state.monitors, pid)
+        {:noreply, %{state | subscribers: updated_subscribers, monitors: updated_monitors}}
+
+      _ ->
+        {:noreply, state}
+    end
   end
 
   # Private Functions
