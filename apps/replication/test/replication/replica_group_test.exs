@@ -103,7 +103,9 @@ defmodule Replication.ReplicaGroupTest do
       {:ok, group} = ReplicaGroup.add_replica(group, leader_id)
       {:ok, group} = ReplicaGroup.add_replica(group, follower_id)
       {:ok, group} = ReplicaGroup.elect_leader(group, leader_id)
-      {:ok, group} = ReplicaGroup.mark_replica_lagging(group, follower_id, ReplicationOffset.zero())
+
+      {:ok, group} =
+        ReplicaGroup.mark_replica_lagging(group, follower_id, ReplicationOffset.zero())
 
       offset = ReplicationOffset.new(10)
       {:ok, updated_group} = ReplicaGroup.update_replica_offset(group, follower_id, offset)

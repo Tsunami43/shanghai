@@ -47,11 +47,13 @@ defmodule Cluster.State do
       {:error, :node_already_exists}
     else
       event = NodeJoined.new(node)
+
       updated_cluster = %{
         cluster
         | nodes: Map.put(nodes, node_id, node),
           events: [event | cluster.events]
       }
+
       {:ok, updated_cluster}
     end
   end
@@ -66,11 +68,13 @@ defmodule Cluster.State do
   def remove_node(%__MODULE__{nodes: nodes} = cluster, node_id, reason \\ :graceful) do
     if Map.has_key?(nodes, node_id) do
       event = NodeLeft.new(node_id, reason)
+
       updated_cluster = %{
         cluster
         | nodes: Map.delete(nodes, node_id),
           events: [event | cluster.events]
       }
+
       {:ok, updated_cluster}
     else
       {:error, :node_not_found}
@@ -84,16 +88,22 @@ defmodule Cluster.State do
   cannot be marked down (e.g., doesn't exist).
   """
   @spec mark_node_down(t(), NodeId.t(), atom()) :: {:ok, t()} | {:error, atom()}
-  def mark_node_down(%__MODULE__{nodes: nodes} = cluster, node_id, detection_method \\ :heartbeat_failure) do
+  def mark_node_down(
+        %__MODULE__{nodes: nodes} = cluster,
+        node_id,
+        detection_method \\ :heartbeat_failure
+      ) do
     case Map.fetch(nodes, node_id) do
       {:ok, node} ->
         updated_node = Node.mark_down(node)
         event = NodeDetectedDown.new(node_id, detection_method)
+
         updated_cluster = %{
           cluster
           | nodes: Map.put(nodes, node_id, updated_node),
             events: [event | cluster.events]
         }
+
         {:ok, updated_cluster}
 
       :error ->

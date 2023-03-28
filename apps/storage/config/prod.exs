@@ -10,12 +10,15 @@ config :storage,
   node_id: System.get_env("NODE_ID") || "prod_node_1",
 
   # Production-optimized rotation thresholds
-  segment_size_threshold: 128 * 1024 * 1024,  # 128 MB
-  segment_time_threshold: 3600,                # 1 hour
+  # 128 MB
+  segment_size_threshold: 128 * 1024 * 1024,
+  # 1 hour
+  segment_time_threshold: 3600,
 
   # Conservative compaction schedule
   compaction_enabled: true,
-  compaction_interval: 3_600_000,  # 1 hour
+  # 1 hour
+  compaction_interval: 3_600_000,
   compaction_min_segments: 4,
 
   # Keep more snapshots in production

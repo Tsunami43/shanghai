@@ -134,7 +134,9 @@ defmodule Storage.Snapshot.Manager do
       reader_module: reader_module
     }
 
-    Logger.info("Snapshot Manager initialized, directory: #{snapshots_dir}, retention: #{retention_count}")
+    Logger.info(
+      "Snapshot Manager initialized, directory: #{snapshots_dir}, retention: #{retention_count}"
+    )
 
     {:ok, state}
   end
@@ -193,7 +195,9 @@ defmodule Storage.Snapshot.Manager do
         snapshots_to_keep = Enum.take(snapshots, state.retention_count)
         snapshots_to_delete = Enum.drop(snapshots, state.retention_count)
 
-        Logger.info("Keeping #{length(snapshots_to_keep)} snapshots, deleting #{length(snapshots_to_delete)}")
+        Logger.info(
+          "Keeping #{length(snapshots_to_keep)} snapshots, deleting #{length(snapshots_to_delete)}"
+        )
 
         deleted_count =
           Enum.reduce(snapshots_to_delete, 0, fn snapshot, acc ->
@@ -203,7 +207,10 @@ defmodule Storage.Snapshot.Manager do
                 acc + 1
 
               {:error, reason} ->
-                Logger.warning("Failed to delete snapshot #{snapshot.snapshot_id}: #{inspect(reason)}")
+                Logger.warning(
+                  "Failed to delete snapshot #{snapshot.snapshot_id}: #{inspect(reason)}"
+                )
+
                 acc
             end
           end)

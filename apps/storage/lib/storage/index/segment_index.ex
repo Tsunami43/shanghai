@@ -149,7 +149,8 @@ defmodule Storage.Index.SegmentIndex do
       iex> SegmentIndex.rebuild_from_segments(pid, "/data/wal/segments")
       {:ok, 5000}
   """
-  @spec rebuild_from_segments(GenServer.server(), String.t()) :: {:ok, non_neg_integer()} | {:error, term()}
+  @spec rebuild_from_segments(GenServer.server(), String.t()) ::
+          {:ok, non_neg_integer()} | {:error, term()}
   def rebuild_from_segments(server \\ __MODULE__, segments_dir) do
     GenServer.call(server, {:rebuild_from_segments, segments_dir}, :infinity)
   end
@@ -203,7 +204,9 @@ defmodule Storage.Index.SegmentIndex do
     new_state =
       if new_state.insert_count >= state.flush_threshold do
         case flush_impl(new_state) do
-          {:ok, flushed_state} -> flushed_state
+          {:ok, flushed_state} ->
+            flushed_state
+
           {:error, reason} ->
             Logger.warning("Auto-flush failed: #{inspect(reason)}")
             new_state
@@ -274,7 +277,9 @@ defmodule Storage.Index.SegmentIndex do
   def handle_info(:periodic_flush, state) do
     new_state =
       case flush_impl(state) do
-        {:ok, flushed_state} -> flushed_state
+        {:ok, flushed_state} ->
+          flushed_state
+
         {:error, reason} ->
           Logger.warning("Periodic flush failed: #{inspect(reason)}")
           state
@@ -380,7 +385,9 @@ defmodule Storage.Index.SegmentIndex do
       count =
         Enum.reduce(files, 0, fn segment_path, acc ->
           case scan_segment_file(table, segment_path) do
-            {:ok, entries_added} -> acc + entries_added
+            {:ok, entries_added} ->
+              acc + entries_added
+
             {:error, reason} ->
               Logger.warning("Failed to scan #{segment_path}: #{inspect(reason)}")
               acc

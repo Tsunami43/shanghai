@@ -120,9 +120,7 @@ defmodule Replication.StreamTest do
       follower_id = NodeId.new("follower1")
 
       # Start with small batch size
-      start_supervised!(
-        {Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 2]}
-      )
+      start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 2]})
 
       start_supervised!({Follower, [group_id: group_id, node_id: follower_id]})
 
@@ -145,9 +143,7 @@ defmodule Replication.StreamTest do
       follower1_id = NodeId.new("follower1")
       follower2_id = NodeId.new("follower2")
 
-      start_supervised!(
-        {Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 3]}
-      )
+      start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 3]})
 
       Stream.add_follower(group_id, follower1_id)
       Stream.add_follower(group_id, follower2_id)
@@ -171,9 +167,7 @@ defmodule Replication.StreamTest do
 
       start_supervised!({Leader, [group_id: group_id, node_id: leader_id]})
 
-      start_supervised!(
-        {Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 1]}
-      )
+      start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 1]})
 
       start_supervised!({Follower, [group_id: group_id, node_id: follower_id]})
 
@@ -200,9 +194,7 @@ defmodule Replication.StreamTest do
       leader_id = NodeId.new("leader")
       follower_id = NodeId.new("follower")
 
-      start_supervised!(
-        {Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 10]}
-      )
+      start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 10]})
 
       start_supervised!({Follower, [group_id: group_id, node_id: follower_id]})
 
@@ -224,9 +216,7 @@ defmodule Replication.StreamTest do
       leader_id = NodeId.new("leader")
       follower_id = NodeId.new("follower")
 
-      start_supervised!(
-        {Stream, [group_id: group_id, leader_node_id: leader_id]}
-      )
+      start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id]})
 
       Stream.add_follower(group_id, follower_id)
 
@@ -245,9 +235,7 @@ defmodule Replication.StreamTest do
       leader_id = NodeId.new("leader")
       unknown_follower_id = NodeId.new("unknown")
 
-      start_supervised!(
-        {Stream, [group_id: group_id, leader_node_id: leader_id]}
-      )
+      start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id]})
 
       # Request catch-up for follower that doesn't exist
       Stream.request_catch_up(group_id, unknown_follower_id, ReplicationOffset.new(5))

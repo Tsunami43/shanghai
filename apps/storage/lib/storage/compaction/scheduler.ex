@@ -20,7 +20,8 @@ defmodule Storage.Compaction.Scheduler do
   use GenServer
   require Logger
 
-  @default_interval 3_600_000  # 1 hour
+  # 1 hour
+  @default_interval 3_600_000
 
   defmodule State do
     @moduledoc false

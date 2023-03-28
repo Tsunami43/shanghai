@@ -9,13 +9,16 @@ config :storage,
   node_id: "test_node",
 
   # Fast rotation for testing
-  segment_size_threshold: 1 * 1024 * 1024,  # 1 MB
-  segment_time_threshold: 60,                # 1 minute
+  # 1 MB
+  segment_size_threshold: 1 * 1024 * 1024,
+  # 1 minute
+  segment_time_threshold: 60,
 
   # Disable automatic compaction in tests
   # Tests will trigger compaction manually when needed
   compaction_enabled: false,
-  compaction_interval: 60_000,  # 1 minute (if enabled)
+  # 1 minute (if enabled)
+  compaction_interval: 60_000,
 
   # Minimal snapshot retention for tests
   snapshot_retention: 2

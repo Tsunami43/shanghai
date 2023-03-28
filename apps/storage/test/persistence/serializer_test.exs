@@ -177,9 +177,10 @@ defmodule Storage.Persistence.SerializerTest do
     end
 
     test "handles deeply nested structures" do
-      nested = Enum.reduce(1..100, %{value: "deep"}, fn i, acc ->
-        %{"level_#{i}" => acc}
-      end)
+      nested =
+        Enum.reduce(1..100, %{value: "deep"}, fn i, acc ->
+          %{"level_#{i}" => acc}
+        end)
 
       assert {:ok, binary} = Serializer.encode(nested)
       assert {:ok, ^nested} = Serializer.decode(binary)

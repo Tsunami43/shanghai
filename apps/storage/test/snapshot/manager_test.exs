@@ -6,7 +6,10 @@ defmodule Storage.Snapshot.ManagerTest do
   alias Storage.Index.SegmentIndex
   alias Storage.Snapshot.Writer, as: SnapshotWriter
 
-  @test_dir Path.join(System.tmp_dir!(), "shanghai_snapshot_manager_test_#{:rand.uniform(999_999)}")
+  @test_dir Path.join(
+              System.tmp_dir!(),
+              "shanghai_snapshot_manager_test_#{:rand.uniform(999_999)}"
+            )
   @snapshots_dir Path.join(@test_dir, "snapshots")
   @wal_dir Path.join(@test_dir, "wal")
   @index_dir Path.join(@test_dir, "index")

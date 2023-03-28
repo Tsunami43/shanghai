@@ -116,7 +116,10 @@ defmodule Replication.Follower do
 
       true ->
         # Received old entry, ignore
-        Logger.debug("Ignoring old entry at offset #{offset.value}, current is #{state.current_offset.value}")
+        Logger.debug(
+          "Ignoring old entry at offset #{offset.value}, current is #{state.current_offset.value}"
+        )
+
         {:noreply, state}
     end
   end
@@ -168,9 +171,7 @@ defmodule Replication.Follower do
   defp report_to_leader(state) do
     # Report current offset to leader
     # In real implementation, this would be an RPC call to leader node
-    Logger.debug(
-      "Follower #{state.node_id.value} reporting offset #{state.current_offset.value}"
-    )
+    Logger.debug("Follower #{state.node_id.value} reporting offset #{state.current_offset.value}")
 
     # Try to report to local leader process if it exists
     try do

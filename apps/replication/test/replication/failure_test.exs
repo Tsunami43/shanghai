@@ -21,7 +21,9 @@ defmodule Replication.FailureTest do
 
       start_supervised!({Leader, [group_id: group_id, node_id: leader_id, replica_count: 1]})
       start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id]})
-      {:ok, follower_pid} = start_supervised({Follower, [group_id: group_id, node_id: follower_id]})
+
+      {:ok, follower_pid} =
+        start_supervised({Follower, [group_id: group_id, node_id: follower_id]})
 
       Stream.add_follower(group_id, follower_id)
 
@@ -53,7 +55,12 @@ defmodule Replication.FailureTest do
       follower_id = NodeId.new("follower")
 
       start_supervised!({Leader, [group_id: group_id, node_id: leader_id, replica_count: 1]})
-      {:ok, stream_pid} = start_supervised({Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 10]})
+
+      {:ok, stream_pid} =
+        start_supervised(
+          {Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 10]}
+        )
+
       start_supervised!({Follower, [group_id: group_id, node_id: follower_id]})
 
       Stream.add_follower(group_id, follower_id)
@@ -71,7 +78,9 @@ defmodule Replication.FailureTest do
 
       # Follower should eventually be able to catch up (in real implementation)
       # For now, just verify system didn't crash
-      follower_pid = GenServer.whereis({:via, Registry, {Replication.Registry, {:follower, group_id}}})
+      follower_pid =
+        GenServer.whereis({:via, Registry, {Replication.Registry, {:follower, group_id}}})
+
       assert follower_pid != nil
       assert Process.alive?(follower_pid)
     end

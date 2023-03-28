@@ -31,7 +31,8 @@ defmodule Storage.WAL.WriterTest do
       Writer.start_link(
         data_dir: @test_dir,
         node_id: "test_node",
-        segment_size_threshold: 1024,  # Small threshold for testing rotation
+        # Small threshold for testing rotation
+        segment_size_threshold: 1024,
         segment_time_threshold: 3600
       )
 

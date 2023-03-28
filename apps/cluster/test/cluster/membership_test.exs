@@ -151,6 +151,7 @@ defmodule Cluster.MembershipTest do
       subscriber_pid =
         spawn(fn ->
           Membership.subscribe()
+
           receive do
             :stop -> :ok
           end

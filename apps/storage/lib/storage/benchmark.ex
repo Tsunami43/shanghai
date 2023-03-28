@@ -39,7 +39,8 @@ defmodule Storage.Benchmark do
   def wal_write_throughput(count) do
     Logger.info("Starting WAL write throughput benchmark (#{count} writes)")
 
-    data = :crypto.strong_rand_bytes(1024)  # 1 KB per write
+    # 1 KB per write
+    data = :crypto.strong_rand_bytes(1024)
 
     start_time = System.monotonic_time(:millisecond)
 
@@ -104,7 +105,8 @@ defmodule Storage.Benchmark do
         case Writer.append(data) do
           {:ok, _lsn} ->
             duration = System.monotonic_time(:microsecond) - start
-            duration / 1000  # Convert to milliseconds
+            # Convert to milliseconds
+            duration / 1000
 
           {:error, _reason} ->
             nil
@@ -126,7 +128,9 @@ defmodule Storage.Benchmark do
       max: Float.round(max, 2)
     }
 
-    Logger.info("Latency percentiles - P50: #{result.p50}ms, P95: #{result.p95}ms, P99: #{result.p99}ms")
+    Logger.info(
+      "Latency percentiles - P50: #{result.p50}ms, P95: #{result.p95}ms, P99: #{result.p99}ms"
+    )
 
     result
   end
@@ -138,7 +142,9 @@ defmodule Storage.Benchmark do
   """
   @spec concurrent_writes(pos_integer(), pos_integer()) :: map()
   def concurrent_writes(num_processes, writes_per_process) do
-    Logger.info("Starting concurrent write benchmark (#{num_processes} processes, #{writes_per_process} writes each)")
+    Logger.info(
+      "Starting concurrent write benchmark (#{num_processes} processes, #{writes_per_process} writes each)"
+    )
 
     start_time = System.monotonic_time(:millisecond)
 
@@ -173,7 +179,9 @@ defmodule Storage.Benchmark do
       avg_latency_ms: Float.round(duration_ms / total_writes, 3)
     }
 
-    Logger.info("Concurrent benchmark complete: #{throughput} writes/sec across #{num_processes} processes")
+    Logger.info(
+      "Concurrent benchmark complete: #{throughput} writes/sec across #{num_processes} processes"
+    )
 
     result
   end

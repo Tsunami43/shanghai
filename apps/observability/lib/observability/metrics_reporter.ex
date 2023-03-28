@@ -114,7 +114,12 @@ defmodule Observability.MetricsReporter do
 
   ## Private Functions
 
-  defp process_telemetry_event([:shanghai, :storage, :wal, :write], measurements, _metadata, state) do
+  defp process_telemetry_event(
+         [:shanghai, :storage, :wal, :write],
+         measurements,
+         _metadata,
+         state
+       ) do
     updated_writes = update_stat(state.wal_writes, measurements.duration)
     %{state | wal_writes: updated_writes}
   end

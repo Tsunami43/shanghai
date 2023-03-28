@@ -8,8 +8,7 @@ defmodule Replication.MonitorTest do
   setup do
     # Start monitor with short intervals for testing
     start_supervised!(
-      {Monitor,
-       [lag_threshold: 5, stale_threshold_ms: 1000, check_interval_ms: 500]}
+      {Monitor, [lag_threshold: 5, stale_threshold_ms: 1000, check_interval_ms: 500]}
     )
 
     :ok
