@@ -1,8 +1,8 @@
 defmodule Storage.WAL.WriterTest do
   use ExUnit.Case, async: false
 
-  alias Storage.WAL.{Writer, SegmentManager}
   alias Storage.Index.SegmentIndex
+  alias Storage.WAL.{Segment, SegmentManager, Writer}
 
   @test_dir Path.join(System.tmp_dir!(), "shanghai_writer_test_#{:rand.uniform(999_999)}")
   @registry Storage.WAL.SegmentRegistry
@@ -90,7 +90,7 @@ defmodule Storage.WAL.WriterTest do
 
     test "handles various data types", %{writer: _writer} do
       assert {:ok, _} = Writer.append("string")
-      assert {:ok, _} = Writer.append(12345)
+      assert {:ok, _} = Writer.append(12_345)
       assert {:ok, _} = Writer.append(%{key: "value"})
       assert {:ok, _} = Writer.append([1, 2, 3])
       assert {:ok, _} = Writer.append({:tuple, "data"})
@@ -141,7 +141,7 @@ defmodule Storage.WAL.WriterTest do
       # Try to find sealed segment (segment 1)
       case SegmentManager.get_segment(1) do
         {:ok, seg_pid} ->
-          {:ok, seg_info} = Storage.WAL.Segment.info(seg_pid)
+          {:ok, seg_info} = Segment.info(seg_pid)
           # Segment should be sealed
           assert seg_info.sealed == true
 

@@ -12,8 +12,8 @@ defmodule Replication.Monitor do
   use GenServer
   require Logger
 
-  alias Replication.ValueObjects.ReplicationOffset
   alias CoreDomain.Types.NodeId
+  alias Replication.ValueObjects.ReplicationOffset
 
   @type replica_metrics :: %{
           node_id: NodeId.t(),

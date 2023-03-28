@@ -1,8 +1,8 @@
 defmodule Replication.FailureTest do
   use ExUnit.Case, async: false
 
-  alias Replication.{Leader, Follower, Stream}
   alias CoreDomain.Types.NodeId
+  alias Replication.{Follower, Leader, Stream}
 
   setup do
     case Process.whereis(Replication.Registry) do

@@ -1,10 +1,10 @@
 defmodule Replication.ReplicaGroupTest do
   use ExUnit.Case, async: true
 
-  alias Replication.ReplicaGroup
-  alias Replication.Events.{LeaderElected, ReplicaCaughtUp, ReplicaFellBehind}
-  alias Replication.ValueObjects.ReplicationOffset
   alias CoreDomain.Types.NodeId
+  alias Replication.Events.{LeaderElected, ReplicaCaughtUp, ReplicaFellBehind}
+  alias Replication.ReplicaGroup
+  alias Replication.ValueObjects.ReplicationOffset
 
   describe "new/1" do
     test "creates empty replica group" do

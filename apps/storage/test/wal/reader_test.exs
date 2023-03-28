@@ -1,8 +1,8 @@
 defmodule Storage.WAL.ReaderTest do
   use ExUnit.Case, async: false
 
-  alias Storage.WAL.{Reader, Writer, SegmentManager}
   alias Storage.Index.SegmentIndex
+  alias Storage.WAL.{Reader, SegmentManager, Writer}
 
   @test_dir Path.join(System.tmp_dir!(), "shanghai_reader_test_#{:rand.uniform(999_999)}")
   @registry Storage.WAL.SegmentRegistry
@@ -97,7 +97,7 @@ defmodule Storage.WAL.ReaderTest do
     test "reads various data types", %{writer: _writer, reader: _reader} do
       test_data = [
         "string",
-        12345,
+        12_345,
         %{key: "value"},
         [1, 2, 3],
         {:tuple, "data"}

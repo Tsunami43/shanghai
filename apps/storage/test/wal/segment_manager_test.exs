@@ -1,9 +1,9 @@
 defmodule Storage.WAL.SegmentManagerTest do
   use ExUnit.Case, async: false
 
-  alias Storage.WAL.{SegmentManager, Segment}
   alias CoreDomain.Entities.LogEntry
   alias CoreDomain.Types.{LogSequenceNumber, NodeId}
+  alias Storage.WAL.{Segment, SegmentManager}
 
   @test_dir Path.join(System.tmp_dir!(), "shanghai_segmgr_test_#{:rand.uniform(999_999)}")
   @registry Storage.WAL.SegmentRegistry

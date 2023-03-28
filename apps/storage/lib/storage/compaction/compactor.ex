@@ -25,8 +25,6 @@ defmodule Storage.Compaction.Compactor do
   require Logger
 
   alias Storage.WAL.{Segment, SegmentManager}
-  alias Storage.Index.SegmentIndex
-  alias Storage.Compaction.Strategy
 
   defmodule State do
     @moduledoc false
@@ -152,15 +150,9 @@ defmodule Storage.Compaction.Compactor do
     Logger.info("Starting compaction run")
 
     try do
-      case perform_compaction(state) do
-        :ok ->
-          send(__MODULE__, :compaction_complete)
-          :ok
-
-        {:error, reason} ->
-          send(__MODULE__, {:compaction_failed, reason})
-          {:error, reason}
-      end
+      :ok = perform_compaction(state)
+      send(__MODULE__, :compaction_complete)
+      :ok
     rescue
       e ->
         error = {:compaction_crash, Exception.message(e)}
@@ -211,31 +203,26 @@ defmodule Storage.Compaction.Compactor do
     Logger.info("Compacting segment group: #{inspect(segment_ids)}")
 
     # Read all entries from segments
-    case read_entries_from_segments(segment_ids) do
-      {:ok, entries} when length(entries) > 0 ->
-        # Sort by LSN (should already be sorted, but ensure it)
-        sorted_entries = Enum.sort_by(entries, & &1.lsn.value)
+    {:ok, entries} = read_entries_from_segments(segment_ids)
 
-        # Determine range
-        start_lsn = hd(sorted_entries).lsn.value
-        end_lsn = List.last(sorted_entries).lsn.value
+    if entries != [] do
+      # Sort by LSN (should already be sorted, but ensure it)
+      sorted_entries = Enum.sort_by(entries, & &1.lsn.value)
 
-        Logger.info("Merging #{length(entries)} entries from LSN #{start_lsn} to #{end_lsn}")
+      # Determine range
+      start_lsn = hd(sorted_entries).lsn.value
+      end_lsn = List.last(sorted_entries).lsn.value
 
-        # Create new merged segment
-        # For now, log success (actual segment creation would happen here)
-        Logger.info("Successfully compacted #{length(segment_ids)} segments into 1 segment")
+      Logger.info("Merging #{length(entries)} entries from LSN #{start_lsn} to #{end_lsn}")
 
-        :ok
-
-      {:ok, []} ->
-        Logger.info("No entries found in segment group, skipping")
-        :ok
-
-      {:error, reason} ->
-        Logger.error("Failed to read entries for compaction: #{inspect(reason)}")
-        {:error, reason}
+      # Create new merged segment
+      # For now, log success (actual segment creation would happen here)
+      Logger.info("Successfully compacted #{length(segment_ids)} segments into 1 segment")
+    else
+      Logger.info("No entries found in segment group, skipping")
     end
+
+    :ok
   end
 
   @spec read_entries_from_segments([non_neg_integer()]) ::

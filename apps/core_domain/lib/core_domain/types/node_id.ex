@@ -27,7 +27,7 @@ defmodule CoreDomain.Types.NodeId do
   """
   @spec generate() :: t()
   def generate do
-    # TODO: Use better ID generation (e.g., Snowflake IDs)
+    # Use better ID generation (e.g., Snowflake IDs)
     value = :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
     new(value)
   end

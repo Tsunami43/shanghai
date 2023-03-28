@@ -1,11 +1,11 @@
 defmodule Cluster.HeartbeatTest do
   use ExUnit.Case, async: false
 
+  alias Cluster.Entities.Node
+  alias Cluster.Events.NodeDetectedDown
   alias Cluster.Heartbeat
   alias Cluster.Membership
-  alias Cluster.Entities.Node
   alias Cluster.ValueObjects.Heartbeat, as: HeartbeatVO
-  alias Cluster.Events.NodeDetectedDown
   alias CoreDomain.Types.NodeId
 
   setup do

@@ -2,8 +2,8 @@ defmodule Cluster.GossipTest do
   use ExUnit.Case, async: false
 
   alias Cluster.Gossip
-  alias Cluster.Membership
   alias Cluster.Heartbeat
+  alias Cluster.Membership
   alias Cluster.ValueObjects.Heartbeat, as: HeartbeatVO
   alias CoreDomain.Types.NodeId
 

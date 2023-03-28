@@ -61,20 +61,20 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
     end
   end
 
-  describe "is_local?/1" do
+  describe "local?/1" do
     test "returns true for local level" do
       level = ConsistencyLevel.new(:local)
-      assert ConsistencyLevel.is_local?(level) == true
+      assert ConsistencyLevel.local?(level) == true
     end
 
     test "returns false for quorum level" do
       level = ConsistencyLevel.new(:quorum)
-      assert ConsistencyLevel.is_local?(level) == false
+      assert ConsistencyLevel.local?(level) == false
     end
 
     test "returns false for leader level" do
       level = ConsistencyLevel.new(:leader)
-      assert ConsistencyLevel.is_local?(level) == false
+      assert ConsistencyLevel.local?(level) == false
     end
   end
 

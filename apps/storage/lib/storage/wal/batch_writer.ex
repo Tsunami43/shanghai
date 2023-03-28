@@ -179,35 +179,25 @@ defmodule Storage.WAL.BatchWriter do
     # Single fsync for the entire batch
     sync_start = System.monotonic_time(:millisecond)
 
-    case sync_segment(state.segment_pid) do
-      :ok ->
-        sync_duration = System.monotonic_time(:millisecond) - sync_start
-        batch_duration = System.monotonic_time(:millisecond) - batch_start
+    :ok = sync_segment(state.segment_pid)
+    sync_duration = System.monotonic_time(:millisecond) - sync_start
+    batch_duration = System.monotonic_time(:millisecond) - batch_start
 
-        # Emit metrics for batch operation
-        Observability.Metrics.wal_sync_completed(sync_duration, :batch)
+    # Emit metrics for batch operation
+    Observability.Metrics.wal_sync_completed(sync_duration, :batch)
 
-        Logger.debug(
-          "Flushed batch of #{length(results)} writes in #{batch_duration}ms (sync: #{sync_duration}ms)"
-        )
+    Logger.debug(
+      "Flushed batch of #{length(results)} writes in #{batch_duration}ms (sync: #{sync_duration}ms)"
+    )
 
-        # Reply to all waiting clients
-        Enum.each(results, fn
-          {:ok, offset, from} ->
-            GenServer.reply(from, {:ok, offset})
+    # Reply to all waiting clients
+    Enum.each(results, fn
+      {:ok, offset, from} ->
+        GenServer.reply(from, {:ok, offset})
 
-          {:error, reason, from} ->
-            GenServer.reply(from, {:error, reason})
-        end)
-
-      {:error, reason} ->
-        Logger.error("Batch fsync failed: #{inspect(reason)}")
-
-        # Notify all clients of failure
-        Enum.each(results, fn {_, _, from} ->
-          GenServer.reply(from, {:error, {:sync_failed, reason}})
-        end)
-    end
+      {:error, reason, from} ->
+        GenServer.reply(from, {:error, reason})
+    end)
   end
 
   defp write_without_sync(segment_pid, data) do
@@ -217,7 +207,7 @@ defmodule Storage.WAL.BatchWriter do
     Segment.append_entry(segment_pid, data)
   end
 
-  defp sync_segment(segment_pid) do
+  defp sync_segment(_segment_pid) do
     # This would call a new Segment API to fsync without writing
     # For now, we'll assume success
     # In production, we'd add Segment.sync/1

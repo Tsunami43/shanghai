@@ -13,8 +13,8 @@ defmodule Cluster.Membership do
   use GenServer
   require Logger
 
-  alias Cluster.State
   alias Cluster.Entities.Node
+  alias Cluster.State
   alias CoreDomain.Types.NodeId
 
   @type state :: %{

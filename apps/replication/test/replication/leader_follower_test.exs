@@ -1,9 +1,9 @@
 defmodule Replication.LeaderFollowerTest do
   use ExUnit.Case, async: false
 
-  alias Replication.{Leader, Follower}
-  alias Replication.ValueObjects.ReplicationOffset
   alias CoreDomain.Types.NodeId
+  alias Replication.{Follower, Leader}
+  alias Replication.ValueObjects.ReplicationOffset
 
   setup do
     # Start registry if not already running

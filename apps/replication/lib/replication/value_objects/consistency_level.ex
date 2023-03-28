@@ -48,9 +48,9 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   @doc """
   Returns true if this level is local only (no replication wait).
   """
-  @spec is_local?(t()) :: boolean()
-  def is_local?(%__MODULE__{level: :local}), do: true
-  def is_local?(%__MODULE__{level: _}), do: false
+  @spec local?(t()) :: boolean()
+  def local?(%__MODULE__{level: :local}), do: true
+  def local?(%__MODULE__{level: _}), do: false
 
   @doc """
   Calculates required acknowledgments for a given replica count.

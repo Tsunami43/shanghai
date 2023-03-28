@@ -1,10 +1,10 @@
 defmodule Storage.Snapshot.ManagerTest do
   use ExUnit.Case, async: false
 
-  alias Storage.Snapshot.Manager
-  alias Storage.WAL.{Writer, SegmentManager}
   alias Storage.Index.SegmentIndex
+  alias Storage.Snapshot.Manager
   alias Storage.Snapshot.Writer, as: SnapshotWriter
+  alias Storage.WAL.{Reader, SegmentManager, Writer}
 
   @test_dir Path.join(
               System.tmp_dir!(),
@@ -45,7 +45,7 @@ defmodule Storage.Snapshot.ManagerTest do
       )
 
     # Start WAL Reader
-    {:ok, reader_pid} = Storage.WAL.Reader.start_link([])
+    {:ok, reader_pid} = Reader.start_link([])
 
     # Start Snapshot Manager
     {:ok, manager_pid} =
@@ -522,7 +522,7 @@ defmodule Storage.Snapshot.ManagerTest do
 
       # List should have succeeded
       assert is_list(snapshots)
-      assert length(snapshots) > 0
+      assert snapshots != []
     end
   end
 

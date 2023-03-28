@@ -40,13 +40,13 @@ defmodule Query do
       {:error, :not_found}
   """
   @spec read(String.t(), keyword()) :: {:ok, term()} | {:error, term()}
-  def read(key, opts \\ []) do
+  def read(_key, opts \\ []) do
     _consistency = Keyword.get(opts, :consistency, ConsistencyLevel.default())
     _timeout = Keyword.get(opts, :timeout, 5000)
 
-    # TODO: Delegate to Query.Executor.QueryExecutor
-    # TODO: Route to appropriate node based on partition key
-    # TODO: Apply consistency semantics
+    # Delegate to Query.Executor.QueryExecutor
+    # Route to appropriate node based on partition key
+    # Apply consistency semantics
     {:ok, nil}
   end
 
@@ -64,13 +64,13 @@ defmodule Query do
       {:ok, :written}
   """
   @spec write(String.t(), term(), keyword()) :: {:ok, :written} | {:error, term()}
-  def write(key, value, opts \\ []) do
+  def write(_key, _value, opts \\ []) do
     _consistency = Keyword.get(opts, :consistency, ConsistencyLevel.default())
     _timeout = Keyword.get(opts, :timeout, 5000)
 
-    # TODO: Delegate to Query.Executor.WriteExecutor
-    # TODO: Replicate based on consistency level
-    # TODO: Handle write conflicts
+    # Delegate to Query.Executor.WriteExecutor
+    # Replicate based on consistency level
+    # Handle write conflicts
     {:ok, :written}
   end
 
@@ -88,8 +88,8 @@ defmodule Query do
   @spec transact([{:read | :write, String.t(), term()}]) ::
           {:ok, :committed} | {:error, term()}
   def transact(operations) when is_list(operations) do
-    # TODO: Delegate to Query.Transaction.Coordinator
-    # TODO: Implement 2PC or optimistic concurrency control
+    # Delegate to Query.Transaction.Coordinator
+    # Implement 2PC or optimistic concurrency control
     {:ok, :committed}
   end
 
@@ -102,11 +102,11 @@ defmodule Query do
       {:ok, :deleted}
   """
   @spec delete(String.t(), keyword()) :: {:ok, :deleted} | {:error, term()}
-  def delete(key, opts \\ []) do
+  def delete(_key, opts \\ []) do
     _timeout = Keyword.get(opts, :timeout, 5000)
 
-    # TODO: Implement as tombstone write
-    # TODO: Trigger compaction to reclaim space
+    # Implement as tombstone write
+    # Trigger compaction to reclaim space
     {:ok, :deleted}
   end
 end

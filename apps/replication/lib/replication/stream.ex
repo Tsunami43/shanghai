@@ -13,8 +13,8 @@ defmodule Replication.Stream do
   use GenServer
   require Logger
 
-  alias Replication.ValueObjects.ReplicationOffset
   alias CoreDomain.Types.NodeId
+  alias Replication.ValueObjects.ReplicationOffset
 
   @type follower_state :: %{
           node_id: NodeId.t(),
@@ -243,7 +243,7 @@ defmodule Replication.Stream do
         ReplicationOffset.compare(offset, follower_state.last_sent_offset) == :gt
       end)
 
-    if length(entries_to_send) > 0 do
+    if entries_to_send != [] do
       # In real implementation, this would be an RPC call to follower node
       # For now, send to local follower process if it exists
       try do

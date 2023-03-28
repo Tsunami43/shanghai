@@ -23,8 +23,8 @@ defmodule Storage.Snapshot.Manager do
   use GenServer
   require Logger
 
-  alias Storage.Snapshot.{Writer, Reader}
   alias Storage.Persistence.FileBackend
+  alias Storage.Snapshot.{Reader, Writer}
 
   @default_retention_count 5
 
@@ -180,7 +180,7 @@ defmodule Storage.Snapshot.Manager do
       {:ok, metadata} ->
         {:reply, {:ok, metadata}, state}
 
-      {:error, reason} = error ->
+      {:error, _reason} = error ->
         {:reply, error, state}
     end
   end
@@ -226,9 +226,8 @@ defmodule Storage.Snapshot.Manager do
   defp delete_snapshot_files(snapshots_dir, snapshot_id) do
     {data_path, meta_path} = Writer.snapshot_paths(snapshots_dir, snapshot_id)
 
-    with :ok <- delete_file_if_exists(data_path),
-         :ok <- delete_file_if_exists(meta_path) do
-      :ok
+    with :ok <- delete_file_if_exists(data_path) do
+      delete_file_if_exists(meta_path)
     end
   end
 

@@ -19,8 +19,8 @@ defmodule Storage.Snapshot.Writer do
 
   require Logger
 
-  alias Storage.WAL.Reader
   alias Storage.Persistence.{FileBackend, Serializer}
+  alias Storage.WAL.Reader
 
   @type snapshot_id :: String.t()
   @type snapshot_metadata :: %{
@@ -55,7 +55,9 @@ defmodule Storage.Snapshot.Writer do
       iex> SnapshotWriter.create_snapshot("/data/snapshots", 1000, reader_pid)
       {:ok, "snapshot_20260111_120000_lsn_0000000000001000"}
   """
-  @spec create_snapshot(String.t(), non_neg_integer(), pid()) ::
+  @spec create_snapshot(String.t(), non_neg_integer()) ::
+          {:ok, snapshot_id()} | {:error, term()}
+  @spec create_snapshot(String.t(), non_neg_integer(), module() | pid()) ::
           {:ok, snapshot_id()} | {:error, term()}
   def create_snapshot(snapshots_dir, lsn, reader \\ Reader) when is_integer(lsn) and lsn >= 0 do
     Logger.info("Creating snapshot up to LSN #{lsn}")
@@ -140,13 +142,11 @@ defmodule Storage.Snapshot.Writer do
 
   @spec compress_data(binary()) :: {:ok, binary()} | {:error, term()}
   defp compress_data(data) do
-    try do
-      compressed = :zlib.gzip(data)
-      {:ok, compressed}
-    rescue
-      e ->
-        {:error, {:compression_failed, Exception.message(e)}}
-    end
+    compressed = :zlib.gzip(data)
+    {:ok, compressed}
+  rescue
+    e ->
+      {:error, {:compression_failed, Exception.message(e)}}
   end
 
   @spec build_metadata(

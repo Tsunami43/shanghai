@@ -1,9 +1,9 @@
 defmodule Replication.ConsistencyTest do
   use ExUnit.Case, async: false
 
-  alias Replication.{Leader, Follower, Stream}
-  alias Replication.ValueObjects.ReplicationOffset
   alias CoreDomain.Types.NodeId
+  alias Replication.{Follower, Leader, Stream}
+  alias Replication.ValueObjects.ReplicationOffset
 
   setup do
     case Process.whereis(Replication.Registry) do

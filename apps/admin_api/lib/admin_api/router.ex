@@ -8,6 +8,9 @@ defmodule AdminApi.Router do
 
   use Plug.Router
 
+  alias Cluster.Entities.Node
+  alias CoreDomain.Types.NodeId
+
   plug(AdminApi.Plugs.CorrelationId)
   plug(:match)
   plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
@@ -160,8 +163,8 @@ defmodule AdminApi.Router do
   defp validate_node_params(_), do: {:error, :invalid_params}
 
   defp execute_node_action(%{action: "join", id: id, host: host, port: port}) do
-    node_id = CoreDomain.Types.NodeId.new(id)
-    node = Cluster.Entities.Node.new(node_id, host, port)
+    node_id = NodeId.new(id)
+    node = Node.new(node_id, host, port)
 
     case Cluster.join(node) do
       :ok -> {:ok, "Node #{id} joined successfully"}
@@ -170,7 +173,7 @@ defmodule AdminApi.Router do
   end
 
   defp execute_node_action(%{action: "leave", id: id}) do
-    node_id = CoreDomain.Types.NodeId.new(id)
+    node_id = NodeId.new(id)
 
     case Cluster.leave(node_id) do
       :ok -> {:ok, "Node #{id} left successfully"}
@@ -178,7 +181,7 @@ defmodule AdminApi.Router do
     end
   end
 
-  defp serialize_node(%Cluster.Entities.Node{} = node) do
+  defp serialize_node(%Node{} = node) do
     heartbeat_age_ms =
       if node.last_seen_at do
         DateTime.diff(DateTime.utc_now(), node.last_seen_at, :millisecond)

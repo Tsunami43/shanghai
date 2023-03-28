@@ -1,9 +1,9 @@
 defmodule Cluster.StateTest do
   use ExUnit.Case, async: true
 
-  alias Cluster.State
   alias Cluster.Entities.Node
-  alias Cluster.Events.{NodeJoined, NodeLeft, NodeDetectedDown}
+  alias Cluster.Events.{NodeDetectedDown, NodeJoined, NodeLeft}
+  alias Cluster.State
   alias CoreDomain.Types.NodeId
 
   describe "new/1" do

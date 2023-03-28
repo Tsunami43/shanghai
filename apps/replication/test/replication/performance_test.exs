@@ -3,8 +3,8 @@ defmodule Replication.PerformanceTest do
 
   @moduletag :performance
 
-  alias Replication.Leader
   alias CoreDomain.Types.NodeId
+  alias Replication.Leader
 
   setup do
     case Process.whereis(Replication.Registry) do
