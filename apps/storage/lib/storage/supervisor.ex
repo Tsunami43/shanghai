@@ -30,7 +30,17 @@ defmodule Storage.Supervisor do
     # Get configuration from Application environment
     data_root = Application.get_env(:storage, :data_root)
 
-    children =
+    # The segment Registry and SegmentManager are core WAL infrastructure and
+    # are always started, in this order, before anything that uses them. The
+    # SegmentManager registers segment processes in this Registry via
+    # `{:via, Registry, ...}`, so the Registry MUST exist first — otherwise
+    # `start_segment/4` fails in a configured deployment.
+    base_children = [
+      {Registry, keys: :unique, name: Storage.WAL.SegmentRegistry},
+      {Storage.WAL.SegmentManager, []}
+    ]
+
+    rest =
       if data_root do
         # Full storage stack with configuration
         build_children_with_config(data_root)
@@ -39,7 +49,7 @@ defmodule Storage.Supervisor do
         build_minimal_children()
       end
 
-    Supervisor.init(children, strategy: :one_for_one)
+    Supervisor.init(base_children ++ rest, strategy: :one_for_one)
   end
 
   # Builds full storage stack when configuration is available
@@ -57,8 +67,7 @@ defmodule Storage.Supervisor do
     segment_time_threshold = Application.get_env(:storage, :segment_time_threshold, 3600)
 
     [
-      # Core WAL infrastructure
-      {Storage.WAL.SegmentManager, []},
+      # Registry + SegmentManager are started by init/1 as base children.
       {Storage.Index.SegmentIndex, [data_dir: index_dir]},
 
       # WAL Writer and Reader
