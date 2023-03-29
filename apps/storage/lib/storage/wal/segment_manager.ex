@@ -127,10 +127,29 @@ defmodule Storage.WAL.SegmentManager do
     case get_segment(segment_id) do
       {:ok, pid} ->
         DynamicSupervisor.terminate_child(__MODULE__, pid)
+        # terminate_child returns once the process is dead, but the Registry
+        # drops the segment_id key asynchronously via its own monitor. Wait for
+        # the key to clear so a subsequent start_segment/4 with the same id
+        # reliably starts a fresh process instead of returning the stale pid.
+        await_unregister(segment_id, 200)
         :ok
 
       {:error, :not_found} ->
         :ok
+    end
+  end
+
+  # Busy-waits (bounded) until the segment id is no longer registered.
+  defp await_unregister(_segment_id, 0), do: :ok
+
+  defp await_unregister(segment_id, attempts_left) do
+    case Registry.lookup(@registry, segment_id) do
+      [] ->
+        :ok
+
+      _still_registered ->
+        Process.sleep(1)
+        await_unregister(segment_id, attempts_left - 1)
     end
   end
 
