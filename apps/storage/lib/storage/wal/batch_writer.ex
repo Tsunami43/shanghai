@@ -23,8 +23,8 @@ defmodule Storage.WAL.BatchWriter do
 
   ## Usage
 
-      # Writes will be batched automatically
-      {:ok, lsn} = BatchWriter.append(data)
+      # A `CoreDomain.Entities.LogEntry` is queued and batched automatically
+      {:ok, offset} = BatchWriter.append(log_entry)
 
       # Force immediate flush
       :ok = BatchWriter.flush()
@@ -33,6 +33,7 @@ defmodule Storage.WAL.BatchWriter do
   use GenServer
   require Logger
 
+  alias CoreDomain.Entities.LogEntry
   alias Storage.WAL.Segment
 
   @default_batch_size 100
@@ -74,14 +75,15 @@ defmodule Storage.WAL.BatchWriter do
   end
 
   @doc """
-  Appends data to the WAL with batching.
+  Appends a `LogEntry` to the WAL with batching.
 
-  The write is queued and will be fsynced when the batch is flushed.
-  This call blocks until the write is safely on disk.
+  The entry is queued and will be fsynced when the batch is flushed. This call
+  blocks until the write is safely on disk. The value must be a
+  `CoreDomain.Entities.LogEntry` — it is written through `Segment.append_entry/2`.
   """
-  @spec append(term()) :: {:ok, non_neg_integer()} | {:error, term()}
-  def append(data) do
-    GenServer.call(__MODULE__, {:append, data}, :infinity)
+  @spec append(LogEntry.t()) :: {:ok, non_neg_integer()} | {:error, term()}
+  def append(entry) do
+    GenServer.call(__MODULE__, {:append, entry}, :infinity)
   end
 
   @doc """
@@ -176,42 +178,40 @@ defmodule Storage.WAL.BatchWriter do
         end
       end)
 
-    # Single fsync for the entire batch
+    # Single fsync for the entire batch, amortizing durability cost.
     sync_start = System.monotonic_time(:millisecond)
-
-    :ok = sync_segment(state.segment_pid)
+    sync_result = sync_segment(state.segment_pid)
     sync_duration = System.monotonic_time(:millisecond) - sync_start
     batch_duration = System.monotonic_time(:millisecond) - batch_start
 
-    # Emit metrics for batch operation
-    Observability.Metrics.wal_sync_completed(sync_duration, :batch)
+    if sync_result == :ok do
+      Observability.Metrics.wal_sync_completed(sync_duration, :batch)
+    end
 
     Logger.debug(
       "Flushed batch of #{length(results)} writes in #{batch_duration}ms (sync: #{sync_duration}ms)"
     )
 
-    # Reply to all waiting clients
+    # Reply to all waiting clients. A failed batch fsync means the writes are not
+    # durable, so successful writes are reported as errors too.
     Enum.each(results, fn
       {:ok, offset, from} ->
-        GenServer.reply(from, {:ok, offset})
+        case sync_result do
+          :ok -> GenServer.reply(from, {:ok, offset})
+          {:error, reason} -> GenServer.reply(from, {:error, {:sync_failed, reason}})
+        end
 
       {:error, reason, from} ->
         GenServer.reply(from, {:error, reason})
     end)
   end
 
-  defp write_without_sync(segment_pid, data) do
-    # This would be a new Segment API call that writes without fsync
-    # For now, we'll use the regular append which includes fsync
-    # In production, we'd add Segment.append_entry_no_sync/2
-    Segment.append_entry(segment_pid, data)
+  defp write_without_sync(segment_pid, entry) do
+    Segment.append_entry_no_sync(segment_pid, entry)
   end
 
-  defp sync_segment(_segment_pid) do
-    # This would call a new Segment API to fsync without writing
-    # For now, we'll assume success
-    # In production, we'd add Segment.sync/1
-    :ok
+  defp sync_segment(segment_pid) do
+    Segment.sync(segment_pid)
   end
 
   defp reset_state(state) do
