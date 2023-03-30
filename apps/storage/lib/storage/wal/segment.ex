@@ -102,6 +102,25 @@ defmodule Storage.WAL.Segment do
   end
 
   @doc """
+  Appends an entry WITHOUT fsync, returning its offset.
+
+  Durability is deferred: call `sync/1` afterwards to flush. This lets a batch
+  writer amortize a single fsync over many appends.
+  """
+  @spec append_entry_no_sync(pid(), LogEntry.t()) :: {:ok, offset()} | {:error, term()}
+  def append_entry_no_sync(pid, %LogEntry{} = entry) do
+    GenServer.call(pid, {:append_entry_no_sync, entry})
+  end
+
+  @doc """
+  fsyncs the segment file, making previously written entries durable.
+  """
+  @spec sync(pid()) :: :ok | {:error, term()}
+  def sync(pid) do
+    GenServer.call(pid, :sync)
+  end
+
+  @doc """
   Reads a log entry at the given byte offset.
 
   ## Examples
@@ -221,6 +240,24 @@ defmodule Storage.WAL.Segment do
       {:error, reason} ->
         {:reply, {:error, reason}, state}
     end
+  end
+
+  def handle_call({:append_entry_no_sync, _entry}, _from, %{sealed: true} = state) do
+    {:reply, {:error, :segment_sealed}, state}
+  end
+
+  def handle_call({:append_entry_no_sync, entry}, _from, state) do
+    case write_entry_impl(entry, state) do
+      {:ok, offset, new_state} ->
+        {:reply, {:ok, offset}, new_state}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  def handle_call(:sync, _from, state) do
+    {:reply, sync_impl(state), state}
   end
 
   def handle_call({:read_entry, offset}, _from, state) do
@@ -386,10 +423,21 @@ defmodule Storage.WAL.Segment do
     end
   end
 
+  # Writes the entry then fsyncs it (the durable, single-entry path).
   @spec append_entry_impl(LogEntry.t(), state()) ::
           {:ok, offset(), state()} | {:error, term()}
   defp append_entry_impl(entry, state) do
-    # Serialize the entry
+    with {:ok, offset, new_state} <- write_entry_impl(entry, state),
+         :ok <- sync_impl(new_state) do
+      {:ok, offset, new_state}
+    end
+  end
+
+  # Writes the entry to the segment file WITHOUT fsync. Durability is deferred to
+  # a later `sync_impl/1`, which lets a batch amortize one fsync over many writes.
+  @spec write_entry_impl(LogEntry.t(), state()) ::
+          {:ok, offset(), state()} | {:error, term()}
+  defp write_entry_impl(entry, state) do
     with {:ok, payload} <- Serializer.encode(entry) do
       # Build entry format: [length][lsn][checksum][payload]
       length = byte_size(payload)
@@ -399,53 +447,46 @@ defmodule Storage.WAL.Segment do
       entry_bytes =
         <<length::32, lsn_value::64, checksum::32, payload::binary>>
 
-      # Get current offset before write
       write_offset = state.current_offset
-
-      # Measure write time
       write_start = System.monotonic_time(:millisecond)
 
-      # Write to file
       case :file.pwrite(state.file, write_offset, entry_bytes) do
         :ok ->
           write_duration = System.monotonic_time(:millisecond) - write_start
 
-          # Emit write metric
           Observability.Metrics.wal_write_completed(
             write_duration,
             byte_size(entry_bytes),
             state.segment_id
           )
 
-          # Measure sync time
-          sync_start = System.monotonic_time(:millisecond)
+          new_state = %{
+            state
+            | current_offset: write_offset + byte_size(entry_bytes),
+              entry_count: state.entry_count + 1
+          }
 
-          # Sync to disk
-          case FileBackend.sync_file(state.file) do
-            :ok ->
-              sync_duration = System.monotonic_time(:millisecond) - sync_start
-
-              # Emit sync metric
-              Observability.Metrics.wal_sync_completed(
-                sync_duration,
-                state.segment_id
-              )
-
-              new_state = %{
-                state
-                | current_offset: write_offset + byte_size(entry_bytes),
-                  entry_count: state.entry_count + 1
-              }
-
-              {:ok, write_offset, new_state}
-
-            {:error, reason} ->
-              {:error, {:sync_failed, reason}}
-          end
+          {:ok, write_offset, new_state}
 
         {:error, reason} ->
           {:error, {:write_failed, reason}}
       end
+    end
+  end
+
+  # fsyncs the segment file, making previously written entries durable.
+  @spec sync_impl(state()) :: :ok | {:error, term()}
+  defp sync_impl(state) do
+    sync_start = System.monotonic_time(:millisecond)
+
+    case FileBackend.sync_file(state.file) do
+      :ok ->
+        sync_duration = System.monotonic_time(:millisecond) - sync_start
+        Observability.Metrics.wal_sync_completed(sync_duration, state.segment_id)
+        :ok
+
+      {:error, reason} ->
+        {:error, {:sync_failed, reason}}
     end
   end
 
