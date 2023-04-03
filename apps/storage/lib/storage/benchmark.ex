@@ -57,10 +57,13 @@ defmodule Storage.Benchmark do
     duration_ms = end_time - start_time
 
     success_count = Enum.count(results, &(&1 == :ok))
-    failure_count = Enum.count(results, &(elem(&1, 0) == :error))
+    failure_count = Enum.count(results, &match?({:error, _}, &1))
 
-    throughput = trunc(success_count / (duration_ms / 1000))
-    avg_latency_ms = duration_ms / success_count
+    # Guard against a sub-millisecond run (duration_ms == 0) and against a run
+    # where every write failed (success_count == 0) to avoid dividing by zero.
+    seconds = max(duration_ms, 1) / 1000
+    throughput = trunc(success_count / seconds)
+    avg_latency_ms = if success_count > 0, do: duration_ms / success_count, else: 0.0
 
     result = %{
       total_writes: count,
@@ -168,7 +171,10 @@ defmodule Storage.Benchmark do
 
     duration_ms = end_time - start_time
     total_writes = Enum.sum(results)
-    throughput = trunc(total_writes / (duration_ms / 1000))
+
+    # Guard against a sub-millisecond run and against zero successful writes.
+    throughput = trunc(total_writes / (max(duration_ms, 1) / 1000))
+    avg_latency_ms = if total_writes > 0, do: Float.round(duration_ms / total_writes, 3), else: 0.0
 
     result = %{
       num_processes: num_processes,
@@ -176,7 +182,7 @@ defmodule Storage.Benchmark do
       total_writes: total_writes,
       duration_ms: duration_ms,
       throughput_per_sec: throughput,
-      avg_latency_ms: Float.round(duration_ms / total_writes, 3)
+      avg_latency_ms: avg_latency_ms
     }
 
     Logger.info(
