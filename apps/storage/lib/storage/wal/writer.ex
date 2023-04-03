@@ -172,7 +172,9 @@ defmodule Storage.WAL.Writer do
 
     entry = LogEntry.new(lsn_struct, data, state.node_id, %{})
 
-    # Append to current segment
+    # Append to current segment. `Segment.append_entry/2` emits the
+    # `[:shanghai, :storage, :wal, :write]` (and :sync) telemetry at the point
+    # of the actual disk write, so the Writer does not emit it again here.
     case Segment.append_entry(state.current_segment_pid, entry) do
       {:ok, offset} ->
         # Update index
