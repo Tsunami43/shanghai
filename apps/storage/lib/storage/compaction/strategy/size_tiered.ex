@@ -25,13 +25,13 @@ defmodule Storage.Compaction.Strategy.SizeTiered do
   ## Examples
 
       iex> segments = [
-      ...>   %{id: 1, size: 10 * 1024 * 1024},  # 10 MB
-      ...>   %{id: 2, size: 12 * 1024 * 1024},  # 12 MB
-      ...>   %{id: 3, size: 8 * 1024 * 1024},   # 8 MB
-      ...>   %{id: 4, size: 15 * 1024 * 1024}   # 15 MB
+      ...>   %{id: 1, size: 10 * 1024 * 1024, start_lsn: 0},
+      ...>   %{id: 2, size: 12 * 1024 * 1024, start_lsn: 100},
+      ...>   %{id: 3, size: 8 * 1024 * 1024, start_lsn: 200},
+      ...>   %{id: 4, size: 15 * 1024 * 1024, start_lsn: 300}
       ...> ]
-      iex> SizeTiered.select_segments(segments)
-      [[1, 2, 3, 4]]  # All in tier 0, merge them
+      iex> Storage.Compaction.Strategy.SizeTiered.select_segments(segments)
+      [[1, 2, 3, 4]]
   """
 
   @behaviour Storage.Compaction.Strategy
