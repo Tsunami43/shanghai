@@ -78,7 +78,7 @@ defmodule Storage.Compaction.Scheduler do
   ## Examples
 
       iex> Scheduler.stats()
-      {:ok, %{interval: 3600000, enabled: true}}
+      {:ok, %{interval: 3600000, enabled: true, compactor: Storage.Compaction.Compactor}}
   """
   @spec stats() :: {:ok, map()}
   def stats do
