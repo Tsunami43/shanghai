@@ -8,8 +8,10 @@ defmodule Query.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: Query.Worker.start_link(arg)
-      # {Query.Worker, arg}
+      # Materialized KV store backing the public Query API.
+      Query.Store,
+      # Read-through cache in front of the store.
+      Query.Cache
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
