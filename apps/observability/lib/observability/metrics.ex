@@ -182,6 +182,26 @@ defmodule Observability.Metrics do
   end
 
   @doc """
+  Reports completion of a user-facing query operation.
+
+  Emits: `[:shanghai, :query, :operation]`
+
+  Measurements:
+  - `:duration_ms` - Operation duration in milliseconds
+
+  Metadata:
+  - `:operation` - The operation performed (`:read`, `:write`, `:delete`, `:transact`)
+  - `:result` - Outcome tag (`:ok` or `:error`)
+  """
+  def query_operation_completed(operation, duration_ms, result) do
+    :telemetry.execute(
+      [:shanghai, :query, :operation],
+      %{duration_ms: duration_ms},
+      %{operation: operation, result: result}
+    )
+  end
+
+  @doc """
   Returns a list of all defined telemetry event names.
   """
   def event_names do
@@ -192,7 +212,8 @@ defmodule Observability.Metrics do
       [:shanghai, :replication, :catchup],
       [:shanghai, :cluster, :heartbeat],
       [:shanghai, :cluster, :membership_change],
-      [:shanghai, :storage, :compaction, :complete]
+      [:shanghai, :storage, :compaction, :complete],
+      [:shanghai, :query, :operation]
     ]
   end
 end
