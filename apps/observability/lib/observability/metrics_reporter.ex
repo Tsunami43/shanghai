@@ -23,6 +23,7 @@ defmodule Observability.MetricsReporter do
               wal_syncs: %{},
               replication_lags: %{},
               heartbeats: %{},
+              query_ops: %{},
               last_membership_change: nil
   end
 
@@ -51,6 +52,13 @@ defmodule Observability.MetricsReporter do
   """
   def get_heartbeat_stats do
     GenServer.call(__MODULE__, :get_heartbeat_stats)
+  end
+
+  @doc """
+  Get current query operation statistics, keyed by operation.
+  """
+  def get_query_stats do
+    GenServer.call(__MODULE__, :get_query_stats)
   end
 
   @doc """
@@ -95,13 +103,30 @@ defmodule Observability.MetricsReporter do
     {:reply, state.heartbeats, state}
   end
 
+  def handle_call(:get_query_stats, _from, state) do
+    {:reply, state.query_ops, state}
+  end
+
   def handle_call(:get_last_membership_change, _from, state) do
     {:reply, state.last_membership_change, state}
   end
 
   @impl true
   def handle_info({:telemetry_event, event_name, measurements, metadata}, state) do
-    updated_state = process_telemetry_event(event_name, measurements, metadata, state)
+    # A single malformed event must never take down the metrics reporter (and
+    # with it the observability supervisor), so processing is defensive.
+    updated_state =
+      try do
+        process_telemetry_event(event_name, measurements, metadata, state)
+      rescue
+        error ->
+          Logger.warning(
+            "MetricsReporter dropped #{inspect(event_name)}: #{Exception.message(error)}"
+          )
+
+          state
+      end
+
     {:noreply, updated_state}
   end
 
@@ -135,7 +160,7 @@ defmodule Observability.MetricsReporter do
          %{group_id: group_id, follower_id: follower_id} = _metadata,
          state
        ) do
-    key = "#{group_id}/#{follower_id}"
+    key = "#{format_id(group_id)}/#{format_id(follower_id)}"
     current = Map.get(state.replication_lags, key, %{})
     updated = update_stat(current, measurements.offset_lag)
 
@@ -149,7 +174,7 @@ defmodule Observability.MetricsReporter do
          %{source_node: source, target_node: target} = _metadata,
          state
        ) do
-    key = "#{source}->#{target}"
+    key = "#{format_id(source)}->#{format_id(target)}"
     current = Map.get(state.heartbeats, key, %{})
     updated = update_stat(current, measurements.rtt_ms)
 
@@ -173,10 +198,27 @@ defmodule Observability.MetricsReporter do
     %{state | last_membership_change: change_info}
   end
 
+  defp process_telemetry_event(
+         [:shanghai, :query, :operation],
+         measurements,
+         %{operation: operation} = _metadata,
+         state
+       ) do
+    current = Map.get(state.query_ops, operation, %{})
+    updated = update_stat(current, measurements.duration_ms)
+    %{state | query_ops: Map.put(state.query_ops, operation, updated)}
+  end
+
   defp process_telemetry_event(_event_name, _measurements, _metadata, state) do
     # Ignore other events
     state
   end
+
+  # Renders an id to a string label. Handles NodeId-like structs (`%{value: v}`)
+  # without depending on the core_domain app, plus plain strings/atoms.
+  defp format_id(%{value: value}), do: to_string(value)
+  defp format_id(id) when is_binary(id), do: id
+  defp format_id(id), do: to_string(id)
 
   defp update_stat(nil, value), do: update_stat(%{}, value)
 
