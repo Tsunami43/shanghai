@@ -15,6 +15,7 @@ defmodule Replication.Leader do
 
   alias CoreDomain.Types.NodeId
   alias Replication.ValueObjects.{ConsistencyLevel, ReplicationOffset}
+  alias Storage.WAL.Writer
 
   @type state :: %{
           group_id: String.t(),
@@ -123,25 +124,32 @@ defmodule Replication.Leader do
 
     Logger.debug("Leader received write, offset=#{new_offset.value}")
 
-    # Write to local WAL (in real implementation)
-    # For now, just track the write
+    # Persist to the local WAL for durability before acknowledging, when the WAL
+    # is running (a configured deployment). Without a WAL the leader keeps only
+    # its in-memory replication log (single-node/test mode).
+    case persist_to_wal(data) do
+      :ok ->
+        # Broadcast to followers (will be implemented with Stream)
+        broadcast_to_followers(state.group_id, new_offset, data)
 
-    # Broadcast to followers (will be implemented with Stream)
-    broadcast_to_followers(state.group_id, new_offset, data)
+        # Report leader offset to monitor
+        report_to_monitor(state.group_id, new_offset)
 
-    # Report leader offset to monitor
-    report_to_monitor(state.group_id, new_offset)
+        # Check if we already have quorum (single node case)
+        updated_state = %{
+          state
+          | current_offset: new_offset,
+            pending_writes: updated_pending
+        }
 
-    # Check if we already have quorum (single node case)
-    updated_state = %{
-      state
-      | current_offset: new_offset,
-        pending_writes: updated_pending
-    }
+        updated_state = check_quorum_and_reply(updated_state, write_ref)
 
-    updated_state = check_quorum_and_reply(updated_state, write_ref)
+        {:noreply, updated_state}
 
-    {:noreply, updated_state}
+      {:error, reason} ->
+        Logger.error("Leader failed to persist write to WAL: #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
   end
 
   @impl true
@@ -163,6 +171,19 @@ defmodule Replication.Leader do
   end
 
   # Private Functions
+
+  # Appends the write to the storage WAL when it is running; otherwise a no-op
+  # so replication still works in in-memory (single-node/test) mode.
+  defp persist_to_wal(data) do
+    if is_pid(Process.whereis(Writer)) do
+      case Writer.append(data) do
+        {:ok, _lsn} -> :ok
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      :ok
+    end
+  end
 
   defp via_tuple(group_id) do
     {:via, Registry, {Replication.Registry, {:leader, group_id}}}
