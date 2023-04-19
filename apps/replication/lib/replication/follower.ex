@@ -14,6 +14,7 @@ defmodule Replication.Follower do
 
   alias CoreDomain.Types.NodeId
   alias Replication.ValueObjects.ReplicationOffset
+  alias Storage.WAL.Writer
 
   @type state :: %{
           group_id: String.t(),
@@ -85,23 +86,35 @@ defmodule Replication.Follower do
   end
 
   @impl true
-  def handle_cast({:apply_entry, offset, _data}, state) do
+  def handle_cast({:apply_entry, offset, data}, state) do
     # Verify offset is the next expected one
     expected_offset = ReplicationOffset.increment(state.current_offset)
 
     cond do
       ReplicationOffset.compare(offset, expected_offset) == :eq ->
-        # Apply entry to local storage (in real implementation)
-        Logger.debug("Follower applying entry at offset #{offset.value}")
+        # Apply the replicated entry to the local WAL when it is running; without
+        # a WAL the follower only advances its in-memory offset (test mode).
+        case persist_to_wal(data) do
+          :ok ->
+            Logger.debug("Follower applying entry at offset #{offset.value}")
 
-        # Update current offset
-        updated_state = %{state | current_offset: offset}
+            # Update current offset
+            updated_state = %{state | current_offset: offset}
 
-        # Report to leader and monitor
-        report_to_leader(updated_state)
-        report_to_monitor(updated_state)
+            # Report to leader and monitor
+            report_to_leader(updated_state)
+            report_to_monitor(updated_state)
 
-        {:noreply, updated_state}
+            {:noreply, updated_state}
+
+          {:error, reason} ->
+            Logger.error(
+              "Follower failed to persist entry at offset #{offset.value}: #{inspect(reason)}"
+            )
+
+            # Do not advance; the entry will be retried via catch-up.
+            {:noreply, state}
+        end
 
       ReplicationOffset.compare(offset, expected_offset) == :gt ->
         # Gap detected - entries were skipped
@@ -149,6 +162,19 @@ defmodule Replication.Follower do
   end
 
   # Private Functions
+
+  # Persists a replicated entry to the storage WAL when it is running; a no-op
+  # otherwise so replication still works in in-memory (test) mode.
+  defp persist_to_wal(data) do
+    if is_pid(Process.whereis(Writer)) do
+      case Writer.append(data) do
+        {:ok, _lsn} -> :ok
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      :ok
+    end
+  end
 
   defp via_tuple(group_id) do
     {:via, Registry, {Replication.Registry, {:follower, group_id}}}
