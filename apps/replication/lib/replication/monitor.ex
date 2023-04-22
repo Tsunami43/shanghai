@@ -149,6 +149,9 @@ defmodule Replication.Monitor do
     updated_group = %{group_metrics | replicas: updated_replicas, last_check_at: now}
     updated_groups = Map.put(state.groups, group_id, updated_group)
 
+    # Make replication lag observable by default.
+    Observability.Metrics.replication_lag_measured(lag, 0, group_id, follower_id, :leader)
+
     {:noreply, %{state | groups: updated_groups}}
   end
 
