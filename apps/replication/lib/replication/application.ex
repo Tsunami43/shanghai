@@ -14,14 +14,35 @@ defmodule Replication.Application do
   def start(_type, _args) do
     Logger.info("Starting Shanghai Replication application")
 
-    children = [
-      # Registry for leader and follower processes
-      {Registry, keys: :unique, name: Replication.Registry}
-      # Monitor will be added later
-      # {Replication.Monitor, []}
-    ]
+    # Monitor tracks replication health/lag; the public Replication API and the
+    # Admin API's /replicas and /metrics endpoints depend on it. It is enabled
+    # by default and disabled under the test env (see config/test.exs), where
+    # replication's own tests start a Monitor with custom settings.
+    monitor_children =
+      if Application.get_env(:replication, :start_monitor, true) do
+        [{Replication.Monitor, monitor_opts()}]
+      else
+        []
+      end
+
+    children =
+      [
+        # Registry for leader and follower processes
+        {Registry, keys: :unique, name: Replication.Registry}
+      ] ++ monitor_children
 
     opts = [strategy: :one_for_one, name: Replication.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  @doc """
+  Monitor options resolved from `config :replication, Replication.Monitor, ...`.
+
+  Recognized keys: `:lag_threshold`, `:stale_threshold_ms`, `:check_interval_ms`.
+  When unset, `Replication.Monitor` applies its own defaults.
+  """
+  @spec monitor_opts() :: keyword()
+  def monitor_opts do
+    Application.get_env(:replication, Replication.Monitor, [])
   end
 end
