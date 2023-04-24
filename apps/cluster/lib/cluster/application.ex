@@ -19,14 +19,41 @@ defmodule Cluster.Application do
       # Membership must start first as Heartbeat and Gossip depend on it
       {Cluster.Membership, []},
       # Heartbeat monitors node liveness
-      {Cluster.Heartbeat, []},
+      {Cluster.Heartbeat, heartbeat_opts()},
       # Gossip propagates events across the cluster
-      {Cluster.Gossip, []}
+      {Cluster.Gossip, gossip_opts()}
     ]
 
     # Use :one_for_one strategy: if a child process crashes, only that process is restarted
     # This ensures independence between the cluster components
     opts = [strategy: :one_for_one, name: Cluster.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  @doc """
+  Heartbeat options resolved from `:cluster` application config, with defaults.
+
+  Config keys: `:heartbeat_interval_ms`, `:down_timeout_ms`, `:suspect_timeout_ms`.
+  """
+  @spec heartbeat_opts() :: keyword()
+  def heartbeat_opts do
+    [
+      interval_ms: Application.get_env(:cluster, :heartbeat_interval_ms, 5_000),
+      timeout_ms: Application.get_env(:cluster, :down_timeout_ms, 15_000),
+      suspect_timeout_ms: Application.get_env(:cluster, :suspect_timeout_ms, 10_000)
+    ]
+  end
+
+  @doc """
+  Gossip options resolved from `:cluster` application config, with defaults.
+
+  Config keys: `:gossip_fanout`, `:gossip_interval_ms`.
+  """
+  @spec gossip_opts() :: keyword()
+  def gossip_opts do
+    [
+      fanout: Application.get_env(:cluster, :gossip_fanout, 3),
+      interval_ms: Application.get_env(:cluster, :gossip_interval_ms, 1_000)
+    ]
   end
 end
