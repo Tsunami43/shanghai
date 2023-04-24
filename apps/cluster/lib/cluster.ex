@@ -31,6 +31,7 @@ defmodule Cluster do
 
   alias Cluster.Entities.Node
   alias Cluster.Membership
+  alias Cluster.State
   alias CoreDomain.Types.NodeId
 
   @doc """
@@ -82,4 +83,27 @@ defmodule Cluster do
   """
   @spec cluster_state() :: Cluster.State.t()
   defdelegate cluster_state(), to: Membership, as: :get_cluster
+
+  @doc """
+  Returns a concise cluster status summary: the local node id, the total node
+  count, and per-status counts.
+  """
+  @spec status() :: %{
+          local_node_id: NodeId.t(),
+          node_count: non_neg_integer(),
+          up: non_neg_integer(),
+          suspect: non_neg_integer(),
+          down: non_neg_integer()
+        }
+  def status do
+    cluster = cluster_state()
+
+    %{
+      local_node_id: local_node_id(),
+      node_count: State.node_count(cluster),
+      up: State.status_count(cluster, :up),
+      suspect: State.status_count(cluster, :suspect),
+      down: State.status_count(cluster, :down)
+    }
+  end
 end
