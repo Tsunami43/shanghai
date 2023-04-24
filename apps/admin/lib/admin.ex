@@ -1,18 +1,17 @@
 defmodule Admin do
   @moduledoc """
-  Documentation for `Admin`.
+  Cross-cutting administration entry point for Shanghai.
+
+  It composes the other bounded contexts to expose operational concerns. Today
+  it provides an aggregate health check; the HTTP and CLI surfaces live in the
+  `admin_api` and `shanghaictl` apps.
   """
 
   @doc """
-  Hello world.
+  Returns the aggregate health report across subsystems.
 
-  ## Examples
-
-      iex> Admin.hello()
-      :world
-
+  See `Admin.Health.check/0`.
   """
-  def hello do
-    :world
-  end
+  @spec health() :: Admin.Health.report()
+  defdelegate health(), to: Admin.Health, as: :check
 end
