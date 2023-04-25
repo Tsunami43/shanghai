@@ -20,6 +20,28 @@ defmodule AdminApi.Router do
     send_resp(conn, 200, Jason.encode!(%{status: "ok"}))
   end
 
+  # Readiness probe: is the node actually able to serve? Distinct from /health
+  # (liveness), it checks that the essential processes are running.
+  get "/ready" do
+    checks = %{
+      "cluster_membership" => process_alive?(Cluster.Membership),
+      "replication_monitor" => process_alive?(Replication.Monitor)
+    }
+
+    if Enum.all?(checks, fn {_name, up?} -> up? end) do
+      send_json(conn, 200, %{status: "ready", checks: checks})
+    else
+      send_json(conn, 503, %{status: "not_ready", checks: checks})
+    end
+  end
+
+  # Prometheus scrape endpoint (text exposition format).
+  get "/metrics" do
+    conn
+    |> put_resp_content_type("text/plain; version=0.0.4")
+    |> send_resp(200, AdminApi.Prometheus.render())
+  end
+
   get "/api/v1/status" do
     cluster = Cluster.cluster_state()
     nodes = Cluster.State.all_nodes(cluster)
@@ -86,6 +108,7 @@ defmodule AdminApi.Router do
       wal: Observability.MetricsReporter.get_wal_stats(),
       replication: Observability.MetricsReporter.get_replication_stats(),
       heartbeat: Observability.MetricsReporter.get_heartbeat_stats(),
+      query: Observability.MetricsReporter.get_query_stats(),
       last_membership_change: Observability.MetricsReporter.get_last_membership_change()
     }
 
@@ -226,6 +249,8 @@ defmodule AdminApi.Router do
       current_offset: group.leader_offset.value
     }
   end
+
+  defp process_alive?(name), do: is_pid(Process.whereis(name))
 
   defp send_json(conn, status, data) do
     conn

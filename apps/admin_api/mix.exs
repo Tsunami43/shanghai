@@ -26,8 +26,10 @@ defmodule AdminApi.MixProject do
     [
       {:plug_cowboy, "~> 2.0"},
       {:jason, "~> 1.4"},
+      {:core_domain, in_umbrella: true},
       {:cluster, in_umbrella: true},
-      {:replication, in_umbrella: true}
+      {:replication, in_umbrella: true},
+      {:observability, in_umbrella: true}
     ]
   end
 end
