@@ -13,20 +13,39 @@ defmodule Shanghaictl do
   """
   def main(args \\ []) do
     args
-    |> parse_args()
+    |> parse()
     |> execute()
   end
 
-  defp parse_args([]), do: :help
-  defp parse_args(["help"]), do: :help
-  defp parse_args(["version"]), do: :version
-  defp parse_args(["status" | opts]), do: {:status, opts}
-  defp parse_args(["replicas" | opts]), do: {:replicas, opts}
-  defp parse_args(["metrics" | opts]), do: {:metrics, opts}
-  defp parse_args(["node", "join" | opts]), do: {:node_join, opts}
-  defp parse_args(["node", "leave" | opts]), do: {:node_leave, opts}
-  defp parse_args(["shutdown" | opts]), do: {:shutdown, opts}
-  defp parse_args(args), do: {:unknown, args}
+  @typedoc "A parsed CLI command."
+  @type command ::
+          :help
+          | :version
+          | {:status | :replicas | :metrics | :node_join | :node_leave | :shutdown, [String.t()]}
+          | {:unknown, [String.t()]}
+
+  @doc """
+  Parses raw CLI arguments into a command. Pure and side-effect free.
+
+  ## Examples
+
+      iex> Shanghaictl.parse(["status", "--json"])
+      {:status, ["--json"]}
+
+      iex> Shanghaictl.parse(["bogus"])
+      {:unknown, ["bogus"]}
+  """
+  @spec parse([String.t()]) :: command()
+  def parse([]), do: :help
+  def parse(["help"]), do: :help
+  def parse(["version"]), do: :version
+  def parse(["status" | opts]), do: {:status, opts}
+  def parse(["replicas" | opts]), do: {:replicas, opts}
+  def parse(["metrics" | opts]), do: {:metrics, opts}
+  def parse(["node", "join" | opts]), do: {:node_join, opts}
+  def parse(["node", "leave" | opts]), do: {:node_leave, opts}
+  def parse(["shutdown" | opts]), do: {:shutdown, opts}
+  def parse(args), do: {:unknown, args}
 
   defp execute(:help) do
     IO.puts("""
