@@ -1,30 +1,76 @@
 defmodule QueryTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
-  describe "Query API" do
-    test "read returns placeholder" do
-      # Implement actual storage and test real reads
-      assert {:ok, nil} = Query.read("test-key")
+  setup do
+    # The store is started by Query.Application; reset it between tests so each
+    # test observes a clean key space.
+    Query.Store.reset()
+    Query.Cache.clear()
+    :ok
+  end
+
+  describe "write/read" do
+    test "reads back a written value" do
+      assert {:ok, :written} = Query.write("user:1", %{name: "Alice"})
+      assert {:ok, %{name: "Alice"}} = Query.read("user:1")
     end
 
-    test "write returns success" do
-      # Implement actual storage and test real writes
-      assert {:ok, :written} = Query.write("test-key", "test-value")
+    test "overwrites an existing key" do
+      assert {:ok, :written} = Query.write("k", "v1")
+      assert {:ok, :written} = Query.write("k", "v2")
+      assert {:ok, "v2"} = Query.read("k")
     end
 
-    test "delete returns success" do
-      # Implement actual deletion
-      assert {:ok, :deleted} = Query.delete("test-key")
+    test "reading a missing key returns :not_found" do
+      assert {:error, :not_found} = Query.read("does-not-exist")
     end
 
-    test "transact returns committed" do
-      # Implement actual transactions
-      operations = [
-        {:write, "key1", "value1"},
-        {:write, "key2", "value2"}
+    test "rejects an invalid consistency level" do
+      assert {:error, {:invalid_consistency, :nonsense}} =
+               Query.write("k", "v", consistency: :nonsense)
+
+      assert {:error, {:invalid_consistency, :nonsense}} =
+               Query.read("k", consistency: :nonsense)
+    end
+  end
+
+  describe "delete/2" do
+    test "removes a key" do
+      assert {:ok, :written} = Query.write("k", "v")
+      assert {:ok, :deleted} = Query.delete("k")
+      assert {:error, :not_found} = Query.read("k")
+    end
+
+    test "is idempotent for a missing key" do
+      assert {:ok, :deleted} = Query.delete("never-existed")
+    end
+  end
+
+  describe "transact/1" do
+    test "applies all writes atomically" do
+      ops = [
+        {:write, "account:1", %{balance: 100}},
+        {:write, "account:2", %{balance: 50}}
       ]
 
-      assert {:ok, :committed} = Query.transact(operations)
+      assert {:ok, :committed} = Query.transact(ops)
+      assert {:ok, %{balance: 100}} = Query.read("account:1")
+      assert {:ok, %{balance: 50}} = Query.read("account:2")
+    end
+
+    test "supports deletes inside a transaction" do
+      assert {:ok, :written} = Query.write("k", "v")
+      assert {:ok, :committed} = Query.transact([{:delete, "k"}, {:write, "k2", "v2"}])
+      assert {:error, :not_found} = Query.read("k")
+      assert {:ok, "v2"} = Query.read("k2")
+    end
+
+    test "rejects an invalid operation and applies nothing" do
+      assert {:error, {:invalid_operation, {:bogus, "k"}}} =
+               Query.transact([{:write, "ok", 1}, {:bogus, "k"}])
+
+      # The valid op must not have been applied.
+      assert {:error, :not_found} = Query.read("ok")
     end
   end
 end
