@@ -143,6 +143,34 @@ defmodule Storage.WAL.Segment do
   end
 
   @doc """
+  Gets segment statistics.
+
+  ## Examples
+
+      iex> Segment.stats(pid)
+      {:ok, %{file_size: 1024, entry_count: 10, ...}}
+  """
+  @spec stats(pid()) :: {:ok, map()} | {:error, term()}
+  def stats(pid) do
+    GenServer.call(pid, :stats)
+  end
+
+  @doc """
+  Reads all entries from the segment.
+
+  Returns all entries in the segment in LSN order.
+
+  ## Examples
+
+      iex> Segment.read_all(pid)
+      {:ok, [%LogEntry{}, ...]}
+  """
+  @spec read_all(pid()) :: {:ok, [LogEntry.t()]} | {:error, term()}
+  def read_all(pid) do
+    GenServer.call(pid, :read_all, :infinity)
+  end
+
+  @doc """
   Closes the segment file and stops the GenServer.
   """
   @spec close(pid()) :: :ok
@@ -221,6 +249,35 @@ defmodule Storage.WAL.Segment do
     }
 
     {:reply, {:ok, info}, state}
+  end
+
+  def handle_call(:stats, _from, state) do
+    file_size =
+      case File.stat(state.path) do
+        {:ok, %File.Stat{size: size}} -> size
+        {:error, _} -> 0
+      end
+
+    stats = %{
+      segment_id: state.segment_id,
+      start_lsn: state.start_lsn,
+      current_lsn: state.start_lsn + state.entry_count,
+      file_size: file_size,
+      entry_count: state.entry_count,
+      sealed: state.sealed
+    }
+
+    {:reply, {:ok, stats}, state}
+  end
+
+  def handle_call(:read_all, _from, state) do
+    case read_all_impl(state) do
+      {:ok, entries} ->
+        {:reply, {:ok, entries}, state}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
   end
 
   @impl true
@@ -438,5 +495,30 @@ defmodule Storage.WAL.Segment do
       {:error, reason} ->
         {:error, {:seal_sync_failed, reason}}
     end
+  end
+
+  @spec read_all_impl(state()) :: {:ok, [LogEntry.t()]} | {:error, term()}
+  defp read_all_impl(state) do
+    # Read all entries sequentially from offset @header_size
+    entries =
+      Stream.unfold(@header_size, fn offset ->
+        if offset >= state.current_offset do
+          nil
+        else
+          case read_entry_impl(offset, state) do
+            {:ok, entry} ->
+              # Calculate next offset: current + 4 (length) + 8 (lsn) + 4 (checksum) + payload size
+              {:ok, payload} = Serializer.encode(entry)
+              next_offset = offset + 4 + 8 + 4 + byte_size(payload)
+              {entry, next_offset}
+
+            {:error, _} ->
+              nil
+          end
+        end
+      end)
+      |> Enum.to_list()
+
+    {:ok, entries}
   end
 end
