@@ -5,14 +5,9 @@ defmodule Storage.WAL.ReaderTest do
   alias Storage.WAL.{Reader, SegmentManager, Writer}
 
   @test_dir Path.join(System.tmp_dir!(), "shanghai_reader_test_#{:rand.uniform(999_999)}")
-  @registry Storage.WAL.SegmentRegistry
 
   setup_all do
-    # Start Registry
-    {:ok, _} = Registry.start_link(keys: :unique, name: @registry)
-
-    # Start SegmentManager
-    {:ok, _} = SegmentManager.start_link(:ok)
+    Storage.WALTestInfra.ensure_started()
 
     :ok
   end
@@ -22,29 +17,25 @@ defmodule Storage.WAL.ReaderTest do
     File.rm_rf(@test_dir)
     File.mkdir_p!(@test_dir)
 
-    # Start SegmentIndex
+    # start_supervised! gives synchronous, deterministic teardown of the named
+    # WAL singletons, avoiding stop races under load.
     index_dir = Path.join(@test_dir, "index")
-    {:ok, index_pid} = SegmentIndex.start_link(data_dir: index_dir)
+    index_pid = start_supervised!({SegmentIndex, data_dir: index_dir})
 
-    # Start Writer (to populate data)
-    {:ok, writer_pid} =
-      Writer.start_link(
-        data_dir: @test_dir,
-        node_id: "test_node",
-        # 10 MB
-        segment_size_threshold: 10 * 1024 * 1024,
-        segment_time_threshold: 3600
+    writer_pid =
+      start_supervised!(
+        {Writer,
+         [
+           data_dir: @test_dir,
+           node_id: "test_node",
+           segment_size_threshold: 10 * 1024 * 1024,
+           segment_time_threshold: 3600
+         ]}
       )
 
-    # Start Reader
-    {:ok, reader_pid} = Reader.start_link([])
+    reader_pid = start_supervised!({Reader, []})
 
     on_exit(fn ->
-      if Process.alive?(reader_pid), do: GenServer.stop(reader_pid)
-      if Process.alive?(writer_pid), do: GenServer.stop(writer_pid)
-      if Process.alive?(index_pid), do: GenServer.stop(index_pid)
-
-      # Stop all segments
       SegmentManager.list_segments()
       |> Enum.each(fn {id, _pid} ->
         SegmentManager.stop_segment(id)
