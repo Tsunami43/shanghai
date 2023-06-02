@@ -6,20 +6,13 @@ defmodule Storage.WAL.SegmentManagerTest do
   alias Storage.WAL.{Segment, SegmentManager}
 
   @test_dir Path.join(System.tmp_dir!(), "shanghai_segmgr_test_#{:rand.uniform(999_999)}")
-  @registry Storage.WAL.SegmentRegistry
 
   setup_all do
-    # Start Registry for segment lookup
-    {:ok, _} = Registry.start_link(keys: :unique, name: @registry)
-
-    # Start SegmentManager
-    {:ok, manager_pid} = SegmentManager.start_link(:ok)
-
-    on_exit(fn ->
-      if Process.alive?(manager_pid), do: Supervisor.stop(manager_pid)
-    end)
-
-    {:ok, manager: manager_pid}
+    # Shared, singleton WAL infrastructure (Registry + SegmentManager). Started
+    # idempotently so the umbrella run, where several modules share one VM,
+    # doesn't race on the fixed process names. Not stopped here — it is shared.
+    Storage.WALTestInfra.ensure_started()
+    :ok
   end
 
   setup do
