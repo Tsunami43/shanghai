@@ -5,14 +5,9 @@ defmodule Storage.WAL.WriterTest do
   alias Storage.WAL.{Segment, SegmentManager, Writer}
 
   @test_dir Path.join(System.tmp_dir!(), "shanghai_writer_test_#{:rand.uniform(999_999)}")
-  @registry Storage.WAL.SegmentRegistry
 
   setup_all do
-    # Start Registry
-    {:ok, _} = Registry.start_link(keys: :unique, name: @registry)
-
-    # Start SegmentManager
-    {:ok, _} = SegmentManager.start_link(:ok)
+    Storage.WALTestInfra.ensure_started()
 
     :ok
   end
@@ -37,8 +32,9 @@ defmodule Storage.WAL.WriterTest do
       )
 
     on_exit(fn ->
-      if Process.alive?(writer_pid), do: GenServer.stop(writer_pid)
-      if Process.alive?(index_pid), do: GenServer.stop(index_pid)
+      # Recovery tests stop/restart the writer themselves, so tolerate a process
+      # that is already gone here.
+      Enum.each([writer_pid, index_pid], &safe_stop/1)
 
       # Stop all segments
       SegmentManager.list_segments()
@@ -50,6 +46,12 @@ defmodule Storage.WAL.WriterTest do
     end)
 
     {:ok, writer: writer_pid, index: index_pid}
+  end
+
+  defp safe_stop(pid) do
+    if Process.alive?(pid), do: GenServer.stop(pid)
+  catch
+    :exit, _ -> :ok
   end
 
   describe "append/1" do
