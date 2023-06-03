@@ -253,4 +253,30 @@ defmodule Storage.Persistence.FileBackendTest do
       assert {:error, _reason} = result
     end
   end
+
+  describe "sync_file_by_path/1" do
+    test "syncs an existing file", %{test_dir: dir} do
+      path = Path.join(dir, "sync.dat")
+      File.write!(path, "data")
+
+      assert :ok = FileBackend.sync_file_by_path(path)
+    end
+
+    test "errors on a nonexistent file" do
+      assert {:error, _reason} = FileBackend.sync_file_by_path("/nonexistent/sync.dat")
+    end
+  end
+
+  describe "permission mapping" do
+    test "ensure_directory maps :eacces to :permission_denied", %{test_dir: dir} do
+      readonly = Path.join(dir, "readonly")
+      File.mkdir_p!(readonly)
+      File.chmod!(readonly, 0o500)
+      # Restore write permission before the directory is cleaned up.
+      on_exit(fn -> File.chmod(readonly, 0o700) end)
+
+      assert {:error, :permission_denied} =
+               FileBackend.ensure_directory(Path.join(readonly, "child"))
+    end
+  end
 end
