@@ -13,14 +13,9 @@ defmodule Storage.Snapshot.ManagerTest do
   @snapshots_dir Path.join(@test_dir, "snapshots")
   @wal_dir Path.join(@test_dir, "wal")
   @index_dir Path.join(@test_dir, "index")
-  @registry Storage.WAL.SegmentRegistry
 
   setup_all do
-    # Start Registry
-    {:ok, _} = Registry.start_link(keys: :unique, name: @registry)
-
-    # Start SegmentManager
-    {:ok, _} = SegmentManager.start_link(:ok)
+    Storage.WALTestInfra.ensure_started()
 
     :ok
   end
@@ -55,10 +50,10 @@ defmodule Storage.Snapshot.ManagerTest do
       )
 
     on_exit(fn ->
-      if Process.alive?(manager_pid), do: GenServer.stop(manager_pid)
-      if Process.alive?(reader_pid), do: GenServer.stop(reader_pid)
-      if Process.alive?(writer_pid), do: GenServer.stop(writer_pid)
-      if Process.alive?(index_pid), do: GenServer.stop(index_pid)
+      safe_stop(manager_pid)
+      safe_stop(reader_pid)
+      safe_stop(writer_pid)
+      safe_stop(index_pid)
 
       # Stop all segments
       SegmentManager.list_segments()
@@ -70,6 +65,12 @@ defmodule Storage.Snapshot.ManagerTest do
     end)
 
     {:ok, manager: manager_pid, writer: writer_pid, reader: reader_pid, index: index_pid}
+  end
+
+  defp safe_stop(pid) do
+    if Process.alive?(pid), do: GenServer.stop(pid)
+  catch
+    :exit, _ -> :ok
   end
 
   describe "start_link/1" do
