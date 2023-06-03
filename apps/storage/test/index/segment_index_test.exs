@@ -14,7 +14,15 @@ defmodule Storage.Index.SegmentIndexTest do
     {:ok, pid} = SegmentIndex.start_link(data_dir: @test_dir)
 
     on_exit(fn ->
-      if Process.alive?(pid), do: GenServer.stop(pid)
+      # Stopping can race with a process that is already terminating; tolerate it.
+      if Process.alive?(pid) do
+        try do
+          GenServer.stop(pid)
+        catch
+          :exit, _ -> :ok
+        end
+      end
+
       File.rm_rf(@test_dir)
     end)
 
