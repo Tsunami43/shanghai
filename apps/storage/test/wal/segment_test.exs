@@ -492,4 +492,62 @@ defmodule Storage.WAL.SegmentTest do
       end
     end
   end
+
+  describe "append_entry_no_sync/2 and sync/1" do
+    defp entry(lsn_value, data) do
+      LogEntry.new(LogSequenceNumber.new(lsn_value), data, %NodeId{value: "n"}, %{})
+    end
+
+    test "writes without fsync, is readable, and syncs durably", %{test_dir: dir} do
+      path = Path.join(dir, "segment_nosync.wal")
+      {:ok, pid} = Segment.start_link(segment_id: 1, start_lsn: 0, path: path, create: true)
+
+      assert {:ok, offset} = Segment.append_entry_no_sync(pid, entry(0, "no-sync data"))
+
+      # Readable before an explicit fsync (already written to the file).
+      assert {:ok, read} = Segment.read_entry(pid, offset)
+      assert read.data == "no-sync data"
+
+      assert :ok = Segment.sync(pid)
+
+      Segment.close(pid)
+    end
+
+    test "a batch of no-sync appends followed by one sync is all readable", %{test_dir: dir} do
+      path = Path.join(dir, "segment_batch.wal")
+      {:ok, pid} = Segment.start_link(segment_id: 2, start_lsn: 0, path: path, create: true)
+
+      entries = for i <- 0..2, do: entry(i, "e#{i}")
+
+      offsets =
+        Enum.map(entries, fn e ->
+          {:ok, offset} = Segment.append_entry_no_sync(pid, e)
+          offset
+        end)
+
+      assert :ok = Segment.sync(pid)
+
+      Enum.zip(offsets, entries)
+      |> Enum.each(fn {offset, e} ->
+        assert {:ok, read} = Segment.read_entry(pid, offset)
+        assert read.data == e.data
+      end)
+
+      # Offsets are strictly increasing and unique.
+      assert offsets == Enum.sort(offsets)
+      assert Enum.uniq(offsets) == offsets
+
+      Segment.close(pid)
+    end
+
+    test "no-sync append is rejected on a sealed segment", %{test_dir: dir} do
+      path = Path.join(dir, "segment_sealed.wal")
+      {:ok, pid} = Segment.start_link(segment_id: 3, start_lsn: 0, path: path, create: true)
+
+      :ok = Segment.seal(pid)
+      assert {:error, :segment_sealed} = Segment.append_entry_no_sync(pid, entry(0, "x"))
+
+      Segment.close(pid)
+    end
+  end
 end
