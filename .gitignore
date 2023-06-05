@@ -22,3 +22,7 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 shanghai-*.tar
 
+# Dialyzer PLTs are machine/OTP-specific build artifacts; CI rebuilds them
+# (with caching). Do not commit them.
+/priv/plts/
+
