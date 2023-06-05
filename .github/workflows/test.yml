@@ -78,6 +78,18 @@ jobs:
     - name: Check formatting
       run: mix format --check-formatted
 
+    - name: Enforce English-only sources
+      run: |
+        matches=$(grep -rlP '[\x{0400}-\x{04FF}]' \
+          --include='*.ex' --include='*.exs' --include='*.md' --include='*.yml' . \
+          | grep -vE '(^|/)(deps|_build)/' || true)
+        if [ -n "$matches" ]; then
+          echo "Non-English (Cyrillic) text found in these files; all project artifacts must be English:"
+          echo "$matches"
+          exit 1
+        fi
+        echo "All sources are English-only."
+
     - name: Run Credo
       run: mix credo --strict
 
