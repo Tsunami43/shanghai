@@ -7,12 +7,101 @@ Complete API reference for Shanghai distributed database system.
 
 ## Table of Contents
 
+- [Query API](#query-api)
 - [Storage API](#storage-api)
 - [Cluster API](#cluster-api)
 - [Replication API](#replication-api)
 - [Admin API](#admin-api)
 - [CLI Commands](#cli-commands)
 - [Error Handling](#error-handling)
+
+## Query API
+
+The `Query` module is the user-facing key/value API. It is durable via the WAL
+when storage is configured with a `data_root`, and in-memory otherwise. Every
+operation emits `[:shanghai, :query, :operation]` telemetry.
+
+### write/3
+
+```elixir
+@spec write(key :: String.t(), value :: term(), opts :: keyword()) ::
+        {:ok, :written} | {:error, term()}
+```
+
+Writes `value` under `key`. `opts` accepts `:consistency` (`:strong` |
+`:eventual` | `:causal`); an invalid level returns
+`{:error, {:invalid_consistency, level}}`.
+
+### read/2
+
+```elixir
+@spec read(key :: String.t(), opts :: keyword()) :: {:ok, term()} | {:error, :not_found}
+```
+
+### delete/2
+
+```elixir
+@spec delete(key :: String.t(), opts :: keyword()) :: {:ok, :deleted}
+```
+
+### take/1
+
+```elixir
+@spec take(key :: String.t()) :: {:ok, term()} | {:error, :not_found}
+```
+
+Atomic get-and-delete (a pop) — reads and removes `key` in one step.
+
+### transact/1
+
+```elixir
+@spec transact([{:write, String.t(), term()} | {:delete, String.t()}]) ::
+        {:ok, :committed} | {:error, term()}
+```
+
+Applies all operations atomically — a single WAL record on one node.
+
+### increment/2
+
+```elixir
+@spec increment(key :: String.t(), amount :: number()) ::
+        {:ok, number()} | {:error, :not_a_number}
+```
+
+Atomically adds `amount` (default `1`) to the numeric value at `key`, treating a
+missing key as `0`.
+
+### cas/3
+
+```elixir
+@spec cas(key :: String.t(), expected :: term() | :absent, new :: term()) ::
+        {:ok, :swapped} | {:error, :precondition_failed}
+```
+
+Compare-and-swap. Pass `:absent` as `expected` to write only when the key is missing.
+
+### update/3
+
+```elixir
+@spec update(key :: String.t(), default :: term(), fun :: (term() -> term())) ::
+        {:ok, term()} | {:error, term()}
+```
+
+Atomic read-modify-write. Applies `fun` to the current value (or `default` when
+the key is absent) and stores the result; a raising `fun` yields
+`{:error, {:update_failed, message}}`.
+
+### Collection and introspection
+
+```elixir
+@spec scan(prefix :: String.t()) :: {:ok, [{String.t(), term()}]}
+@spec mget([String.t()]) :: {:ok, %{optional(String.t()) => term()}}
+@spec keys() :: [term()]
+@spec count() :: non_neg_integer()
+@spec info() :: {:ok, %{store: map(), cache: map()}}
+```
+
+---
 
 ## Storage API
 
@@ -135,22 +224,46 @@ config :storage, :batch_writer,
 
 **Trade-off:** Slightly higher latency, much higher throughput.
 
+> **Status:** The batch writer is a standalone component and is not yet wired
+> into the default WAL write path; the config above has no effect until it is
+> integrated. See [Tuning](TUNING.md).
+
 ---
 
 ### Storage.WAL.Reader
 
-Read entries from the WAL (future API).
+Reads entries from the WAL. Available when storage is configured with a
+`data_root`.
 
 #### read/1
 
-Reads entry at given LSN.
+Reads the log entry at a given LSN.
 
 **Signature:**
 ```elixir
-@spec read(lsn()) :: {:ok, binary()} | {:error, :not_found}
+@spec read(lsn()) :: {:ok, LogEntry.t()} | {:error, :not_found}
 ```
 
-**Status:** Not yet implemented in v1.2.0
+Returns the `CoreDomain.Entities.LogEntry` stored at `lsn`.
+
+#### read_range/2
+
+Reads entries from `start_lsn` to `end_lsn` (inclusive), in LSN order. Missing
+LSNs in the range are skipped.
+
+**Signature:**
+```elixir
+@spec read_range(lsn(), lsn()) :: {:ok, [LogEntry.t()]}
+```
+
+#### stats/0
+
+Returns reader statistics (e.g. the number of cached segments).
+
+**Signature:**
+```elixir
+@spec stats() :: {:ok, map()}
+```
 
 ---
 
