@@ -2,6 +2,10 @@
 
 This document describes the architectural decisions, bounded contexts, and technical design of the Shanghai distributed database.
 
+> For the system-level overview (data flow, fault tolerance, performance), see
+> [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). This document is the source of
+> truth for bounded contexts and the implementation-status table below.
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -18,6 +22,28 @@ Shanghai follows a **Domain-Driven Design** approach with clear bounded contexts
 - Explicit dependencies on other contexts
 - Own supervision tree (except core_domain)
 - Independent failure domain
+
+## Implementation status
+
+This document describes the **target** architecture. Some component and module
+names below are aspirational — they express the intended design, not all of
+which is built yet. The table maps intent to what exists today; the full path to
+completion is tracked in [`docs/ROADMAP_1000.md`](docs/ROADMAP_1000.md).
+
+| Context | Status | Reality today |
+|---|---|---|
+| Core Domain | ✅ implemented | LSN, NodeId, ConsistencyLevel, LogEntry, Event |
+| Storage (WAL) | ✅ implemented | segments, index, rotation, snapshots, compaction; write/sync telemetry |
+| Query | ✅ single-node | `Query.Store` (WAL-backed KV + recovery), `Query.Cache`, `scan/keys/count`; routing/quorum are on the roadmap |
+| Cluster | 🟡 in-node | `Cluster.Membership`/`Heartbeat`/`Gossip` (not the SWIM/phi-accrual/discovery module tree named below) |
+| Replication | 🟡 in-node | `Leader`/`Follower`/`Stream`/`Monitor` with quorum acks; leader and follower persist to the WAL when it is running; not yet networked |
+| Observability | ✅ implemented | telemetry + `MetricsReporter`; Admin HTTP API and Prometheus `/metrics` live in `admin_api` |
+| Admin/Ops | 🟡 partial | `admin_api` HTTP surface + `shanghaictl`; config hot-reload, dashboards, deploy are on the roadmap |
+
+Module names such as `Cluster.Membership.Registry`, `Cluster.Discovery.*`,
+`Cluster.FailureDetection.*`, `Replication.LogShipping.*`, `Replication.Sync.*`,
+`Query.Executor.*`, `Query.Transaction.Coordinator`, and the `Admin.*`
+sub-supervisors are design intent and may not exist verbatim in the code.
 
 ## Bounded Contexts
 
