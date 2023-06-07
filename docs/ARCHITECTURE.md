@@ -2,6 +2,14 @@
 
 This document provides a comprehensive overview of Shanghai's architecture, design principles, and internal components.
 
+> **Scope & sources.** This is the system-level overview (design principles,
+> data flow, fault tolerance). For the domain-driven bounded-context breakdown
+> and the **implementation-status table** (what is built vs. targeted), see the
+> repository-root [`ARCHITECTURE.md`](../ARCHITECTURE.md). Parts of this document
+> describe target capabilities (e.g. multi-master replication, batched
+> throughput) that are not yet fully implemented — treat capability claims as
+> design intent unless confirmed by the status table.
+
 ## Table of Contents
 
 - [Overview](#overview)
