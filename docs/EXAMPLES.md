@@ -4,6 +4,7 @@ This document provides practical examples and tutorials for common Shanghai use 
 
 ## Table of Contents
 
+- [Key/Value Store (Query API)](#keyvalue-store-query-api)
 - [Basic WAL Operations](#basic-wal-operations)
 - [Event Sourcing Pattern](#event-sourcing-pattern)
 - [Distributed Counter](#distributed-counter)
@@ -11,6 +12,64 @@ This document provides practical examples and tutorials for common Shanghai use 
 - [Cluster Management](#cluster-management)
 - [Monitoring Integration](#monitoring-integration)
 - [Testing Patterns](#testing-patterns)
+
+## Key/Value Store (Query API)
+
+The `Query` module is the user-facing key/value API. It is durable when the
+storage WAL is configured (writes are appended to the log and replayed on
+recovery) and always observable — every operation emits
+`[:shanghai, :query, :operation]` telemetry.
+
+### Basic reads and writes
+
+```elixir
+{:ok, :written} = Query.write("user:1", %{name: "Alice"})
+{:ok, %{name: "Alice"}} = Query.read("user:1")
+{:error, :not_found} = Query.read("user:404")
+{:ok, :deleted} = Query.delete("user:1")
+```
+
+### Atomic transactions
+
+A transaction is persisted as a single WAL record, so on a single node it is
+atomic — all operations survive a crash, or none do.
+
+```elixir
+{:ok, :committed} =
+  Query.transact([
+    {:write, "account:1", %{balance: 100}},
+    {:write, "account:2", %{balance: 50}},
+    {:delete, "temp:1"}
+  ])
+```
+
+### Counters
+
+```elixir
+{:ok, 1} = Query.increment("page:home:views")     # missing key starts at 0
+{:ok, 6} = Query.increment("page:home:views", 5)
+{:ok, 5} = Query.increment("page:home:views", -1)
+```
+
+### Optimistic concurrency (compare-and-swap)
+
+```elixir
+{:ok, :swapped} = Query.cas("lock", :absent, :held)          # acquire if free
+{:error, :precondition_failed} = Query.cas("lock", :absent, :held)  # already held
+{:ok, :swapped} = Query.cas("lock", :held, :free)            # release
+```
+
+### Collection and range access
+
+```elixir
+{:ok, :written} = Query.write("events:order-1:1", %{type: :created})
+{:ok, :written} = Query.write("events:order-1:2", %{type: :paid})
+
+{:ok, events} = Query.scan("events:order-1:")   # prefix scan, sorted by key
+{:ok, values} = Query.mget(["events:order-1:1", "events:order-1:2"])
+keys = Query.keys()
+count = Query.count()
+```
 
 ## Basic WAL Operations
 
