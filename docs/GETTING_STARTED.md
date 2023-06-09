@@ -19,7 +19,7 @@ This guide will help you get up and running with Shanghai, from installation to 
 Before you begin, ensure you have:
 
 - **Erlang/OTP 26+**: `erl -version`
-- **Elixir 1.15+**: `elixir --version`
+- **Elixir 1.16+**: `elixir --version` (the umbrella apps require `~> 1.16`)
 - **Git**: `git --version`
 - **Basic Elixir knowledge**: Understanding of GenServers, supervision trees
 
@@ -47,7 +47,7 @@ $ erl -version
 Erlang (SMP,ASYNC_THREADS) (BEAM) emulator version 14.0
 
 $ elixir --version
-Elixir 1.15.7 (compiled with Erlang/OTP 26)
+Elixir 1.16.3 (compiled with Erlang/OTP 26)
 ```
 
 ## Installation
@@ -101,23 +101,39 @@ iex(1)> Cluster.Membership.local_node_id()
 %CoreDomain.Types.NodeId{value: "nonode@nohost"}
 ```
 
-### Write Your First Entry
+### Write and Read with the Query API
+
+The `Query` module is the recommended user-facing key/value API. It works out of
+the box (in-memory) and becomes durable once storage is configured with a
+`data_root`.
 
 ```elixir
-# Write data to the WAL
-iex(2)> {:ok, lsn} = Storage.WAL.Writer.append("Hello, Shanghai!")
-{:ok, 1}
+# Write a value
+iex(2)> Query.write("greeting", "Hello, Shanghai!")
+{:ok, :written}
 
-# LSN (Log Sequence Number) = 1
-```
-
-### Read the Entry Back
-
-```elixir
-# Read from WAL (future feature)
-iex(3)> Storage.WAL.Reader.read(1)
+# Read it back
+iex(3)> Query.read("greeting")
 {:ok, "Hello, Shanghai!"}
+
+# A missing key
+iex(4)> Query.read("nope")
+{:error, :not_found}
+
+# Atomic counter
+iex(5)> Query.increment("visits")
+{:ok, 1}
 ```
+
+See [Examples](EXAMPLES.md#keyvalue-store-query-api) for transactions,
+compare-and-swap, and range scans.
+
+### Lower-level: the Write-Ahead Log
+
+The Query layer is backed by a segment-based Write-Ahead Log. When storage is
+configured with a `data_root`, `Storage.WAL.Writer.append/1` and
+`Storage.WAL.Reader.read/1` are available directly — see
+[Working with the WAL](#working-with-the-wal).
 
 ## Basic Concepts
 
@@ -338,25 +354,26 @@ In `config/config.exs`:
 
 ```elixir
 config :storage,
-  # Directory for WAL segments
-  data_dir: "/var/lib/shanghai/data",
+  # Root directory for WAL segments, index and snapshots. When set, the full
+  # durable stack starts; when absent, storage runs in minimal (in-memory) mode.
+  data_root: "/var/lib/shanghai/data",
 
-  # New segment every 64 MB
+  # Node identifier stamped on log entries.
+  node_id: "node1",
+
+  # Rotate to a new segment at this size or age.
   segment_size_threshold: 64 * 1024 * 1024,
+  segment_time_threshold: 3600,
 
-  # fsync() on every write (safest)
-  fsync_mode: :always,
-
-  # Compression (future feature)
-  compression: :none
-
-config :storage, :batch_writer,
-  # Batch up to 100 entries
-  batch_size: 100,
-
-  # Wait max 10ms before flushing
-  batch_timeout_ms: 10
+  # Snapshot retention and background compaction.
+  snapshot_retention: 5,
+  compaction_interval: 3_600_000,
+  compaction_enabled: true
 ```
+
+> Each WAL append is fsynced today, so durability is not yet tunable via config.
+> Configurable fsync modes, compression, and the batch-writer settings are on the
+> roadmap.
 
 ## Setting Up a Cluster
 
