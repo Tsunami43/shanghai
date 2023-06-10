@@ -108,16 +108,16 @@ segment_99999.wal
 
 A segment file consists of:
 
-1. **Header** (64 bytes, fixed size)
+1. **Header** (256 bytes, fixed size)
 2. **Entries** (variable size, appended sequentially)
 
 ```
 ┌────────────────────────────────────────┐
-│  Segment Header (64 bytes)             │  Offset 0
+│  Segment Header (256 bytes)            │  Offset 0
 ├────────────────────────────────────────┤
-│  Entry 1 (variable)                    │  Offset 64
+│  Entry 1 (variable)                    │  Offset 256
 ├────────────────────────────────────────┤
-│  Entry 2 (variable)                    │  Offset 64 + size(Entry 1)
+│  Entry 2 (variable)                    │  Offset 256 + size(Entry 1)
 ├────────────────────────────────────────┤
 │  Entry 3 (variable)                    │
 ├────────────────────────────────────────┤
@@ -125,56 +125,49 @@ A segment file consists of:
 └────────────────────────────────────────┘
 ```
 
-### Segment Header (64 bytes)
+### Segment Header (256 bytes)
 
 | Offset | Size | Type | Name | Description |
 |--------|------|------|------|-------------|
-| 0 | 6 | bytes | Magic | `0x5348414E4741` ("SHANGA" in ASCII) |
-| 6 | 2 | uint16 | Version | Format version (current: 1) |
-| 8 | 16 | UUID | Segment ID | Unique segment identifier |
-| 24 | 8 | uint64 | Created | Unix timestamp (milliseconds) |
-| 32 | 8 | uint64 | First LSN | First LSN in this segment |
-| 40 | 8 | uint64 | Last LSN | Last LSN in this segment (0 if active) |
-| 48 | 16 | bytes | Reserved | Reserved for future use (zeros) |
-
-**Example (hexdump):**
-
-```
-00000000  53 48 41 4e 47 41 00 01  f4 7a c5 72 e3 4d 4a b3  |SHANGA...z.r.MJ.|
-00000010  9c 8e 3f 2a 1b 6f c8 4e  00 00 01 8b 2e 5f a0 00  |..?*.o.N....._.|
-00000020  00 00 00 00 00 00 00 01  00 00 00 00 00 00 00 00  |................|
-00000030  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-```
+| 0 | 16 | bytes | Magic | `"SHANGHAI_WAL\0"`, zero-padded to 16 bytes |
+| 16 | 4 | uint32 | Version | Format version (current: 1) |
+| 20 | 8 | uint64 | Segment ID | Segment identifier |
+| 28 | 8 | uint64 | Start LSN | First LSN in this segment |
+| 36 | 4 | uint32 | Checksum | CRC32 of the header fields above |
+| 40 | 216 | bytes | Reserved | Zero-filled padding to 256 bytes |
 
 ### Entry Format
 
 Each entry consists of:
 
-1. **Length** (4 bytes): Size of data payload
-2. **CRC32** (4 bytes): Checksum of data
-3. **Data** (variable): User payload
+1. **Length** (4 bytes): byte count of the payload
+2. **LSN** (8 bytes): log sequence number of the entry
+3. **CRC32** (4 bytes): checksum of the payload
+4. **Payload** (variable): the serialized `LogEntry` (Erlang External Term Format)
 
 | Offset | Size | Type | Name | Description |
 |--------|------|------|------|-------------|
-| 0 | 4 | uint32 | Length | Byte count of data field |
-| 4 | 4 | uint32 | CRC32 | CRC32 checksum of data |
-| 8 | Length | bytes | Data | User payload |
+| 0 | 4 | uint32 | Length | Byte count of the payload |
+| 4 | 8 | uint64 | LSN | Log sequence number |
+| 12 | 4 | uint32 | CRC32 | CRC32 checksum of the payload |
+| 16 | Length | bytes | Payload | Serialized log entry |
 
-**Total entry size:** `8 + Length` bytes
+**Total entry size:** `16 + Length` bytes
 
 **Example:**
 
 ```
-# Entry with data "Hello, Shanghai!" (16 bytes)
+# Entry whose serialized payload is 16 bytes, at LSN 42
 
-Length:  0x00000010  (16 in decimal)
-CRC32:   0xA3B2C1D0  (example checksum)
-Data:    "Hello, Shanghai!"
+Length:  0x00000010          (16 in decimal)
+LSN:     0x000000000000002A  (42 in decimal)
+CRC32:   0xA3B2C1D0          (example checksum of the payload)
+Payload: <serialized LogEntry>
 
-┌─────────────┬─────────────┬──────────────────────┐
-│  00 00 00 10│  A3 B2 C1 D0│  48 65 6c 6c 6f ...  │
-│  (Length)   │  (CRC32)    │  (Data)              │
-└─────────────┴─────────────┴──────────────────────┘
+┌─────────────┬────────────────────────┬─────────────┬──────────────┐
+│  00 00 00 10│  00 00 00 00 00 00 00 2A│  A3 B2 C1 D0│  <payload>   │
+│  (Length)   │  (LSN)                  │  (CRC32)    │  (Payload)   │
+└─────────────┴────────────────────────┴─────────────┴──────────────┘
 ```
 
 ### CRC32 Calculation
@@ -197,21 +190,21 @@ end
 
 ### LSN Assignment
 
-LSNs are assigned **sequentially** starting from 1:
+LSNs are assigned **sequentially** starting from 0 (the first append returns
+LSN 0). A fresh log starts at LSN 0; LSNs continue monotonically across segment
+rotations.
 
 ```
 Segment 1:
-  Entry 1: LSN = 1
-  Entry 2: LSN = 2
-  Entry 3: LSN = 3
+  Entry 1: LSN = 0
+  Entry 2: LSN = 1
+  Entry 3: LSN = 2
 
 Segment 2:
-  Entry 4: LSN = 4
-  Entry 5: LSN = 5
+  Entry 4: LSN = 3
+  Entry 5: LSN = 4
   ...
 ```
-
-**LSN 0 is reserved** and means "no LSN" or "beginning of log."
 
 ## Segment Management
 
