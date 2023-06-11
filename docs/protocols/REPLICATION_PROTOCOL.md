@@ -40,7 +40,10 @@ Shanghai's replication protocol provides **asynchronous, multi-master** replicat
 
 ### Non-Goals
 
-- **Strong consistency**: No coordination, no quorums
+- **Linearizable strong consistency**: not provided. The default model is
+  eventually consistent; a quorum-acknowledged write is available as an optional
+  consistency level (`:local` / `:leader` / `:quorum`, see
+  `Replication.ValueObjects.ConsistencyLevel`).
 - **Conflict resolution**: Application must handle conflicts
 - **Ordered delivery across nodes**: Only per-node ordering guaranteed
 
