@@ -60,10 +60,13 @@ All Shanghai events follow the pattern:
 [:shanghai, <subsystem>, <component>, <event>]
 ```
 
+Event names have three or four segments. The canonical list is
+`Observability.Metrics.event_names/0`.
+
 **Examples:**
-- `[:shanghai, :wal, :write, :completed]`
-- `[:shanghai, :cluster, :heartbeat, :completed]`
-- `[:shanghai, :replication, :lag, :changed]`
+- `[:shanghai, :storage, :wal, :write]`
+- `[:shanghai, :cluster, :heartbeat]`
+- `[:shanghai, :query, :operation]`
 
 ### Event Structure
 
@@ -76,36 +79,45 @@ Each event includes:
 
 ```elixir
 :telemetry.execute(
-  [:shanghai, :wal, :write, :completed],
+  [:shanghai, :storage, :wal, :write],
   %{duration: 3.2, bytes: 1024},  # Measurements
-  %{segment_id: "seg-001"}        # Metadata
+  %{segment_id: 1}                # Metadata
 )
 ```
 
 ### Available Events
 
+The canonical list of event names is `Observability.Metrics.event_names/0`.
+Events marked *(defined, not yet emitted)* have an `Observability.Metrics`
+helper but no producer wired up yet.
+
 #### Storage Events
 
 | Event | Measurements | Metadata |
 |-------|--------------|----------|
-| `[:shanghai, :wal, :write, :completed]` | `duration`, `bytes` | `segment_id` |
-| `[:shanghai, :wal, :sync, :completed]` | `duration` | `segment_id` |
-| `[:shanghai, :wal, :segment, :rotated]` | `old_size`, `new_size` | `old_id`, `new_id` |
+| `[:shanghai, :storage, :wal, :write]` | `duration`, `bytes` | `segment_id` |
+| `[:shanghai, :storage, :wal, :sync]` | `duration` | `segment_id` |
+| `[:shanghai, :storage, :compaction, :complete]` *(defined, not yet emitted)* | `duration_ms`, `bytes_before`, `bytes_after` | `segment_ids` |
 
 #### Cluster Events
 
 | Event | Measurements | Metadata |
 |-------|--------------|----------|
-| `[:shanghai, :cluster, :heartbeat, :completed]` | `rtt` | `from_node`, `to_node` |
-| `[:shanghai, :cluster, :membership, :changed]` | `node_count` | `event_type`, `node_id` |
+| `[:shanghai, :cluster, :heartbeat]` | `rtt_ms` | `source_node`, `target_node` |
+| `[:shanghai, :cluster, :membership_change]` | `node_count` | `event_type`, `node_id` |
 
 #### Replication Events
 
 | Event | Measurements | Metadata |
 |-------|--------------|----------|
-| `[:shanghai, :replication, :batch, :sent]` | `entries`, `bytes` | `follower`, `batch_id` |
-| `[:shanghai, :replication, :lag, :changed]` | `lag` | `follower`, `leader` |
-| `[:shanghai, :replication, :credit, :exhausted]` | `credit` | `follower` |
+| `[:shanghai, :replication, :lag]` | `offset_lag`, `time_lag_ms` | `group_id`, `follower_id`, `leader_id` |
+| `[:shanghai, :replication, :catchup]` *(defined, not yet emitted)* | `duration_ms`, `records_replicated` | `group_id`, `follower_id` |
+
+#### Query Events
+
+| Event | Measurements | Metadata |
+|-------|--------------|----------|
+| `[:shanghai, :query, :operation]` | `duration_ms` | `operation`, `result` |
 
 ## Key Metrics
 
@@ -127,9 +139,9 @@ Each event includes:
 
 **Example query (PromQL):**
 ```promql
-histogram_quantile(0.99,
-  rate(shanghai_wal_write_duration_bucket[5m])
-)
+# Average WAL write duration (exposed as a summary, not a histogram)
+rate(shanghai_wal_write_duration_ms_sum[5m])
+  / rate(shanghai_wal_write_duration_ms_count[5m])
 ```
 
 #### WAL Write Throughput
@@ -168,7 +180,8 @@ rate(shanghai_wal_writes_total[1m])
 
 **Example query:**
 ```promql
-shanghai_cluster_nodes_total
+# Nodes currently up (also available: status="down" / "suspect")
+shanghai_cluster_nodes{status="up"}
 ```
 
 #### Heartbeat RTT
@@ -187,9 +200,8 @@ shanghai_cluster_nodes_total
 
 **Example query:**
 ```promql
-histogram_quantile(0.99,
-  rate(shanghai_cluster_heartbeat_rtt_bucket[5m])
-)
+# Average heartbeat RTT per link (exposed as a gauge, not a histogram)
+shanghai_cluster_heartbeat_rtt
 ```
 
 ### Replication Metrics
@@ -228,12 +240,33 @@ shanghai_replication_lag
 
 **Example query:**
 ```promql
+# Not yet exposed by the Prometheus endpoint (credit tracking is on the roadmap).
 shanghai_replication_credit
 ```
 
 ## Prometheus Integration
 
-### Setup
+Shanghai serves Prometheus metrics from the **Admin API**: scrape
+`GET /metrics` on the admin_api port (default `9090`). The body is Prometheus
+text exposition format, rendered by `AdminApi.Prometheus` from
+`Observability.MetricsReporter` aggregates plus live cluster state.
+
+**Metrics exposed today:**
+
+| Metric | Type | Labels |
+|---|---|---|
+| `shanghai_wal_writes_total` | counter | — |
+| `shanghai_wal_write_duration_ms` | summary | — |
+| `shanghai_wal_sync_duration_ms` | summary | — |
+| `shanghai_query_operations_total` | counter | `operation` |
+| `shanghai_replication_lag` | gauge | `follower` |
+| `shanghai_cluster_heartbeat_rtt` | gauge | `link` |
+| `shanghai_cluster_nodes` | gauge | `status` |
+
+> The `telemetry_metrics_prometheus`-based setup below (a dedicated exporter on
+> port 9568) is an **alternative future design**, not the current integration.
+
+### Setup (alternative future design)
 
 1. **Add dependency** (`mix.exs`):
 
@@ -309,16 +342,17 @@ end
 
 ### Scrape Configuration
 
-Add to Prometheus config (`prometheus.yml`):
+Add to Prometheus config (`prometheus.yml`), pointing at the admin_api port:
 
 ```yaml
 scrape_configs:
   - job_name: 'shanghai'
+    metrics_path: /metrics
     static_configs:
       - targets:
-          - 'node1:9568'
-          - 'node2:9568'
-          - 'node3:9568'
+          - 'node1:9090'
+          - 'node2:9090'
+          - 'node3:9090'
     scrape_interval: 15s
 ```
 
@@ -334,9 +368,9 @@ Create dashboard with panels:
 
 **Query:**
 ```promql
-histogram_quantile(0.99,
-  rate(shanghai_wal_write_duration_bucket[5m])
-)
+# Average WAL write duration (exposed as a summary, not a histogram)
+rate(shanghai_wal_write_duration_ms_sum[5m])
+  / rate(shanghai_wal_write_duration_ms_count[5m])
 ```
 
 **Visualization:** Time series graph
@@ -351,7 +385,7 @@ histogram_quantile(0.99,
 
 **Query:**
 ```promql
-sum by (status) (shanghai_cluster_nodes_total)
+sum by (status) (shanghai_cluster_nodes)
 ```
 
 **Visualization:** Stat panel
@@ -399,10 +433,10 @@ Save as `grafana/shanghai-dashboard.json`:
     "panels": [
       {
         "id": 1,
-        "title": "WAL Write P99 Latency",
+        "title": "WAL Write Avg Latency",
         "targets": [
           {
-            "expr": "histogram_quantile(0.99, rate(shanghai_wal_write_duration_bucket[5m]))"
+            "expr": "rate(shanghai_wal_write_duration_ms_sum[5m]) / rate(shanghai_wal_write_duration_ms_count[5m])"
           }
         ],
         "type": "graph"
@@ -412,7 +446,7 @@ Save as `grafana/shanghai-dashboard.json`:
         "title": "Cluster Nodes",
         "targets": [
           {
-            "expr": "sum by (status) (shanghai_cluster_nodes_total)"
+            "expr": "sum by (status) (shanghai_cluster_nodes)"
           }
         ],
         "type": "stat"
@@ -436,9 +470,8 @@ groups:
       # Storage alerts
       - alert: HighWALWriteLatency
         expr: |
-          histogram_quantile(0.99,
-            rate(shanghai_wal_write_duration_bucket[5m])
-          ) > 10
+          rate(shanghai_wal_write_duration_ms_sum[5m])
+            / rate(shanghai_wal_write_duration_ms_count[5m]) > 10
         for: 5m
         labels:
           severity: warning
@@ -459,7 +492,7 @@ groups:
       # Cluster alerts
       - alert: NodeDown
         expr: |
-          shanghai_cluster_nodes_total{status="down"} > 0
+          shanghai_cluster_nodes{status="down"} > 0
         for: 1m
         labels:
           severity: critical
@@ -469,7 +502,7 @@ groups:
 
       - alert: ClusterUnderReplicated
         expr: |
-          shanghai_cluster_nodes_total{status="up"} < 3
+          shanghai_cluster_nodes{status="up"} < 3
         for: 5m
         labels:
           severity: critical
