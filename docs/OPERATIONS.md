@@ -92,8 +92,8 @@ config :shanghai,
   port: String.to_integer(System.get_env("SHANGHAI_PORT") || "4000")
 
 config :storage,
-  data_dir: System.get_env("SHANGHAI_DATA_DIR") || "/var/lib/shanghai/data",
-  wal_dir: System.get_env("SHANGHAI_WAL_DIR") || "/var/lib/shanghai/wal",
+  # Root directory; the WAL, index and snapshot subdirectories are derived from it.
+  data_root: System.get_env("SHANGHAI_DATA_DIR") || "/var/lib/shanghai/data",
   segment_size_threshold: 64 * 1024 * 1024
 
 config :admin_api,
