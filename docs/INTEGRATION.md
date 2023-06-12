@@ -105,7 +105,7 @@ config :shanghai,
   node_id: System.get_env("NODE_ID") || "node-1"
 
 config :storage,
-  data_dir: System.get_env("SHANGHAI_DATA_DIR") || "/var/lib/myapp/wal",
+  data_root: System.get_env("SHANGHAI_DATA_DIR") || "/var/lib/myapp/wal",
   segment_size_threshold: 64 * 1024 * 1024
 
 config :cluster,
