@@ -1,21 +1,18 @@
 # Observability
 
-**TODO: Add description**
+Telemetry, metrics aggregation and structured logging for Shanghai — the
+"observable by default" backbone.
 
-## Installation
+## Components
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `observability` to your list of dependencies in `mix.exs`:
+- **`Observability.Metrics`** — convenience emitters for the canonical
+  `[:shanghai, ...]` telemetry events (WAL write/sync, replication lag/catchup,
+  cluster heartbeat/membership, compaction, query operations).
+- **`Observability.MetricsReporter`** — attaches to those events and keeps
+  rolling statistics (`get_wal_stats/0`, `get_replication_stats/0`,
+  `get_heartbeat_stats/0`). Event processing is defensive: one malformed event
+  can never take the reporter (or the supervisor) down.
+- **`Observability.Logger`** — structured logging with correlation-ID
+  propagation.
 
-```elixir
-def deps do
-  [
-    {:observability, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/observability>.
-
+Aggregated metrics are exposed as JSON and Prometheus text by the `admin_api` app.
