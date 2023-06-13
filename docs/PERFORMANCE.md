@@ -2,6 +2,14 @@
 
 This document provides detailed performance analysis, benchmarks, and optimization strategies for Shanghai.
 
+> **Status:** The figures below are performance *targets*; the benchmark tables
+> were not reproduced in this repository. The throughput targets assume batched
+> writes, and the batch writer is not yet wired into the default write path (the
+> WAL fsyncs per append today), so current single-node write throughput is
+> lower. A quick single-node `Storage.Benchmark` run shows write latency well
+> within target (P99 well under 2 ms). Treat the numbers as goals and re-measure
+> on your own hardware with `Storage.Benchmark`.
+
 ## Table of Contents
 
 - [Overview](#overview)
