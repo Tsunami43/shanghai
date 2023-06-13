@@ -16,27 +16,23 @@ No deprecations in this release.
 
 ### v1.2.0 (Released 2025-06)
 
-#### Direct Segment Access (Deprecated)
+#### Direct Segment Access — internal API (not deprecated)
 
-**What**: Direct calls to `Storage.WAL.Segment.append_entry/2`
+`Storage.WAL.Segment.append_entry/2` is an **internal** primitive used by the
+WAL `Writer` and `BatchWriter`. It is not deprecated and will not be removed —
+but application code should not call segments directly.
 
-**Why**: New `BatchWriter` provides better performance. Direct segment
-access bypasses batching optimization.
-
-**Migration**:
+**Prefer** the higher-level APIs:
 ```elixir
-# Before (deprecated)
-Storage.WAL.Segment.append_entry(segment_pid, entry)
-
-# After
+# Application code
+Query.write("key", value)
+# or, for raw log appends
 Storage.WAL.Writer.append(data)
 ```
 
-**Removal**: v2.0.0 (planned 2026 Q1)
-
 #### Legacy Heartbeat API (Deprecated)
 
-**What**: `Cluster.Heartbeat.send_heartbeat/1` (manual heartbeat)
+**What**: `Cluster.Heartbeat.send_heartbeat/0` (manual heartbeat)
 
 **Why**: Heartbeats should be automatic. Manual sending can cause
 timing issues and is rarely needed.
@@ -44,7 +40,7 @@ timing issues and is rarely needed.
 **Migration**:
 ```elixir
 # Before (deprecated)
-Cluster.Heartbeat.send_heartbeat(node_id)
+Cluster.Heartbeat.send_heartbeat()
 
 # After
 # Heartbeats are automatic, no action needed
@@ -86,7 +82,7 @@ deprecation warnings.
    - Compile-time error if using deprecated API
 
 2. **Manual Heartbeat Removed**
-   - Remove all calls to `send_heartbeat/1`
+   - Remove all calls to `send_heartbeat/0`
    - Rely on automatic heartbeats
 
 **Migration steps**:
