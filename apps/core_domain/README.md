@@ -1,21 +1,13 @@
 # CoreDomain
 
-**TODO: Add description**
+Shared domain language for Shanghai. A pure library with no processes and no
+side effects, depended on by every other app; it defines the ubiquitous
+vocabulary the system is built from.
 
-## Installation
+## Key abstractions
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `core_domain` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:core_domain, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/core_domain>.
-
+- `CoreDomain.Types.LogSequenceNumber` — monotonic LSN, total ordering.
+- `CoreDomain.Types.NodeId` — node identity.
+- `CoreDomain.ValueObjects.ConsistencyLevel` — `:strong` / `:eventual` / `:causal`.
+- `CoreDomain.Entities.LogEntry` — immutable write-ahead-log entry.
+- `CoreDomain.Protocols.Event` — domain-event contract.
