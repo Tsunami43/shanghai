@@ -1,21 +1,23 @@
 # Admin
 
-**TODO: Add description**
+Cross-cutting administration app for Shanghai. It sits above the other bounded
+contexts (it depends on `core_domain`, `storage`, `cluster`, `replication` and
+`query`) and is the intended home for operational concerns that observe or
+coordinate the whole system.
 
-## Installation
+## Health
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `admin` to your list of dependencies in `mix.exs`:
+`Admin.health/0` (see `Admin.Health`) returns an aggregate health report across
+subsystems — a per-subsystem liveness map (`storage`, `cluster`, `replication`,
+`query`) and an overall `:healthy`/`:degraded` status.
 
-```elixir
-def deps do
-  [
-    {:admin, "~> 0.1.0"}
-  ]
-end
-```
+## Status
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/admin>.
+Other operational surfaces are provided today by:
 
+- **`admin_api`** — HTTP/JSON admin API and the Prometheus `/metrics` endpoint.
+- **`shanghaictl`** — command-line control tool.
+- **`observability`** — telemetry metrics, structured logging, aggregation.
+
+Planned here (see `docs/ROADMAP_1000.md`): dynamic config management with hot
+reload, aggregate health checking, and a monitoring dashboard.
