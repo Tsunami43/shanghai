@@ -227,6 +227,29 @@ defmodule Query do
   end
 
   @doc """
+  Deletes every key that starts with `prefix`, returning `{:ok, {:deleted, count}}`.
+
+  The removal is a single atomic WAL record — either all matching keys are gone
+  after a crash, or none are. Useful for evicting an entity's whole key range.
+
+  ## Examples
+
+      iex> Query.write("session:1:a", 1)
+      iex> Query.write("session:1:b", 2)
+      iex> Query.delete_prefix("session:1:")
+      {:ok, {:deleted, 2}}
+  """
+  @spec delete_prefix(binary()) :: {:ok, {:deleted, non_neg_integer()}} | {:error, term()}
+  def delete_prefix(prefix) when is_binary(prefix) do
+    measure(:delete_prefix, fn ->
+      keys = Query.Store.scan(prefix) |> Enum.map(&elem(&1, 0))
+      result = Query.Store.delete_prefix(prefix)
+      if match?({:ok, _}, result), do: Enum.each(keys, &Query.Cache.invalidate/1)
+      result
+    end)
+  end
+
+  @doc """
   Returns all `{key, value}` pairs whose key starts with `prefix`.
 
   Useful for range/collection access patterns (event streams, per-entity keys).

@@ -177,6 +177,14 @@ defmodule Query.Store do
     do: GenServer.call(server, {:update, key, default, fun})
 
   @doc """
+  Deletes every (binary) key that starts with `prefix` as one atomic WAL record.
+  Returns `{:ok, {:deleted, count}}` with the number of keys removed.
+  """
+  @spec delete_prefix(GenServer.server(), binary()) :: {:ok, {:deleted, non_neg_integer()}}
+  def delete_prefix(server \\ __MODULE__, prefix) when is_binary(prefix),
+    do: GenServer.call(server, {:delete_prefix, prefix})
+
+  @doc """
   Atomically applies a list of `{:write, key, value}` / `{:delete, key}` ops.
   Returns `{:ok, :committed}`.
   """
@@ -331,6 +339,27 @@ defmodule Query.Store do
 
       {:error, reason} ->
         {:reply, {:error, reason}, state}
+    end
+  end
+
+  def handle_call({:delete_prefix, prefix}, _from, state) do
+    keys = for {key, _value} <- scan(prefix), do: key
+
+    case keys do
+      [] ->
+        {:reply, {:ok, {:deleted, 0}}, state}
+
+      _ ->
+        ops = Enum.map(keys, &{:delete, &1})
+
+        case append(state, %{op: :txn, ops: ops}) do
+          :ok ->
+            Enum.each(ops, &apply_txn_op(state.table, &1))
+            {:reply, {:ok, {:deleted, length(keys)}}, state}
+
+          {:error, reason} ->
+            {:reply, {:error, reason}, state}
+        end
     end
   end
 
