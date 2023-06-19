@@ -138,6 +138,14 @@ defmodule Query.Store do
   @spec take(GenServer.server(), term()) :: {:ok, term()} | {:error, :not_found | term()}
   def take(server \\ __MODULE__, key), do: GenServer.call(server, {:take, key})
 
+  @doc "Writes `value` only if `key` is absent. Returns `{:ok, :written}` or `{:error, :exists}`."
+  @spec put_new(GenServer.server(), term(), term()) :: {:ok, :written} | {:error, term()}
+  def put_new(server \\ __MODULE__, key, value), do: GenServer.call(server, {:put_new, key, value})
+
+  @doc "Writes `value` only if `key` exists. Returns `{:ok, :written}` or `{:error, :not_found}`."
+  @spec replace(GenServer.server(), term(), term()) :: {:ok, :written} | {:error, term()}
+  def replace(server \\ __MODULE__, key, value), do: GenServer.call(server, {:replace, key, value})
+
   @doc """
   Atomic compare-and-swap: writes `new` only if the current value matches
   `expected`. Pass `:absent` as `expected` to write only when the key is missing.
@@ -282,6 +290,22 @@ defmodule Query.Store do
     end
   end
 
+  def handle_call({:put_new, key, value}, _from, state) do
+    if :ets.member(state.table, key) do
+      {:reply, {:error, :exists}, state}
+    else
+      write_value(state, key, value)
+    end
+  end
+
+  def handle_call({:replace, key, value}, _from, state) do
+    if :ets.member(state.table, key) do
+      write_value(state, key, value)
+    else
+      {:reply, {:error, :not_found}, state}
+    end
+  end
+
   def handle_call({:take, key}, _from, state) do
     case :ets.lookup(state.table, key) do
       [{^key, value}] ->
@@ -344,6 +368,18 @@ defmodule Query.Store do
     end
   rescue
     ArgumentError -> {:error, :store_unavailable}
+  end
+
+  # Persists `key`/`value` and replies; shared by the conditional write paths.
+  defp write_value(state, key, value) do
+    case append(state, %{op: :put, key: key, value: value}) do
+      :ok ->
+        :ets.insert(state.table, {key, value})
+        {:reply, {:ok, :written}, state}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
   end
 
   # Reads the current numeric value at `key`, defaulting to 0 when absent.

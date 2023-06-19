@@ -117,6 +117,34 @@ defmodule Query do
   end
 
   @doc """
+  Writes `value` only if `key` does not exist yet.
+
+  Returns `{:ok, :written}`, or `{:error, :exists}` if the key is already set.
+  """
+  @spec put_new(String.t(), term()) :: {:ok, :written} | {:error, term()}
+  def put_new(key, value) do
+    measure(:put_new, fn ->
+      result = Query.Store.put_new(key, value)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate(key)
+      result
+    end)
+  end
+
+  @doc """
+  Writes `value` only if `key` already exists.
+
+  Returns `{:ok, :written}`, or `{:error, :not_found}` if the key is absent.
+  """
+  @spec replace(String.t(), term()) :: {:ok, :written} | {:error, term()}
+  def replace(key, value) do
+    measure(:replace, fn ->
+      result = Query.Store.replace(key, value)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate(key)
+      result
+    end)
+  end
+
+  @doc """
   Atomically reads and removes `key` (a pop), returning `{:ok, value}` or
   `{:error, :not_found}`. Useful for queue/work-stealing patterns.
 
