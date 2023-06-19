@@ -13,7 +13,12 @@ Shanghai provides:
 - **Built-in observability** via telemetry and structured logging
 - **Production-ready operations** with comprehensive tooling
 
-**Performance:** 250,000+ writes/sec, <2ms P99 latency, eventual consistency.
+**Performance targets:** 250,000+ writes/sec, <2ms P99 latency, eventual consistency.
+
+> The throughput target assumes batched writes; the batch writer is not yet wired
+> into the default path (writes fsync per append today), so single-node
+> throughput is currently lower. Measured P99 write latency is well within the
+> <2ms target. See [Performance](docs/PERFORMANCE.md).
 
 The project prioritizes **simplicity, observability, and operational excellence** over complexity.
 
@@ -129,8 +134,8 @@ Built-in metrics, logging, and monitoring.
 
 ### Prerequisites
 
-- Elixir 1.19 or later
-- Erlang/OTP 27 or later
+- Elixir 1.16 or later (umbrella apps require `~> 1.16`)
+- Erlang/OTP 26 or later (CI runs on OTP 26.2)
 
 ### Setup
 
@@ -178,9 +183,11 @@ iex> Query.delete("user:1")
 
 ✅ **Storage Layer**
 - Write-Ahead Log with segment management
-- Batched writes (60x throughput improvement)
 - Crash recovery with torn write detection
-- Segment compaction
+- Segment compaction (segment selection; merge/reclaim on the roadmap)
+
+🚧 **Storage (in progress)**
+- Batch writer component (not yet wired into the default write path)
 
 ✅ **Cluster Management**
 - Heartbeat-based failure detection
@@ -194,19 +201,32 @@ iex> Query.delete("user:1")
 - Automatic backpressure
 - Lag monitoring
 
+✅ **Query Layer**
+- `read`/`write`/`delete`/`transact` over a WAL-backed KV store
+- Crash recovery by WAL replay on startup
+- Read-through cache with consistent invalidation
+- `scan`/`keys`/`count` collection access
+
 ✅ **Observability**
-- Telemetry integration throughout
-- Prometheus metrics export
+- Telemetry integration throughout (incl. `[:shanghai, :query, :operation]`)
 - Structured logging
-- Admin HTTP API
+- Admin HTTP API (`/api/v1/status|nodes|replicas|metrics`)
 - CLI tools (shanghaictl)
 
-✅ **Production Ready**
-- Comprehensive documentation
-- Performance benchmarks
-- Operations guides
-- Monitoring setup
+### Current scope & roadmap
+
+Shanghai runs **single-node today**: storage/WAL and the query layer are
+durable and real, while cluster membership and replication currently operate as
+in-node coordination. The path to a fully distributed v1.0 — networked
+replication with quorums and anti-entropy, sharding, consensus, a wire protocol,
+security and deployment — is tracked commit-by-commit in
+[`docs/ROADMAP_1000.md`](docs/ROADMAP_1000.md) and
+[`docs/COMMIT_PLAN.md`](docs/COMMIT_PLAN.md). Items marked ✅ above are
+implemented at single-node scope; Prometheus export and gRPC remain on the
+roadmap.
 
 ## Contributing
 
-This is currently a learning/research project. Contributions welcome as the project matures.
+This is currently a learning/research project. Contributions welcome as the
+project matures. See [CONTRIBUTING.md](CONTRIBUTING.md) for the development
+workflow, quality gates, and testing conventions.
