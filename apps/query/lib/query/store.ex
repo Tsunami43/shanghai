@@ -102,6 +102,30 @@ defmodule Query.Store do
     ArgumentError -> 0
   end
 
+  @doc "Returns `true` when `key` is present. Reads the ETS index directly."
+  @spec exists?(term()) :: boolean()
+  def exists?(key) do
+    :ets.member(@default_table, key)
+  rescue
+    ArgumentError -> false
+  end
+
+  @doc "Counts the (binary) keys that start with `prefix`, without materializing them."
+  @spec count_prefix(binary()) :: non_neg_integer()
+  def count_prefix(prefix) when is_binary(prefix) do
+    reducer = fn
+      {key, _value}, acc when is_binary(key) ->
+        if String.starts_with?(key, prefix), do: acc + 1, else: acc
+
+      _entry, acc ->
+        acc
+    end
+
+    :ets.foldl(reducer, 0, @default_table)
+  rescue
+    ArgumentError -> 0
+  end
+
   @doc """
   Returns all `{key, value}` pairs whose (binary) key starts with `prefix`.
 
@@ -147,11 +171,13 @@ defmodule Query.Store do
 
   @doc "Writes `value` only if `key` is absent. Returns `{:ok, :written}` or `{:error, :exists}`."
   @spec put_new(GenServer.server(), term(), term()) :: {:ok, :written} | {:error, term()}
-  def put_new(server \\ __MODULE__, key, value), do: GenServer.call(server, {:put_new, key, value})
+  def put_new(server \\ __MODULE__, key, value),
+    do: GenServer.call(server, {:put_new, key, value})
 
   @doc "Writes `value` only if `key` exists. Returns `{:ok, :written}` or `{:error, :not_found}`."
   @spec replace(GenServer.server(), term(), term()) :: {:ok, :written} | {:error, term()}
-  def replace(server \\ __MODULE__, key, value), do: GenServer.call(server, {:replace, key, value})
+  def replace(server \\ __MODULE__, key, value),
+    do: GenServer.call(server, {:replace, key, value})
 
   @doc """
   Atomic compare-and-swap: writes `new` only if the current value matches

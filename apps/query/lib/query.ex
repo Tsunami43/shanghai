@@ -344,6 +344,32 @@ defmodule Query do
     {:ok, %{store: store, cache: cache}}
   end
 
+  @doc """
+  Returns `true` when `key` exists. A cheap membership check that avoids
+  fetching the value.
+
+  ## Examples
+
+      iex> Query.write("k", 1)
+      iex> Query.exists?("k")
+      true
+  """
+  @spec exists?(String.t()) :: boolean()
+  defdelegate exists?(key), to: Query.Store
+
+  @doc """
+  Counts the keys that start with `prefix` without materializing them — the
+  cheap counterpart to `scan/1`.
+
+  ## Examples
+
+      iex> Query.mset(%{"e:1" => 1, "e:2" => 2})
+      iex> Query.count_prefix("e:")
+      2
+  """
+  @spec count_prefix(binary()) :: non_neg_integer()
+  defdelegate count_prefix(prefix), to: Query.Store
+
   @doc "Returns every stored key."
   @spec keys() :: [term()]
   defdelegate keys(), to: Query.Store
