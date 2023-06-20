@@ -52,6 +52,44 @@ Writes `value` under `key`. `opts` accepts `:consistency` (`:strong` |
 
 Atomic get-and-delete (a pop) — reads and removes `key` in one step.
 
+### put_new/2
+
+```elixir
+@spec put_new(key :: String.t(), value :: term()) ::
+        {:ok, :written} | {:error, :exists}
+```
+
+Writes `value` only if `key` is absent (write-if-absent).
+
+### replace/2
+
+```elixir
+@spec replace(key :: String.t(), value :: term()) ::
+        {:ok, :written} | {:error, :not_found}
+```
+
+Writes `value` only if `key` already exists (write-if-exists).
+
+### getset/2
+
+```elixir
+@spec getset(key :: String.t(), value :: term()) ::
+        {:ok, term() | :absent} | {:error, term()}
+```
+
+Atomically writes `value` and returns the previous value, or `:absent` when the
+key did not exist.
+
+### delete_prefix/1
+
+```elixir
+@spec delete_prefix(prefix :: String.t()) ::
+        {:ok, {:deleted, non_neg_integer()}} | {:error, term()}
+```
+
+Deletes every key that starts with `prefix` as one atomic WAL record, returning
+the number of keys removed.
+
 ### transact/1
 
 ```elixir
