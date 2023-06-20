@@ -138,6 +138,13 @@ defmodule Query.Store do
   @spec take(GenServer.server(), term()) :: {:ok, term()} | {:error, :not_found | term()}
   def take(server \\ __MODULE__, key), do: GenServer.call(server, {:take, key})
 
+  @doc """
+  Atomically writes `value` and returns the previous value: `{:ok, old}` when
+  the key existed, or `{:ok, :absent}` when it did not.
+  """
+  @spec getset(GenServer.server(), term(), term()) :: {:ok, term() | :absent} | {:error, term()}
+  def getset(server \\ __MODULE__, key, value), do: GenServer.call(server, {:getset, key, value})
+
   @doc "Writes `value` only if `key` is absent. Returns `{:ok, :written}` or `{:error, :exists}`."
   @spec put_new(GenServer.server(), term(), term()) :: {:ok, :written} | {:error, term()}
   def put_new(server \\ __MODULE__, key, value), do: GenServer.call(server, {:put_new, key, value})
@@ -292,6 +299,23 @@ defmodule Query.Store do
           {:error, reason} ->
             {:reply, {:error, reason}, state}
         end
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  def handle_call({:getset, key, value}, _from, state) do
+    previous =
+      case :ets.lookup(state.table, key) do
+        [{^key, old}] -> old
+        [] -> :absent
+      end
+
+    case append(state, %{op: :put, key: key, value: value}) do
+      :ok ->
+        :ets.insert(state.table, {key, value})
+        {:reply, {:ok, previous}, state}
 
       {:error, reason} ->
         {:reply, {:error, reason}, state}

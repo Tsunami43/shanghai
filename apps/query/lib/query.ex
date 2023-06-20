@@ -145,6 +145,29 @@ defmodule Query do
   end
 
   @doc """
+  Atomically sets `key` to `value` and returns the previous value.
+
+  Returns `{:ok, old}` when the key existed, or `{:ok, :absent}` when it did
+  not. Handy for claiming a slot while learning what it held before.
+
+  ## Examples
+
+      iex> Query.getset("leader", "node-a")
+      {:ok, :absent}
+
+      iex> Query.getset("leader", "node-b")
+      {:ok, "node-a"}
+  """
+  @spec getset(String.t(), term()) :: {:ok, term() | :absent} | {:error, term()}
+  def getset(key, value) do
+    measure(:getset, fn ->
+      result = Query.Store.getset(key, value)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate(key)
+      result
+    end)
+  end
+
+  @doc """
   Atomically reads and removes `key` (a pop), returning `{:ok, value}` or
   `{:error, :not_found}`. Useful for queue/work-stealing patterns.
 
