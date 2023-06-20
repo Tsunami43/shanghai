@@ -288,6 +288,32 @@ defmodule Query do
   end
 
   @doc """
+  Writes several key/value pairs at once as one atomic WAL record.
+
+  Accepts a map or a keyword/tuple list. Returns `{:ok, :committed}`. This is
+  the write counterpart to `mget/1` — either every pair survives a crash or none
+  does.
+
+  ## Examples
+
+      iex> Query.mset(%{"a" => 1, "b" => 2})
+      {:ok, :committed}
+  """
+  @spec mset(map() | [{String.t(), term()}]) :: {:ok, :committed} | {:error, term()}
+  def mset(pairs) when is_map(pairs) or is_list(pairs) do
+    ops = for {key, value} <- pairs, do: {:write, key, value}
+
+    measure(:mset, fn ->
+      result = Query.Store.transact(ops)
+
+      if match?({:ok, _}, result),
+        do: Enum.each(ops, fn {:write, k, _v} -> Query.Cache.invalidate(k) end)
+
+      result
+    end)
+  end
+
+  @doc """
   Reads several keys at once, returning `{:ok, %{key => value}}` for the keys
   that exist (missing keys are omitted).
 
