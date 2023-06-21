@@ -30,6 +30,17 @@ defmodule ShanghaictlTest do
       assert Shanghaictl.parse(["shutdown", "--graceful"]) == {:shutdown, ["--graceful"]}
     end
 
+    test "kv get carries the key and options" do
+      assert Shanghaictl.parse(["kv", "get", "user:1"]) == {:kv_get, ["user:1"]}
+
+      assert Shanghaictl.parse(["kv", "get", "k", "--admin-url", "http://h:9090"]) ==
+               {:kv_get, ["k", "--admin-url", "http://h:9090"]}
+    end
+
+    test "kv without a subcommand is :unknown" do
+      assert Shanghaictl.parse(["kv"]) == {:unknown, ["kv"]}
+    end
+
     test "unrecognized input is :unknown with the original args" do
       assert Shanghaictl.parse(["bogus", "x"]) == {:unknown, ["bogus", "x"]}
       assert Shanghaictl.parse(["node"]) == {:unknown, ["node"]}
