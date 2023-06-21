@@ -29,7 +29,8 @@ defmodule AdminApi.MixProject do
       {:core_domain, in_umbrella: true},
       {:cluster, in_umbrella: true},
       {:replication, in_umbrella: true},
-      {:observability, in_umbrella: true}
+      {:observability, in_umbrella: true},
+      {:query, in_umbrella: true}
     ]
   end
 end

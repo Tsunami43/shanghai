@@ -79,6 +79,23 @@ defmodule AdminApi.RouterTest do
     assert is_list(body["replicas"])
   end
 
+  test "GET /api/v1/kv/:key returns a stored value" do
+    {:ok, :written} = Query.write("admin-api:kv", "hello")
+
+    conn = get("/api/v1/kv/admin-api:kv")
+    assert conn.status == 200
+
+    body = json(conn)
+    assert body["key"] == "admin-api:kv"
+    assert body["value"] == "hello"
+  end
+
+  test "GET /api/v1/kv/:key returns 404 for a missing key" do
+    conn = get("/api/v1/kv/admin-api:absent")
+    assert conn.status == 404
+    assert json(conn)["error"] == "not_found"
+  end
+
   test "GET /api/v1/metrics returns the metric sections" do
     conn = get("/api/v1/metrics")
     assert conn.status == 200

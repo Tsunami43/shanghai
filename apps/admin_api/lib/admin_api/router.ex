@@ -115,6 +115,18 @@ defmodule AdminApi.Router do
     send_json(conn, 200, metrics)
   end
 
+  # Read a single key from the materialized store. Read-only and safe to expose
+  # for operational inspection and debugging.
+  get "/api/v1/kv/:key" do
+    case Query.read(key) do
+      {:ok, value} ->
+        send_json(conn, 200, %{key: key, value: json_safe(value)})
+
+      {:error, :not_found} ->
+        send_json(conn, 404, %{error: "not_found", key: key})
+    end
+  end
+
   get "/api/v1/replicas" do
     groups = Replication.all_groups()
     replicas = Enum.map(groups, &serialize_replication_group/1)
@@ -251,6 +263,15 @@ defmodule AdminApi.Router do
   end
 
   defp process_alive?(name), do: is_pid(Process.whereis(name))
+
+  # JSON carries only a subset of Erlang terms; fall back to an inspected string
+  # for values that are not natively encodable (tuples, PIDs, and the like).
+  defp json_safe(value) do
+    case Jason.encode(value) do
+      {:ok, _encoded} -> value
+      {:error, _reason} -> inspect(value)
+    end
+  end
 
   defp send_json(conn, status, data) do
     conn
