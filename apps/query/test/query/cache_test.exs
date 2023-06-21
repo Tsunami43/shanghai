@@ -25,6 +25,18 @@ defmodule Query.CacheTest do
       assert :miss = Query.Cache.get("c:2")
     end
 
+    test "stats track hits, misses and hit ratio" do
+      assert :miss = Query.Cache.get("c:stat")
+      :ok = Query.Cache.put("c:stat", "v")
+      assert {:ok, "v"} = Query.Cache.get("c:stat")
+      assert {:ok, "v"} = Query.Cache.get("c:stat")
+
+      {:ok, stats} = Query.Cache.stats()
+      assert stats.hits == 2
+      assert stats.misses == 1
+      assert_in_delta stats.hit_ratio, 2 / 3, 1.0e-9
+    end
+
     test "evicts oldest entries beyond max_size (FIFO)" do
       uniq = :erlang.unique_integer([:positive])
 

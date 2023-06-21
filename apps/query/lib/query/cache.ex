@@ -26,6 +26,7 @@ defmodule Query.Cache do
 
   @table :query_cache
   @lru :query_cache_lru
+  @counters :query_cache_counters
 
   ## Client API
 
@@ -42,12 +43,15 @@ defmodule Query.Cache do
       [{^key, value, expires_at, _seq}] ->
         if expired?(expires_at) do
           GenServer.cast(__MODULE__, {:expire, key})
+          bump(:misses)
           :miss
         else
+          bump(:hits)
           {:ok, value}
         end
 
       [] ->
+        bump(:misses)
         :miss
     end
   rescue
@@ -86,12 +90,18 @@ defmodule Query.Cache do
   def init(opts) do
     table_name = Keyword.get(opts, :table, @table)
     lru_name = Keyword.get(opts, :lru, @lru)
+    counters_name = Keyword.get(opts, :counters, @counters)
     table = :ets.new(table_name, [:named_table, :set, :protected, read_concurrency: true])
     lru = :ets.new(lru_name, [:named_table, :ordered_set, :protected])
+    # Public so the caller-side get/1 can bump hit/miss counters atomically
+    # without a round-trip through this process. Reuse an existing table so
+    # embedded instances that share a counters name do not clash.
+    counters = ensure_counters(counters_name)
 
     state = %{
       table: table,
       lru: lru,
+      counters: counters,
       max_size: Keyword.get(opts, :max_size, 10_000),
       ttl_ms: Keyword.get(opts, :ttl_ms, nil),
       seq: 0
@@ -123,8 +133,11 @@ defmodule Query.Cache do
   def handle_call({:get, key}, _from, state) do
     reply =
       case :ets.lookup(state.table, key) do
-        [{^key, value, expires_at, _seq}] -> if expired?(expires_at), do: :miss, else: {:ok, value}
-        [] -> :miss
+        [{^key, value, expires_at, _seq}] ->
+          if expired?(expires_at), do: :miss, else: {:ok, value}
+
+        [] ->
+          :miss
       end
 
     {:reply, reply, state}
@@ -139,11 +152,24 @@ defmodule Query.Cache do
   def handle_call(:clear, _from, state) do
     :ets.delete_all_objects(state.table)
     :ets.delete_all_objects(state.lru)
+    :ets.insert(state.counters, [{:hits, 0}, {:misses, 0}])
     {:reply, :ok, state}
   end
 
   def handle_call(:stats, _from, state) do
-    {:reply, {:ok, %{size: :ets.info(state.table, :size), max_size: state.max_size}}, state}
+    hits = counter_value(state.counters, :hits)
+    misses = counter_value(state.counters, :misses)
+    total = hits + misses
+
+    stats = %{
+      size: :ets.info(state.table, :size),
+      max_size: state.max_size,
+      hits: hits,
+      misses: misses,
+      hit_ratio: if(total > 0, do: hits / total, else: 0.0)
+    }
+
+    {:reply, {:ok, stats}, state}
   end
 
   ## Helpers
@@ -169,6 +195,33 @@ defmodule Query.Cache do
       end
     else
       state
+    end
+  end
+
+  defp ensure_counters(name) do
+    case :ets.whereis(name) do
+      :undefined ->
+        table = :ets.new(name, [:named_table, :set, :public])
+        :ets.insert(table, [{:hits, 0}, {:misses, 0}])
+        table
+
+      _ref ->
+        name
+    end
+  end
+
+  # Atomic, caller-side counter bump; a no-op if the counters table is absent.
+  defp bump(counter) do
+    :ets.update_counter(@counters, counter, 1)
+    :ok
+  rescue
+    ArgumentError -> :ok
+  end
+
+  defp counter_value(counters, counter) do
+    case :ets.lookup(counters, counter) do
+      [{^counter, value}] -> value
+      [] -> 0
     end
   end
 
