@@ -15,6 +15,7 @@ defmodule AdminApi.Prometheus do
     [
       wal_metrics(),
       query_metrics(),
+      cache_metrics(),
       replication_metrics(),
       heartbeat_metrics(),
       cluster_metrics()
@@ -38,6 +39,35 @@ defmodule AdminApi.Prometheus do
       end)
 
     [header | rows]
+  end
+
+  # --- Query read-cache metrics (from the live cache stats) ---
+
+  defp cache_metrics do
+    stats = safe(fn -> elem(Query.Cache.stats(), 1) end, %{})
+
+    [
+      gauge(
+        "shanghai_query_cache_size",
+        "Number of entries currently in the query read cache.",
+        Map.get(stats, :size, 0)
+      ),
+      gauge(
+        "shanghai_query_cache_hit_ratio",
+        "Query read-cache hit ratio since start (0..1).",
+        Map.get(stats, :hit_ratio, 0.0)
+      ),
+      counter(
+        "shanghai_query_cache_hits_total",
+        "Total query read-cache hits.",
+        Map.get(stats, :hits, 0)
+      ),
+      counter(
+        "shanghai_query_cache_misses_total",
+        "Total query read-cache misses.",
+        Map.get(stats, :misses, 0)
+      )
+    ]
   end
 
   # --- WAL metrics (from the telemetry aggregator) ---
@@ -142,6 +172,14 @@ defmodule AdminApi.Prometheus do
     [
       "# HELP ", name, " ", help, "\n",
       "# TYPE ", name, " counter\n",
+      name, " ", num(value), "\n"
+    ]
+  end
+
+  defp gauge(name, help, value) do
+    [
+      "# HELP ", name, " ", help, "\n",
+      "# TYPE ", name, " gauge\n",
       name, " ", num(value), "\n"
     ]
   end
