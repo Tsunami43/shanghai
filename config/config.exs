@@ -1,5 +1,12 @@
 import Config
 
+# Query read-cache tuning. Both keys are optional; these are the defaults.
+# See docs/TUNING.md for guidance.
+#
+#     config :query, :cache,
+#       max_size: 10_000,   # Max cached keys before FIFO eviction
+#       ttl_ms: nil         # Entry time-to-live in ms, or nil for no expiry
+
 # Import environment specific config.
 #
 # Resolve the path relative to THIS file (not the current working directory) so

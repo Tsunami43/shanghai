@@ -37,6 +37,29 @@ config :storage, Storage.WAL.Writer,
 - **HDD storage**: 256-512 MB segments (fewer seeks)
 - **High write rate**: Rotate more frequently (30 min)
 
+## Query Layer
+
+### Read Cache
+
+The query layer keeps a bounded, TTL-aware read cache in front of the store.
+`Query.read/2` consults it first, and every mutation invalidates the affected
+keys. It is tunable from application config (both keys are wired):
+
+```elixir
+config :query, :cache,
+  max_size: 10_000,   # Max cached keys before FIFO eviction (default: 10_000)
+  ttl_ms: nil         # Entry time-to-live in ms, or nil for no expiry (default)
+```
+
+**Recommendations:**
+- **Read-heavy, small key set**: Increase `max_size` to fit the working set
+- **Frequently changing data**: Set a short `ttl_ms` (e.g. 1_000–5_000) to cap
+  staleness even if invalidation is missed
+- **Write-heavy / low locality**: Lower `max_size` to reduce memory overhead
+
+Watch `shanghai_query_cache_hit_ratio` (exposed at `/metrics`) to size the
+cache: a low ratio under a read-heavy load means `max_size` is too small.
+
 ## Replication Tuning
 
 ### Flow Control
