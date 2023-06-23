@@ -14,11 +14,31 @@ defmodule AdminApi.Prometheus do
   def render do
     [
       wal_metrics(),
+      storage_metrics(),
       query_metrics(),
       cache_metrics(),
       replication_metrics(),
       heartbeat_metrics(),
       cluster_metrics()
+    ]
+  end
+
+  # --- Storage subsystem gauges (from the live facade summary) ---
+
+  defp storage_metrics do
+    info = safe(fn -> Storage.info() end, %{})
+
+    [
+      gauge(
+        "shanghai_wal_current_lsn",
+        "Next LSN the WAL will assign (log length).",
+        Map.get(info, :current_lsn, 0)
+      ),
+      gauge(
+        "shanghai_wal_active_segments",
+        "Number of active WAL segments.",
+        Map.get(info, :active_segments, 0)
+      )
     ]
   end
 

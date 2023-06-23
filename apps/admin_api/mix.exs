@@ -30,6 +30,7 @@ defmodule AdminApi.MixProject do
       {:cluster, in_umbrella: true},
       {:replication, in_umbrella: true},
       {:observability, in_umbrella: true},
+      {:storage, in_umbrella: true},
       {:query, in_umbrella: true}
     ]
   end
