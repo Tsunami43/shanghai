@@ -12,6 +12,8 @@ defmodule StorageTest do
     assert is_boolean(info.wal_running)
     assert is_integer(info.active_segments)
     assert info.active_segments >= 0
+    assert is_integer(info.current_lsn)
+    assert info.current_lsn >= 0
   end
 
   describe "with a running WAL" do
@@ -62,6 +64,26 @@ defmodule StorageTest do
 
       assert info.wal_running == true
       assert info.active_segments >= 1
+    end
+
+    test "read_range/2 round-trips a batch of entries through the facade" do
+      {:ok, first} = Storage.append("range-a")
+      {:ok, _second} = Storage.append("range-b")
+      {:ok, last} = Storage.append("range-c")
+
+      # Let the index catch up.
+      Process.sleep(10)
+
+      assert {:ok, entries} = Storage.read_range(first, last)
+      assert Enum.map(entries, & &1.data) == ["range-a", "range-b", "range-c"]
+    end
+
+    test "info/0 advances current_lsn as entries are appended" do
+      before = Storage.info().current_lsn
+      {:ok, _lsn} = Storage.append("advance")
+      Process.sleep(10)
+
+      assert Storage.info().current_lsn > before
     end
   end
 end
