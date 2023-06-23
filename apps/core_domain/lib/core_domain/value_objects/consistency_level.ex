@@ -26,6 +26,27 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   def all, do: @valid_levels
 
   @doc """
+  Parses a consistency level from a string or atom without creating new atoms
+  (safe for untrusted input such as HTTP query parameters or config values).
+
+  Returns `{:ok, level}` or `{:error, :invalid_consistency}`.
+
+  ## Examples
+
+      iex> CoreDomain.ValueObjects.ConsistencyLevel.parse("strong")
+      {:ok, :strong}
+
+      iex> CoreDomain.ValueObjects.ConsistencyLevel.parse("nonsense")
+      {:error, :invalid_consistency}
+  """
+  @spec parse(String.t() | atom()) :: {:ok, t()} | {:error, :invalid_consistency}
+  def parse(level) when level in @valid_levels, do: {:ok, level}
+  def parse("strong"), do: {:ok, :strong}
+  def parse("eventual"), do: {:ok, :eventual}
+  def parse("causal"), do: {:ok, :causal}
+  def parse(_), do: {:error, :invalid_consistency}
+
+  @doc """
   Returns the default consistency level.
   """
   @spec default() :: t()
