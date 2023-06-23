@@ -128,6 +128,7 @@ defmodule AdminApi.RouterTest do
     assert body =~ "shanghai_wal_write_duration_ms_count"
     assert body =~ "# TYPE shanghai_cluster_heartbeat_rtt gauge"
     assert body =~ "# TYPE shanghai_query_operations_total counter"
+    assert body =~ "# TYPE shanghai_query_operation_duration_ms summary"
     assert body =~ "# TYPE shanghai_wal_current_lsn gauge"
     assert body =~ "# TYPE shanghai_wal_active_segments gauge"
     assert body =~ "# TYPE shanghai_query_cache_hit_ratio gauge"

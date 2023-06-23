@@ -261,6 +261,7 @@ text exposition format, rendered by `AdminApi.Prometheus` from
 | `shanghai_wal_current_lsn` | gauge | — |
 | `shanghai_wal_active_segments` | gauge | — |
 | `shanghai_query_operations_total` | counter | `operation` |
+| `shanghai_query_operation_duration_ms` | summary | `operation` |
 | `shanghai_query_cache_size` | gauge | — |
 | `shanghai_query_cache_hit_ratio` | gauge | — |
 | `shanghai_query_cache_hits_total` | counter | — |

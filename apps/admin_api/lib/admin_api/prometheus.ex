@@ -47,18 +47,35 @@ defmodule AdminApi.Prometheus do
   defp query_metrics do
     ops = safe(fn -> Observability.MetricsReporter.get_query_stats() end, %{})
 
-    header = [
+    count_header = [
       "# HELP shanghai_query_operations_total Query operations by type.\n",
       "# TYPE shanghai_query_operations_total counter\n"
     ]
 
-    rows =
+    count_rows =
       Enum.map(ops, fn {operation, stat} ->
         count = Map.get(stat, :count, 0)
         ["shanghai_query_operations_total{operation=\"", to_string(operation), "\"} ", num(count), "\n"]
       end)
 
-    [header | rows]
+    duration_header = [
+      "# HELP shanghai_query_operation_duration_ms Query operation duration in milliseconds.\n",
+      "# TYPE shanghai_query_operation_duration_ms summary\n"
+    ]
+
+    duration_rows =
+      Enum.map(ops, fn {operation, stat} ->
+        op = to_string(operation)
+        count = Map.get(stat, :count, 0)
+        sum = Map.get(stat, :sum, 0)
+
+        [
+          "shanghai_query_operation_duration_ms_sum{operation=\"", op, "\"} ", num(sum), "\n",
+          "shanghai_query_operation_duration_ms_count{operation=\"", op, "\"} ", num(count), "\n"
+        ]
+      end)
+
+    [count_header, count_rows, duration_header | duration_rows]
   end
 
   # --- Query read-cache metrics (from the live cache stats) ---
