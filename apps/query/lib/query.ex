@@ -378,14 +378,15 @@ defmodule Query do
   @spec count() :: non_neg_integer()
   defdelegate count(), to: Query.Store
 
-  # Validates the requested consistency level, if any was provided.
+  # Validates the requested consistency level, if any was provided. Accepts both
+  # atoms and strings (e.g. `"eventual"` from an HTTP query parameter) via a
+  # safe parse that never creates new atoms.
   defp validate_consistency(opts) do
     level = Keyword.get(opts, :consistency, ConsistencyLevel.default())
 
-    if ConsistencyLevel.valid?(level) do
-      :ok
-    else
-      {:error, {:invalid_consistency, level}}
+    case ConsistencyLevel.parse(level) do
+      {:ok, _level} -> :ok
+      {:error, _reason} -> {:error, {:invalid_consistency, level}}
     end
   end
 

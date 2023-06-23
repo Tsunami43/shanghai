@@ -32,6 +32,14 @@ defmodule QueryTest do
       assert {:error, {:invalid_consistency, :nonsense}} =
                Query.read("k", consistency: :nonsense)
     end
+
+    test "accepts a consistency level given as a string" do
+      assert {:ok, :written} = Query.write("k", "v", consistency: "eventual")
+      assert {:ok, "v"} = Query.read("k", consistency: "strong")
+
+      assert {:error, {:invalid_consistency, "nope"}} =
+               Query.read("k", consistency: "nope")
+    end
   end
 
   describe "delete/2" do
