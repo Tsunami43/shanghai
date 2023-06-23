@@ -258,7 +258,13 @@ text exposition format, rendered by `AdminApi.Prometheus` from
 | `shanghai_wal_writes_total` | counter | — |
 | `shanghai_wal_write_duration_ms` | summary | — |
 | `shanghai_wal_sync_duration_ms` | summary | — |
+| `shanghai_wal_current_lsn` | gauge | — |
+| `shanghai_wal_active_segments` | gauge | — |
 | `shanghai_query_operations_total` | counter | `operation` |
+| `shanghai_query_cache_size` | gauge | — |
+| `shanghai_query_cache_hit_ratio` | gauge | — |
+| `shanghai_query_cache_hits_total` | counter | — |
+| `shanghai_query_cache_misses_total` | counter | — |
 | `shanghai_replication_lag` | gauge | `follower` |
 | `shanghai_cluster_heartbeat_rtt` | gauge | `link` |
 | `shanghai_cluster_nodes` | gauge | `status` |
