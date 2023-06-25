@@ -50,6 +50,8 @@ defmodule AdminApi.RouterTest do
     assert body["status"] == "ready"
     assert body["checks"]["cluster_membership"] == true
     assert body["checks"]["replication_monitor"] == true
+    assert body["checks"]["query_store"] == true
+    assert body["checks"]["storage_segments"] == true
   end
 
   test "GET /api/v1/status reports cluster health fields" do

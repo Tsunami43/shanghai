@@ -25,7 +25,9 @@ defmodule AdminApi.Router do
   get "/ready" do
     checks = %{
       "cluster_membership" => process_alive?(Cluster.Membership),
-      "replication_monitor" => process_alive?(Replication.Monitor)
+      "replication_monitor" => process_alive?(Replication.Monitor),
+      "query_store" => process_alive?(Query.Store),
+      "storage_segments" => process_alive?(Storage.WAL.SegmentManager)
     }
 
     if Enum.all?(checks, fn {_name, up?} -> up? end) do
