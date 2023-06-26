@@ -798,6 +798,37 @@ curl http://localhost:9090/api/v1/nodes
 
 ---
 
+### GET /nodes/:id
+
+Get a single node by id.
+
+**Request:**
+```bash
+curl http://localhost:9090/api/v1/nodes/node-1
+```
+
+**Response (200):**
+```json
+{
+  "id": "node-1",
+  "status": "up",
+  "address": "10.0.1.10:4000",
+  "heartbeat_age_ms": 50,
+  "last_seen": 1737244800,
+  "metadata": {}
+}
+```
+
+**Response (404):**
+```json
+{
+  "error": "not_found",
+  "id": "node-1"
+}
+```
+
+---
+
 ### GET /replicas
 
 Get replication status.
@@ -928,6 +959,28 @@ shanghaictl node leave <node-id>
 **Example:**
 ```bash
 shanghaictl node leave node-2
+```
+
+---
+
+### shanghaictl node get
+
+Show details for a single node.
+
+**Usage:**
+```bash
+shanghaictl node get <node-id> [--admin-url=<url>]
+```
+
+**Example:**
+```bash
+$ shanghaictl node get node-1
+
+Node node-1
+========================================
+Status:   up
+Address:  10.0.1.10:4000
+Heartbeat: 50ms ago
 ```
 
 ---
