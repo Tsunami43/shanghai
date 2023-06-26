@@ -30,6 +30,17 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   end
 
   @doc """
+  Returns the zero LSN — the starting point of a fresh log.
+
+  ## Examples
+
+      iex> CoreDomain.Types.LogSequenceNumber.zero().value
+      0
+  """
+  @spec zero() :: t()
+  def zero, do: new(0)
+
+  @doc """
   Compares two LSNs.
   """
   @spec compare(t(), t()) :: :lt | :eq | :gt
@@ -54,4 +65,18 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   """
   @spec next(t()) :: t()
   def next(lsn), do: increment(lsn)
+
+  @doc """
+  Advances an LSN by `n` positions (`n >= 0`).
+
+  ## Examples
+
+      iex> lsn = CoreDomain.Types.LogSequenceNumber.new(10)
+      iex> CoreDomain.Types.LogSequenceNumber.advance(lsn, 5).value
+      15
+  """
+  @spec advance(t(), non_neg_integer()) :: t()
+  def advance(%__MODULE__{value: v}, n) when is_integer(n) and n >= 0 do
+    new(v + n)
+  end
 end
