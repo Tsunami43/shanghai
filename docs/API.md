@@ -824,6 +824,35 @@ curl http://localhost:9090/api/v1/replicas
 
 ---
 
+### GET /kv/:key
+
+Read a single value from the store by key. Read-only, intended for operational
+inspection and debugging. Values that are not natively JSON-encodable are
+returned as their inspected string form.
+
+**Request:**
+```bash
+curl http://localhost:9090/api/v1/kv/user:1
+```
+
+**Response (200):**
+```json
+{
+  "key": "user:1",
+  "value": "alice"
+}
+```
+
+**Response (404):**
+```json
+{
+  "error": "not_found",
+  "key": "user:1"
+}
+```
+
+---
+
 ## CLI Commands
 
 ### shanghaictl status
@@ -925,6 +954,28 @@ node-1 → node-2:
   Lag:             50 offsets
   Status:          replicating
 ```
+
+---
+
+### shanghaictl kv get
+
+Read a value from the store by key (via the Admin API).
+
+**Usage:**
+```bash
+shanghaictl kv get <key> [--admin-url URL]
+```
+
+**Options:**
+- `--admin-url <url>`: Admin API base URL (default: `http://localhost:9090`)
+
+**Example:**
+```bash
+$ shanghaictl kv get user:1
+alice
+```
+
+Exits non-zero if the key is missing or the node is unreachable.
 
 ---
 
