@@ -1,0 +1,29 @@
+defmodule CoreDomain.Types.NodeIdTest do
+  use ExUnit.Case, async: true
+
+  alias CoreDomain.Types.NodeId
+
+  doctest NodeId
+
+  test "new/1 wraps a string value" do
+    assert NodeId.new("node-1").value == "node-1"
+  end
+
+  test "generate/0 produces distinct 32-char hex ids" do
+    a = NodeId.generate()
+    b = NodeId.generate()
+
+    assert String.length(a.value) == 32
+    assert a.value =~ ~r/\A[0-9a-f]{32}\z/
+    refute NodeId.equal?(a, b)
+  end
+
+  test "equal?/2 compares by value" do
+    assert NodeId.equal?(NodeId.new("n"), NodeId.new("n"))
+    refute NodeId.equal?(NodeId.new("n1"), NodeId.new("n2"))
+  end
+
+  test "to_string/1 returns the underlying value" do
+    assert NodeId.to_string(NodeId.new("node-9")) == "node-9"
+  end
+end

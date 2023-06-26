@@ -23,11 +23,13 @@ defmodule CoreDomain.Types.NodeId do
   end
 
   @doc """
-  Generates a random NodeId (useful for testing).
+  Generates a random NodeId.
+
+  Uses 128 bits of cryptographically strong randomness, hex-encoded — a 32-char
+  identifier that is collision-resistant for cluster use.
   """
   @spec generate() :: t()
   def generate do
-    # Use better ID generation (e.g., Snowflake IDs)
     value = :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
     new(value)
   end
@@ -37,4 +39,15 @@ defmodule CoreDomain.Types.NodeId do
   """
   @spec equal?(t(), t()) :: boolean()
   def equal?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a == b
+
+  @doc """
+  Returns the underlying string value of a NodeId.
+
+  ## Examples
+
+      iex> CoreDomain.Types.NodeId.new("node-1") |> CoreDomain.Types.NodeId.to_string()
+      "node-1"
+  """
+  @spec to_string(t()) :: String.t()
+  def to_string(%__MODULE__{value: value}), do: value
 end
