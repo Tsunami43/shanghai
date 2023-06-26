@@ -42,4 +42,12 @@ defmodule CoreDomain.Entities.LogEntry do
   def compare(%__MODULE__{lsn: lsn1}, %__MODULE__{lsn: lsn2}) do
     LogSequenceNumber.compare(lsn1, lsn2)
   end
+
+  @doc "Returns `true` when `entry` has a strictly higher LSN than `other`."
+  @spec newer_than?(t(), t()) :: boolean()
+  def newer_than?(entry, other), do: compare(entry, other) == :gt
+
+  @doc "Returns `true` when `entry` has a strictly lower LSN than `other`."
+  @spec older_than?(t(), t()) :: boolean()
+  def older_than?(entry, other), do: compare(entry, other) == :lt
 end

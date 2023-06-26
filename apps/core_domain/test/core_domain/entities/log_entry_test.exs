@@ -30,4 +30,14 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.compare(entry(2), entry(1)) == :gt
     assert LogEntry.compare(entry(3), entry(3)) == :eq
   end
+
+  test "newer_than?/2 and older_than?/2 follow the LSN order" do
+    assert LogEntry.newer_than?(entry(2), entry(1))
+    refute LogEntry.newer_than?(entry(1), entry(2))
+    refute LogEntry.newer_than?(entry(3), entry(3))
+
+    assert LogEntry.older_than?(entry(1), entry(2))
+    refute LogEntry.older_than?(entry(2), entry(1))
+    refute LogEntry.older_than?(entry(3), entry(3))
+  end
 end
