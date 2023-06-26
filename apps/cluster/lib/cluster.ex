@@ -47,6 +47,19 @@ defmodule Cluster do
   defdelegate get_node(node_id), to: Membership
 
   @doc """
+  Returns `true` when a node with `node_id` is a member of the cluster.
+  """
+  @spec member?(NodeId.t()) :: boolean()
+  def member?(node_id), do: match?({:ok, _node}, get_node(node_id))
+
+  @doc """
+  Returns the nodes currently marked `:up`. Useful for routing reads and writes
+  to live peers.
+  """
+  @spec up_nodes() :: [Node.t()]
+  def up_nodes, do: Enum.filter(nodes(), &Node.up?/1)
+
+  @doc """
   Requests a node to join the cluster.
   """
   @spec join(Node.t()) :: :ok | {:error, atom()}

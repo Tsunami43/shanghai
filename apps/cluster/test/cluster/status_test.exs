@@ -33,4 +33,17 @@ defmodule Cluster.StatusTest do
     :ok = Cluster.leave(id)
     assert Cluster.status().node_count == before.node_count
   end
+
+  test "member?/1 and up_nodes/0 track membership" do
+    id = NodeId.new("member-test-#{:rand.uniform(999_999)}")
+    refute Cluster.member?(id)
+
+    :ok = Cluster.join(Node.new(id, "localhost", 4322))
+
+    assert Cluster.member?(id)
+    assert Enum.any?(Cluster.up_nodes(), &(&1.id == id))
+
+    :ok = Cluster.leave(id)
+    refute Cluster.member?(id)
+  end
 end
