@@ -79,6 +79,13 @@ defmodule AdminApi.Router do
     send_json(conn, 200, %{nodes: nodes})
   end
 
+  get "/api/v1/nodes/:id" do
+    case Cluster.get_node(NodeId.new(id)) do
+      {:ok, node} -> send_json(conn, 200, serialize_node(node))
+      {:error, :not_found} -> send_json(conn, 404, %{error: "not_found", id: id})
+    end
+  end
+
   post "/api/v1/nodes" do
     Observability.Logger.info("Node operation requested", body: conn.body_params)
 

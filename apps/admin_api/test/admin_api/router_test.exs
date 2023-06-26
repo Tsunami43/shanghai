@@ -7,6 +7,9 @@ defmodule AdminApi.RouterTest do
   use ExUnit.Case, async: false
   use Plug.Test
 
+  alias Cluster.Entities.Node
+  alias CoreDomain.Types.NodeId
+
   @opts AdminApi.Router.init([])
 
   setup_all do
@@ -71,6 +74,22 @@ defmodule AdminApi.RouterTest do
 
     body = json(conn)
     assert is_list(body["nodes"])
+  end
+
+  test "GET /api/v1/nodes/:id returns a single node or 404" do
+    id = "router-node-#{:rand.uniform(999_999)}"
+    node_id = NodeId.new(id)
+    :ok = Cluster.join(Node.new(node_id, "localhost", 4400))
+
+    conn = get("/api/v1/nodes/#{id}")
+    assert conn.status == 200
+    assert json(conn)["id"] == id
+
+    missing = get("/api/v1/nodes/router-absent")
+    assert missing.status == 404
+    assert json(missing)["error"] == "not_found"
+
+    :ok = Cluster.leave(node_id)
   end
 
   test "GET /api/v1/replicas returns a replicas list" do
