@@ -19,11 +19,12 @@ defmodule ShanghaictlTest do
       assert Shanghaictl.parse(["metrics"]) == {:metrics, []}
     end
 
-    test "node join/leave are distinguished" do
+    test "node join/leave/get are distinguished" do
       assert Shanghaictl.parse(["node", "join", "n1", "--host", "h"]) ==
                {:node_join, ["n1", "--host", "h"]}
 
       assert Shanghaictl.parse(["node", "leave", "n1"]) == {:node_leave, ["n1"]}
+      assert Shanghaictl.parse(["node", "get", "n1"]) == {:node_get, ["n1"]}
     end
 
     test "shutdown carries its options" do

@@ -52,6 +52,55 @@ defmodule Shanghaictl.Commands.Node do
     System.halt(1)
   end
 
+  @doc """
+  Shows details for a single node by id.
+  """
+  def get([node_id | opts]) when is_binary(node_id) do
+    admin_url = extract_admin_url(opts)
+
+    case request_node_get(admin_url, node_id) do
+      {:ok, node} -> display_node(node)
+      {:error, :not_found} -> node_not_found(node_id)
+      {:error, reason} -> get_error(reason)
+    end
+  end
+
+  def get(_) do
+    IO.puts("Usage: shanghaictl node get <node-id> [--admin-url=<url>]")
+    System.halt(1)
+  end
+
+  defp request_node_get(admin_url, node_id) do
+    case Req.get("#{admin_url}/api/v1/nodes/#{URI.encode(node_id)}") do
+      {:ok, %{status: 200, body: node}} -> {:ok, node}
+      {:ok, %{status: 404}} -> {:error, :not_found}
+      {:ok, %{status: status}} -> {:error, "API returned status #{status}"}
+      {:error, %{reason: :econnrefused}} -> {:error, "Cannot connect to Admin API at #{admin_url}"}
+      {:error, reason} -> {:error, "HTTP request failed: #{inspect(reason)}"}
+    end
+  end
+
+  defp display_node(node) do
+    IO.puts("Node #{node["id"]}")
+    IO.puts(String.duplicate("=", 40))
+    IO.puts("Status:   #{node["status"]}")
+    IO.puts("Address:  #{node["address"]}")
+
+    if age = node["heartbeat_age_ms"] do
+      IO.puts("Heartbeat: #{age}ms ago")
+    end
+  end
+
+  defp node_not_found(node_id) do
+    IO.puts("Node not found: #{node_id}")
+    System.halt(1)
+  end
+
+  defp get_error(reason) do
+    IO.puts("Error: #{reason}")
+    System.halt(1)
+  end
+
   defp extract_admin_url(opts) do
     Enum.find_value(opts, @default_admin_url, fn
       "--admin-url=" <> url -> url
