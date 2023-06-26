@@ -111,6 +111,7 @@ defmodule AdminApi.Router do
       replication: Observability.MetricsReporter.get_replication_stats(),
       heartbeat: Observability.MetricsReporter.get_heartbeat_stats(),
       query: Observability.MetricsReporter.get_query_stats(),
+      store: query_store_info(),
       last_membership_change: Observability.MetricsReporter.get_last_membership_change()
     }
 
@@ -265,6 +266,14 @@ defmodule AdminApi.Router do
   end
 
   defp process_alive?(name), do: is_pid(Process.whereis(name))
+
+  # Store/cache runtime summary, or an empty map if the query layer is down.
+  defp query_store_info do
+    case Query.info() do
+      {:ok, info} -> info
+      _ -> %{}
+    end
+  end
 
   # JSON carries only a subset of Erlang terms; fall back to an inspected string
   # for values that are not natively encodable (tuples, PIDs, and the like).

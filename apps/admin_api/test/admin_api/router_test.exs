@@ -107,6 +107,9 @@ defmodule AdminApi.RouterTest do
     assert Map.has_key?(body, "replication")
     assert Map.has_key?(body, "heartbeat")
     assert Map.has_key?(body, "query")
+    assert Map.has_key?(body, "store")
+    assert is_map(body["store"]["store"])
+    assert is_map(body["store"]["cache"])
   end
 
   test "sets an X-Correlation-ID response header" do
