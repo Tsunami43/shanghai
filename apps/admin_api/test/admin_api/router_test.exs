@@ -92,12 +92,16 @@ defmodule AdminApi.RouterTest do
     :ok = Cluster.leave(node_id)
   end
 
-  test "GET /api/v1/replicas returns a replicas list" do
+  test "GET /api/v1/replicas returns a replicas list and summary" do
     conn = get("/api/v1/replicas")
     assert conn.status == 200
 
     body = json(conn)
     assert is_list(body["replicas"])
+    assert is_integer(body["summary"]["groups"])
+    assert is_integer(body["summary"]["replicas"])
+    assert is_integer(body["summary"]["lagging"])
+    assert is_integer(body["summary"]["stale"])
   end
 
   test "GET /api/v1/kv/:key returns a stored value" do

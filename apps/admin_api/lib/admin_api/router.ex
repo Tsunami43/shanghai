@@ -141,7 +141,7 @@ defmodule AdminApi.Router do
     groups = Replication.all_groups()
     replicas = Enum.map(groups, &serialize_replication_group/1)
 
-    send_json(conn, 200, %{replicas: replicas})
+    send_json(conn, 200, %{replicas: replicas, summary: Replication.summary()})
   end
 
   post "/api/v1/shutdown" do
