@@ -33,4 +33,30 @@ defmodule Replication do
   """
   @spec get_stale_replicas() :: [map()]
   defdelegate get_stale_replicas(), to: Monitor
+
+  @doc """
+  Returns a concise replication summary: the number of groups, the total number
+  of tracked replicas, and how many replicas are lagging or stale.
+  """
+  @spec summary() :: %{
+          groups: non_neg_integer(),
+          replicas: non_neg_integer(),
+          lagging: non_neg_integer(),
+          stale: non_neg_integer()
+        }
+  def summary do
+    groups = all_groups()
+
+    replica_count =
+      Enum.reduce(groups, 0, fn group, acc ->
+        acc + map_size(Map.get(group, :replicas, %{}))
+      end)
+
+    %{
+      groups: length(groups),
+      replicas: replica_count,
+      lagging: length(get_lagging_replicas()),
+      stale: length(get_stale_replicas())
+    }
+  end
 end
