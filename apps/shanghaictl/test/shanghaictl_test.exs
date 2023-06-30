@@ -1,6 +1,8 @@
 defmodule ShanghaictlTest do
   use ExUnit.Case, async: true
 
+  alias Shanghaictl.Commands.Metrics
+
   doctest Shanghaictl
 
   describe "parse/1" do
@@ -45,6 +47,33 @@ defmodule ShanghaictlTest do
     test "unrecognized input is :unknown with the original args" do
       assert Shanghaictl.parse(["bogus", "x"]) == {:unknown, ["bogus", "x"]}
       assert Shanghaictl.parse(["node"]) == {:unknown, ["node"]}
+    end
+  end
+
+  describe "Metrics.store_lines/1" do
+    test "renders store and cache figures" do
+      store = %{
+        "store" => %{"durable" => false, "recovered" => 0, "size" => 3},
+        "cache" => %{
+          "size" => 2,
+          "max_size" => 10_000,
+          "hits" => 8,
+          "misses" => 2,
+          "hit_ratio" => 0.8
+        }
+      }
+
+      lines = Metrics.store_lines(store)
+      joined = Enum.join(lines, "\n")
+
+      assert joined =~ "Keys: 3"
+      assert joined =~ "Hits: 8"
+      assert joined =~ "Hit Ratio: 0.8"
+    end
+
+    test "falls back to a no-data line" do
+      assert Metrics.store_lines(nil) == ["Store Metrics: No data"]
+      assert Metrics.store_lines(%{}) == ["Store Metrics: No data"]
     end
   end
 end

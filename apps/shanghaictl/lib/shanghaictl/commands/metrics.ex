@@ -47,10 +47,38 @@ defmodule Shanghaictl.Commands.Metrics do
 
   defp display_metrics(metrics) do
     display_wal_metrics(metrics["wal"])
+    display_store_metrics(metrics["store"])
     display_replication_metrics(metrics["replication"])
     display_heartbeat_metrics(metrics["heartbeat"])
     display_membership_change(metrics["last_membership_change"])
   end
+
+  defp display_store_metrics(store) do
+    store
+    |> store_lines()
+    |> Enum.each(&IO.puts/1)
+
+    IO.puts("")
+  end
+
+  @doc false
+  @spec store_lines(map() | nil) :: [String.t()]
+  def store_lines(%{"store" => store, "cache" => cache})
+      when is_map(store) and is_map(cache) do
+    [
+      "Store Metrics:",
+      "  Durable: #{Map.get(store, "durable")}",
+      "  Recovered: #{Map.get(store, "recovered")}",
+      "  Keys: #{Map.get(store, "size")}",
+      "  Cache:",
+      "    Size: #{Map.get(cache, "size")}/#{Map.get(cache, "max_size")}",
+      "    Hits: #{Map.get(cache, "hits")}",
+      "    Misses: #{Map.get(cache, "misses")}",
+      "    Hit Ratio: #{format_float(Map.get(cache, "hit_ratio"))}"
+    ]
+  end
+
+  def store_lines(_), do: ["Store Metrics: No data"]
 
   defp display_wal_metrics(%{"writes" => writes, "syncs" => syncs}) do
     IO.puts("WAL Metrics:")
