@@ -58,6 +58,22 @@ defmodule Observability.Logger do
   end
 
   @doc """
+  Returns the current correlation ID, generating and storing a fresh one if
+  none is set. Idempotent within a process — repeated calls return the same ID.
+  """
+  def ensure_correlation_id do
+    case get_correlation_id() do
+      nil ->
+        id = new_correlation_id()
+        put_correlation_id(id)
+        id
+
+      id ->
+        id
+    end
+  end
+
+  @doc """
   Executes a function with a specific correlation ID.
   """
   def with_correlation_id(correlation_id, fun) when is_function(fun, 0) do

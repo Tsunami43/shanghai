@@ -45,6 +45,21 @@ defmodule Observability.LoggerTest do
     assert Log.get_correlation_id() == "outer"
   end
 
+  test "ensure_correlation_id creates one when absent and is idempotent" do
+    assert Log.get_correlation_id() == nil
+
+    id = Log.ensure_correlation_id()
+    assert id =~ ~r/^[0-9a-f]{32}$/
+    assert Log.get_correlation_id() == id
+
+    assert Log.ensure_correlation_id() == id
+  end
+
+  test "ensure_correlation_id keeps an existing id" do
+    Log.put_correlation_id("existing")
+    assert Log.ensure_correlation_id() == "existing"
+  end
+
   test "new_correlation_id produces distinct lowercase hex ids" do
     a = Log.new_correlation_id()
     b = Log.new_correlation_id()
