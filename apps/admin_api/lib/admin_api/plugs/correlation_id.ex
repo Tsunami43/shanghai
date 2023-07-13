@@ -16,21 +16,20 @@ defmodule AdminApi.Plugs.CorrelationId do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    correlation_id = extract_or_generate_correlation_id(conn)
+    correlation_id =
+      case get_req_header(conn, @correlation_header) do
+        # Honor a client-supplied id so traces span the request boundary.
+        [correlation_id | _] ->
+          Observability.Logger.put_correlation_id(correlation_id)
+          correlation_id
 
-    # Set in process dictionary for logging
-    Observability.Logger.put_correlation_id(correlation_id)
+        # Otherwise generate and store one for this request.
+        [] ->
+          Observability.Logger.ensure_correlation_id()
+      end
 
-    # Add to response headers
     conn
     |> put_resp_header(@correlation_header, correlation_id)
     |> put_private(:correlation_id, correlation_id)
-  end
-
-  defp extract_or_generate_correlation_id(conn) do
-    case get_req_header(conn, @correlation_header) do
-      [correlation_id | _] -> correlation_id
-      [] -> Observability.Logger.new_correlation_id()
-    end
   end
 end

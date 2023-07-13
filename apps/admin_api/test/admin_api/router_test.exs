@@ -140,6 +140,16 @@ defmodule AdminApi.RouterTest do
     assert [_correlation_id] = get_resp_header(conn, "x-correlation-id")
   end
 
+  test "echoes a client-supplied X-Correlation-ID" do
+    conn =
+      :get
+      |> conn("/health")
+      |> put_req_header("x-correlation-id", "trace-123")
+      |> AdminApi.Router.call(@opts)
+
+    assert get_resp_header(conn, "x-correlation-id") == ["trace-123"]
+  end
+
   test "unknown routes return 404" do
     conn = get("/api/v1/nope")
     assert conn.status == 404
