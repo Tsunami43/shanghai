@@ -314,6 +314,28 @@ defmodule Query do
   end
 
   @doc """
+  Deletes several keys at once as one atomic WAL record.
+
+  Returns `{:ok, :committed}`. Idempotent for keys that do not exist. This is the
+  delete counterpart to `mset/1`.
+
+  ## Examples
+
+      iex> Query.mdelete(["a", "b"])
+      {:ok, :committed}
+  """
+  @spec mdelete([String.t()]) :: {:ok, :committed} | {:error, term()}
+  def mdelete(keys) when is_list(keys) do
+    ops = for key <- keys, do: {:delete, key}
+
+    measure(:mdelete, fn ->
+      result = Query.Store.transact(ops)
+      if match?({:ok, _}, result), do: Enum.each(keys, &Query.Cache.invalidate/1)
+      result
+    end)
+  end
+
+  @doc """
   Reads several keys at once, returning `{:ok, %{key => value}}` for the keys
   that exist (missing keys are omitted).
 
