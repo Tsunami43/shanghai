@@ -14,6 +14,29 @@ follow semantic versioning.
 - **More Query primitives**: `take/1` (atomic pop), `update/3` (atomic
   read-modify-write), `increment/2` (atomic counter), `cas/3` (compare-and-swap),
   `mget/1` (multi-get), and `info/0` (store/cache introspection).
+- **Conditional and bulk Query operations**: `put_new/2` (write-if-absent),
+  `replace/2` (write-if-exists), `getset/2` (atomic get-and-set), `delete_prefix/1`
+  (atomic range delete), `mset/1` / `mdelete/1` (atomic bulk write/delete), and
+  the read helpers `exists?/1` and `count_prefix/1`. `read/2` and `write/3` also
+  accept a string consistency level via a safe parse.
+- **Query cache observability**: hit/miss counters and a `hit_ratio` in
+  `Query.Cache.stats/0`, and the cache is tunable via
+  `config :query, :cache, max_size:, ttl_ms:`.
+- **Storage facade**: `Storage.read_range/2` and a `current_lsn` field in
+  `Storage.info/0`.
+- **Domain helpers**: `ConsistencyLevel.parse/1` (safe untrusted-input parsing),
+  `LogEntry.newer_than?/2` / `older_than?/2`, `LogSequenceNumber.zero/0` /
+  `advance/2`, and `NodeId.to_string/1`.
+- **Cluster/replication introspection**: `Cluster.member?/1`, `Cluster.up_nodes/0`,
+  and `Replication.summary/0` (group/replica/lag counts).
+- **Admin API endpoints**: `GET /api/v1/kv/:key`, `GET /api/v1/nodes/:id`, a
+  `store` section in `/api/v1/metrics`, a `summary` in `/api/v1/replicas`, and a
+  broader `/ready` probe (query + storage). Prometheus now also exposes query
+  cache metrics, WAL log length/segment gauges, and per-operation query duration.
+- **CLI commands**: `shanghaictl kv get` and `shanghaictl node get`, plus a
+  store/cache section in `shanghaictl metrics`.
+- `Observability.Logger.ensure_correlation_id/0`, a get-or-create used by the
+  Admin API correlation-id plug (which now honors a client-supplied header).
 - **WAL batched-fsync foundation**: `Storage.WAL.Segment.append_entry_no_sync/2`
   and `sync/1`, letting a batch amortize one fsync over many writes.
 - **Introspection helpers**: `Cluster.status/0` (node counts by status) and the
