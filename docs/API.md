@@ -129,15 +129,30 @@ Atomic read-modify-write. Applies `fun` to the current value (or `default` when
 the key is absent) and stores the result; a raising `fun` yields
 `{:error, {:update_failed, message}}`.
 
+### Bulk operations
+
+```elixir
+@spec mset(map() | [{String.t(), term()}]) :: {:ok, :committed} | {:error, term()}
+@spec mget([String.t()]) :: {:ok, %{optional(String.t()) => term()}}
+@spec mdelete([String.t()]) :: {:ok, :committed} | {:error, term()}
+```
+
+`mset/1` and `mdelete/1` each apply as a single atomic WAL record (the write and
+delete counterparts to `mget/1`).
+
 ### Collection and introspection
 
 ```elixir
 @spec scan(prefix :: String.t()) :: {:ok, [{String.t(), term()}]}
-@spec mget([String.t()]) :: {:ok, %{optional(String.t()) => term()}}
+@spec exists?(key :: String.t()) :: boolean()
+@spec count_prefix(prefix :: String.t()) :: non_neg_integer()
 @spec keys() :: [term()]
 @spec count() :: non_neg_integer()
 @spec info() :: {:ok, %{store: map(), cache: map()}}
 ```
+
+`exists?/1` is a cheap membership check and `count_prefix/1` counts keys under a
+prefix without materializing them.
 
 ---
 
