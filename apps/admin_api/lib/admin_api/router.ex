@@ -125,6 +125,17 @@ defmodule AdminApi.Router do
     send_json(conn, 200, metrics)
   end
 
+  # Count stored keys, optionally under a `?prefix=` filter. Cheap and bounded
+  # (no values are returned), so it is safe to expose for operational use.
+  get "/api/v1/kv" do
+    conn = fetch_query_params(conn)
+
+    case conn.query_params["prefix"] do
+      nil -> send_json(conn, 200, %{count: Query.count()})
+      prefix -> send_json(conn, 200, %{prefix: prefix, count: Query.count_prefix(prefix)})
+    end
+  end
+
   # Read a single key from the materialized store. Read-only and safe to expose
   # for operational inspection and debugging.
   get "/api/v1/kv/:key" do

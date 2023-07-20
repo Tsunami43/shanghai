@@ -104,6 +104,21 @@ defmodule AdminApi.RouterTest do
     assert is_integer(body["summary"]["stale"])
   end
 
+  test "GET /api/v1/kv counts stored keys, with an optional prefix filter" do
+    {:ok, :written} = Query.write("count-api:a", 1)
+    {:ok, :written} = Query.write("count-api:b", 2)
+
+    total = get("/api/v1/kv")
+    assert total.status == 200
+    assert is_integer(json(total)["count"])
+
+    scoped = get("/api/v1/kv?prefix=count-api:")
+    assert scoped.status == 200
+    body = json(scoped)
+    assert body["prefix"] == "count-api:"
+    assert body["count"] == 2
+  end
+
   test "GET /api/v1/kv/:key returns a stored value" do
     {:ok, :written} = Query.write("admin-api:kv", "hello")
 
