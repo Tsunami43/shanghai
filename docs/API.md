@@ -870,6 +870,29 @@ curl http://localhost:9090/api/v1/replicas
 
 ---
 
+### GET /kv
+
+Count stored keys, optionally filtered by a `prefix` query parameter. Cheap and
+bounded — no values are returned.
+
+**Request:**
+```bash
+curl http://localhost:9090/api/v1/kv
+curl http://localhost:9090/api/v1/kv?prefix=user:
+```
+
+**Response (200):**
+```json
+{
+  "prefix": "user:",
+  "count": 42
+}
+```
+
+Without a prefix the response is `{"count": <total>}`.
+
+---
+
 ### GET /kv/:key
 
 Read a single value from the store by key. Read-only, intended for operational
@@ -1044,6 +1067,23 @@ alice
 ```
 
 Exits non-zero if the key is missing or the node is unreachable.
+
+---
+
+### shanghaictl kv count
+
+Count stored keys, optionally under a prefix.
+
+**Usage:**
+```bash
+shanghaictl kv count [prefix] [--admin-url URL]
+```
+
+**Example:**
+```bash
+$ shanghaictl kv count user:
+42
+```
 
 ---
 
