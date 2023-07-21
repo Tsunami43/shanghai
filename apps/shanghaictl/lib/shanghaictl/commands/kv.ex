@@ -25,6 +25,40 @@ defmodule Shanghaictl.Commands.Kv do
     end
   end
 
+  @doc """
+  Counts stored keys, optionally under a prefix. Expects `[]`, `[prefix]`, or
+  options; supports `--admin-url URL`.
+  """
+  def count(args) do
+    {prefix, opts} = split_prefix(args)
+    admin_url = admin_url(opts)
+
+    case fetch_count(admin_url, prefix) do
+      {:ok, n} -> IO.puts(to_string(n))
+      {:error, :not_connected} -> not_connected()
+      {:error, reason} -> error(reason)
+    end
+  end
+
+  defp split_prefix(["--" <> _ | _] = opts), do: {nil, opts}
+  defp split_prefix([prefix | opts]), do: {prefix, opts}
+  defp split_prefix([]), do: {nil, []}
+
+  defp fetch_count(admin_url, prefix) do
+    url =
+      case prefix do
+        nil -> "#{admin_url}/api/v1/kv"
+        p -> "#{admin_url}/api/v1/kv?prefix=#{URI.encode(p)}"
+      end
+
+    case Req.get(url) do
+      {:ok, %{status: 200, body: %{"count" => count}}} -> {:ok, count}
+      {:ok, %{status: status}} -> {:error, "API returned status #{status}"}
+      {:error, %{reason: :econnrefused}} -> {:error, :not_connected}
+      {:error, reason} -> {:error, "HTTP request failed: #{inspect(reason)}"}
+    end
+  end
+
   defp fetch(admin_url, key) do
     case Req.get("#{admin_url}/api/v1/kv/#{URI.encode(key)}") do
       {:ok, %{status: 200, body: %{"value" => value}}} -> {:ok, value}

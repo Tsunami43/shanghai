@@ -22,7 +22,7 @@ defmodule Shanghaictl do
           :help
           | :version
           | {:status | :replicas | :metrics | :node_join | :node_leave | :shutdown, [String.t()]}
-          | {:node_get | :kv_get, [String.t()]}
+          | {:node_get | :kv_get | :kv_count, [String.t()]}
           | {:unknown, [String.t()]}
 
   @doc """
@@ -47,6 +47,7 @@ defmodule Shanghaictl do
   def parse(["node", "leave" | opts]), do: {:node_leave, opts}
   def parse(["node", "get" | opts]), do: {:node_get, opts}
   def parse(["kv", "get" | opts]), do: {:kv_get, opts}
+  def parse(["kv", "count" | opts]), do: {:kv_count, opts}
   def parse(["shutdown" | opts]), do: {:shutdown, opts}
   def parse(args), do: {:unknown, args}
 
@@ -67,6 +68,7 @@ defmodule Shanghaictl do
       node leave <id>   Remove a node from the cluster
       node get <id>     Show details for a single node
       kv get <key>      Read a value from the store by key
+      kv count [prefix] Count stored keys (optionally under a prefix)
       shutdown          Safely shutdown a node
 
     For more information, see the documentation.
@@ -99,6 +101,10 @@ defmodule Shanghaictl do
 
   defp execute({:kv_get, opts}) do
     Kv.get(opts)
+  end
+
+  defp execute({:kv_count, opts}) do
+    Kv.count(opts)
   end
 
   defp execute({:shutdown, opts}) do

@@ -40,6 +40,11 @@ defmodule ShanghaictlTest do
                {:kv_get, ["k", "--admin-url", "http://h:9090"]}
     end
 
+    test "kv count carries an optional prefix and options" do
+      assert Shanghaictl.parse(["kv", "count"]) == {:kv_count, []}
+      assert Shanghaictl.parse(["kv", "count", "user:"]) == {:kv_count, ["user:"]}
+    end
+
     test "kv without a subcommand is :unknown" do
       assert Shanghaictl.parse(["kv"]) == {:unknown, ["kv"]}
     end
