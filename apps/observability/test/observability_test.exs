@@ -16,4 +16,21 @@ defmodule ObservabilityTest do
     assert is_binary(id)
     assert id =~ ~r/^[0-9a-f]+$/
   end
+
+  test "ensure_correlation_id/0 returns a stable id within the process" do
+    Process.delete(:correlation_id)
+    id = Observability.ensure_correlation_id()
+
+    assert is_binary(id)
+    assert Observability.ensure_correlation_id() == id
+  end
+
+  test "stats/0 returns the aggregated metric sections" do
+    stats = Observability.stats()
+
+    assert Map.has_key?(stats, :wal)
+    assert Map.has_key?(stats, :replication)
+    assert Map.has_key?(stats, :heartbeat)
+    assert Map.has_key?(stats, :query)
+  end
 end
