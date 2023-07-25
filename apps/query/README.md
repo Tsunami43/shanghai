@@ -32,16 +32,29 @@ Query.cas("counter", :absent, 1)                #=> {:ok, :swapped}   (only if m
 Query.cas("counter", 1, 2)                      #=> {:ok, :swapped}   (only if current == 1)
 Query.cas("counter", 1, 3)                      #=> {:error, :precondition_failed}
 
+# Conditional writes
+Query.put_new("user:1", %{})                    #=> {:ok, :written} | {:error, :exists}
+Query.replace("user:1", %{})                    #=> {:ok, :written} | {:error, :not_found}
+Query.getset("leader", "node-b")                #=> {:ok, "node-a"} | {:ok, :absent}
+
+# Bulk operations (each a single atomic WAL record)
+Query.mset(%{"a" => 1, "b" => 2})               #=> {:ok, :committed}
+Query.mget(["a", "b", "missing"])               #=> {:ok, %{"a" => 1, "b" => 2}}
+Query.mdelete(["a", "b"])                        #=> {:ok, :committed}
+Query.delete_prefix("session:1:")               #=> {:ok, {:deleted, 2}}
+
 # Collection / range access
-Query.mget(["user:1", "user:2", "missing"])     #=> {:ok, %{"user:1" => ..., "user:2" => ...}}
 Query.scan("events:order-1:")                   #=> {:ok, [{"events:order-1:1", ...}, ...]}
+Query.exists?("user:1")                         #=> true
+Query.count_prefix("user:")                     #=> 3
 Query.keys()                                    #=> ["user:1", ...]
 Query.count()                                   #=> 42
 Query.info()                                    #=> {:ok, %{store: %{durable:, recovered:, size:}, cache: %{...}}}
 ```
 
 `read/2` and `write/3` accept a `:consistency` option (`:strong` | `:eventual`
-| `:causal`); an invalid level returns `{:error, {:invalid_consistency, level}}`.
+| `:causal`), given as an atom or a string (e.g. `"eventual"` from an HTTP
+parameter); an invalid level returns `{:error, {:invalid_consistency, level}}`.
 
 ## Architecture
 
@@ -61,8 +74,13 @@ Query  (public API, telemetry, consistency validation)
 ## Observability
 
 Every operation emits `[:shanghai, :query, :operation]` with
-`%{duration_ms}` measurements and `%{operation, result}` metadata
-(`operation ∈ {:read, :write, :delete, :transact, :scan}`).
+`%{duration_ms}` measurements and `%{operation, result}` metadata — one event
+per public operation (`:read`, `:write`, `:delete`, `:transact`, `:cas`,
+`:getset`, `:mset`, `:mdelete`, `:delete_prefix`, and so on).
+
+The read cache tracks hit/miss counters; `Query.info/0` surfaces the
+`hit_ratio`, and the cache is tunable via
+`config :query, :cache, max_size:, ttl_ms:`.
 
 ## Scope
 
