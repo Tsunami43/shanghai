@@ -61,6 +61,7 @@ defmodule AdminApi.Router do
 
     status = %{
       cluster_state: cluster_state,
+      local_node_id: NodeId.to_string(Cluster.local_node_id()),
       node_count: Cluster.State.node_count(cluster),
       nodes_up: up_count,
       nodes_down: down_count,

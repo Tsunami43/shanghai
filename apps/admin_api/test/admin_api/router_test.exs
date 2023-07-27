@@ -63,6 +63,7 @@ defmodule AdminApi.RouterTest do
 
     body = json(conn)
     assert body["cluster_state"] in ["healthy", "degraded", "unavailable"]
+    assert is_binary(body["local_node_id"])
     assert is_integer(body["node_count"])
     assert is_integer(body["nodes_up"])
     assert is_integer(body["timestamp"])
