@@ -85,5 +85,15 @@ defmodule StorageTest do
 
       assert Storage.info().current_lsn > before
     end
+
+    test "wal_stats/0 aggregates segment count, entries and bytes" do
+      {:ok, _lsn} = Storage.append("stat-entry")
+      Process.sleep(10)
+
+      stats = Storage.wal_stats()
+      assert stats.segments >= 1
+      assert stats.entries >= 1
+      assert stats.bytes > 0
+    end
   end
 end

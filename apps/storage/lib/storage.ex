@@ -7,7 +7,7 @@ defmodule Storage do
   `data_root`; the segment `Registry`/`SegmentManager` are always running.
   """
 
-  alias Storage.WAL.{Reader, SegmentManager, Writer}
+  alias Storage.WAL.{Reader, Segment, SegmentManager, Writer}
 
   @doc "Appends data to the WAL. Requires the WAL `Writer` to be running."
   @spec append(term()) :: {:ok, non_neg_integer()} | {:error, term()}
@@ -48,6 +48,40 @@ defmodule Storage do
       active_segments: SegmentManager.count(),
       current_lsn: current_lsn()
     }
+  end
+
+  @doc """
+  Aggregates on-disk WAL statistics across all active segments: the segment
+  count, the total number of entries, and the total file size in bytes.
+
+  ## Examples
+
+      iex> stats = Storage.wal_stats()
+      iex> is_integer(stats.segments) and is_integer(stats.bytes)
+      true
+  """
+  @spec wal_stats() :: %{
+          segments: non_neg_integer(),
+          entries: non_neg_integer(),
+          bytes: non_neg_integer()
+        }
+  def wal_stats do
+    segments = SegmentManager.list_segments()
+
+    Enum.reduce(segments, %{segments: length(segments), entries: 0, bytes: 0}, fn {_id, pid},
+                                                                                  acc ->
+      case Segment.stats(pid) do
+        {:ok, stats} ->
+          %{
+            acc
+            | entries: acc.entries + Map.get(stats, :entry_count, 0),
+              bytes: acc.bytes + Map.get(stats, :file_size, 0)
+          }
+
+        _error ->
+          acc
+      end
+    end)
   end
 
   # The next LSN the Writer will assign, or 0 when it is not running.
