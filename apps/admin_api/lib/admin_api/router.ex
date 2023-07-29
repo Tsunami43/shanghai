@@ -120,6 +120,7 @@ defmodule AdminApi.Router do
       heartbeat: Observability.MetricsReporter.get_heartbeat_stats(),
       query: Observability.MetricsReporter.get_query_stats(),
       store: query_store_info(),
+      storage: storage_info(),
       last_membership_change: Observability.MetricsReporter.get_last_membership_change()
     }
 
@@ -292,6 +293,11 @@ defmodule AdminApi.Router do
       {:ok, info} -> info
       _ -> %{}
     end
+  end
+
+  # WAL runtime summary plus aggregate on-disk size.
+  defp storage_info do
+    Map.merge(Storage.info(), Storage.wal_stats())
   end
 
   # JSON carries only a subset of Erlang terms; fall back to an inspected string
