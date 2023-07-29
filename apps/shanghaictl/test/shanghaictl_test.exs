@@ -1,7 +1,7 @@
 defmodule ShanghaictlTest do
   use ExUnit.Case, async: true
 
-  alias Shanghaictl.Commands.Metrics
+  alias Shanghaictl.Commands.{Metrics, Status}
 
   doctest Shanghaictl
 
@@ -79,6 +79,16 @@ defmodule ShanghaictlTest do
     test "falls back to a no-data line" do
       assert Metrics.store_lines(nil) == ["Store Metrics: No data"]
       assert Metrics.store_lines(%{}) == ["Store Metrics: No data"]
+    end
+  end
+
+  describe "Status.local_node_line/1" do
+    test "renders the local node id when present" do
+      assert Status.local_node_line("node-1") == "Local Node:    node-1"
+    end
+
+    test "is nil when absent" do
+      assert Status.local_node_line(nil) == nil
     end
   end
 end

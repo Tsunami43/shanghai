@@ -25,12 +25,13 @@ defmodule Shanghaictl.Commands.Status do
   defp get_cluster_info(admin_url) do
     with {:ok, %{status: 200, body: %{"nodes" => nodes}}} <-
            Req.get("#{admin_url}/api/v1/nodes"),
-         {:ok, %{status: 200, body: %{"cluster_state" => state}}} <-
+         {:ok, %{status: 200, body: %{"cluster_state" => state} = status}} <-
            Req.get("#{admin_url}/api/v1/status") do
       {:ok,
        %{
          nodes: Enum.map(nodes, &parse_node/1),
-         cluster_state: String.to_atom(state)
+         cluster_state: String.to_atom(state),
+         local_node_id: status["local_node_id"]
        }}
     else
       {:ok, %{status: status}} ->
@@ -52,8 +53,16 @@ defmodule Shanghaictl.Commands.Status do
     }
   end
 
+  @doc false
+  @spec local_node_line(String.t() | nil) :: String.t() | nil
+  def local_node_line(nil), do: nil
+  def local_node_line(id), do: "Local Node:    #{id}"
+
   defp display_cluster_info(info) do
     IO.puts("Cluster State: #{format_state(info.cluster_state)}")
+
+    if line = local_node_line(info.local_node_id), do: IO.puts(line)
+
     IO.puts("")
     IO.puts("Nodes:")
 
