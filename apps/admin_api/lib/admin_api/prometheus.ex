@@ -27,6 +27,7 @@ defmodule AdminApi.Prometheus do
 
   defp storage_metrics do
     info = safe(fn -> Storage.info() end, %{})
+    wal = safe(fn -> Storage.wal_stats() end, %{})
 
     [
       gauge(
@@ -38,6 +39,16 @@ defmodule AdminApi.Prometheus do
         "shanghai_wal_active_segments",
         "Number of active WAL segments.",
         Map.get(info, :active_segments, 0)
+      ),
+      gauge(
+        "shanghai_wal_entries",
+        "Total entries across all WAL segments.",
+        Map.get(wal, :entries, 0)
+      ),
+      gauge(
+        "shanghai_wal_bytes",
+        "Total on-disk size of all WAL segments in bytes.",
+        Map.get(wal, :bytes, 0)
       )
     ]
   end
