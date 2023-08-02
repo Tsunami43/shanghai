@@ -218,6 +218,15 @@ defmodule Query.Store do
     do: GenServer.call(server, {:delete_prefix, prefix})
 
   @doc """
+  Atomic read-modify-write that only applies when `key` already exists. Returns
+  `{:ok, new_value}`, or `{:error, :not_found}` when the key is absent.
+  """
+  @spec update_existing(GenServer.server(), term(), (term() -> term())) ::
+          {:ok, term()} | {:error, term()}
+  def update_existing(server \\ __MODULE__, key, fun) when is_function(fun, 1),
+    do: GenServer.call(server, {:update_existing, key, fun})
+
+  @doc """
   Atomically applies a list of `{:write, key, value}` / `{:delete, key}` ops.
   Returns `{:ok, :committed}`.
   """
@@ -389,6 +398,30 @@ defmodule Query.Store do
 
       {:error, reason} ->
         {:reply, {:error, reason}, state}
+    end
+  end
+
+  def handle_call({:update_existing, key, fun}, _from, state) do
+    case :ets.lookup(state.table, key) do
+      [{^key, current}] ->
+        try do
+          new_value = fun.(current)
+
+          case append(state, %{op: :put, key: key, value: new_value}) do
+            :ok ->
+              :ets.insert(state.table, {key, new_value})
+              {:reply, {:ok, new_value}, state}
+
+            {:error, reason} ->
+              {:reply, {:error, reason}, state}
+          end
+        rescue
+          error ->
+            {:reply, {:error, {:update_failed, Exception.message(error)}}, state}
+        end
+
+      [] ->
+        {:reply, {:error, :not_found}, state}
     end
   end
 

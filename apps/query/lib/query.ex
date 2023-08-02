@@ -229,6 +229,31 @@ defmodule Query do
   end
 
   @doc """
+  Atomic read-modify-write that only applies when `key` already exists.
+
+  Applies `fun` to the current value and stores the result, returning
+  `{:ok, new_value}`, or `{:error, :not_found}` when the key is absent. Unlike
+  `update/3`, it never creates the key.
+
+  ## Examples
+
+      iex> Query.write("counter", 1)
+      iex> Query.update_existing("counter", &(&1 + 1))
+      {:ok, 2}
+
+      iex> Query.update_existing("missing", &(&1 + 1))
+      {:error, :not_found}
+  """
+  @spec update_existing(String.t(), (term() -> term())) :: {:ok, term()} | {:error, term()}
+  def update_existing(key, fun) when is_function(fun, 1) do
+    measure(:update_existing, fn ->
+      result = Query.Store.update_existing(key, fun)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate(key)
+      result
+    end)
+  end
+
+  @doc """
   Atomically adds `amount` (default `1`) to the numeric value at `key`,
   treating a missing key as `0`. Returns `{:ok, new_value}`.
 
