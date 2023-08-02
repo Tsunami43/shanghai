@@ -47,11 +47,35 @@ defmodule Shanghaictl.Commands.Metrics do
 
   defp display_metrics(metrics) do
     display_wal_metrics(metrics["wal"])
+    display_storage_metrics(metrics["storage"])
     display_store_metrics(metrics["store"])
     display_replication_metrics(metrics["replication"])
     display_heartbeat_metrics(metrics["heartbeat"])
     display_membership_change(metrics["last_membership_change"])
   end
+
+  defp display_storage_metrics(storage) do
+    storage
+    |> storage_lines()
+    |> Enum.each(&IO.puts/1)
+
+    IO.puts("")
+  end
+
+  @doc false
+  @spec storage_lines(map() | nil) :: [String.t()]
+  def storage_lines(storage) when is_map(storage) and map_size(storage) > 0 do
+    [
+      "Storage (WAL):",
+      "  Running: #{Map.get(storage, "wal_running")}",
+      "  Segments: #{Map.get(storage, "segments", Map.get(storage, "active_segments"))}",
+      "  Current LSN: #{Map.get(storage, "current_lsn")}",
+      "  Entries: #{Map.get(storage, "entries")}",
+      "  Size: #{Map.get(storage, "bytes")} bytes"
+    ]
+  end
+
+  def storage_lines(_), do: ["Storage (WAL): No data"]
 
   defp display_store_metrics(store) do
     store

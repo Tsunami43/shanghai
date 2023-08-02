@@ -82,6 +82,29 @@ defmodule ShanghaictlTest do
     end
   end
 
+  describe "Metrics.storage_lines/1" do
+    test "renders WAL size figures" do
+      storage = %{
+        "wal_running" => true,
+        "segments" => 2,
+        "current_lsn" => 100,
+        "entries" => 100,
+        "bytes" => 4096
+      }
+
+      joined = storage |> Metrics.storage_lines() |> Enum.join("\n")
+
+      assert joined =~ "Segments: 2"
+      assert joined =~ "Entries: 100"
+      assert joined =~ "Size: 4096 bytes"
+    end
+
+    test "falls back to a no-data line" do
+      assert Metrics.storage_lines(nil) == ["Storage (WAL): No data"]
+      assert Metrics.storage_lines(%{}) == ["Storage (WAL): No data"]
+    end
+  end
+
   describe "Status.local_node_line/1" do
     test "renders the local node id when present" do
       assert Status.local_node_line("node-1") == "Local Node:    node-1"
