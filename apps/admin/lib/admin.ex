@@ -14,4 +14,8 @@ defmodule Admin do
   """
   @spec health() :: Admin.Health.report()
   defdelegate health(), to: Admin.Health, as: :check
+
+  @doc "Returns `true` when every subsystem is healthy. See `Admin.Health.healthy?/0`."
+  @spec healthy?() :: boolean()
+  defdelegate healthy?(), to: Admin.Health
 end

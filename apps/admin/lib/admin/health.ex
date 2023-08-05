@@ -34,5 +34,21 @@ defmodule Admin.Health do
     if Enum.all?(Map.values(checks)), do: :healthy, else: :degraded
   end
 
+  @doc "Returns `true` when every subsystem check passes."
+  @spec healthy?() :: boolean()
+  def healthy?, do: check().status == :healthy
+
+  @doc """
+  Returns the names of the subsystems whose check is currently failing (empty
+  when everything is healthy). Useful for alerting and log context.
+  """
+  @spec unhealthy_subsystems() :: [atom()]
+  def unhealthy_subsystems do
+    check().checks
+    |> Enum.filter(fn {_name, up?} -> not up? end)
+    |> Enum.map(fn {name, _up?} -> name end)
+    |> Enum.sort()
+  end
+
   defp alive?(name), do: is_pid(Process.whereis(name))
 end
