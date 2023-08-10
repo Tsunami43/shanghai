@@ -19,6 +19,7 @@ defmodule ShanghaictlTest do
       assert Shanghaictl.parse(["status", "--format", "json"]) == {:status, ["--format", "json"]}
       assert Shanghaictl.parse(["replicas"]) == {:replicas, []}
       assert Shanghaictl.parse(["metrics"]) == {:metrics, []}
+      assert Shanghaictl.parse(["health"]) == {:health, []}
     end
 
     test "node join/leave/get are distinguished" do

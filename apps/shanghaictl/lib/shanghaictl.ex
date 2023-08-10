@@ -6,7 +6,7 @@ defmodule Shanghaictl do
   Shanghai clusters, nodes, and replication.
   """
 
-  alias Shanghaictl.Commands.{Kv, Metrics, Node, Replicas, Shutdown, Status}
+  alias Shanghaictl.Commands.{Health, Kv, Metrics, Node, Replicas, Shutdown, Status}
 
   @doc """
   Main entry point for the CLI.
@@ -22,7 +22,7 @@ defmodule Shanghaictl do
           :help
           | :version
           | {:status | :replicas | :metrics | :node_join | :node_leave | :shutdown, [String.t()]}
-          | {:node_get | :kv_get | :kv_count, [String.t()]}
+          | {:health | :node_get | :kv_get | :kv_count, [String.t()]}
           | {:unknown, [String.t()]}
 
   @doc """
@@ -41,6 +41,7 @@ defmodule Shanghaictl do
   def parse(["help"]), do: :help
   def parse(["version"]), do: :version
   def parse(["status" | opts]), do: {:status, opts}
+  def parse(["health" | opts]), do: {:health, opts}
   def parse(["replicas" | opts]), do: {:replicas, opts}
   def parse(["metrics" | opts]), do: {:metrics, opts}
   def parse(["node", "join" | opts]), do: {:node_join, opts}
@@ -62,6 +63,7 @@ defmodule Shanghaictl do
       help              Show this help message
       version           Show version information
       status            Show cluster status and node health
+      health            Show node readiness and subsystem checks
       replicas          Show replication groups and their status
       metrics           Show performance and operational metrics
       node join <id>    Add a node to the cluster
@@ -77,6 +79,10 @@ defmodule Shanghaictl do
 
   defp execute({:status, opts}) do
     Status.run(opts)
+  end
+
+  defp execute({:health, opts}) do
+    Health.run(opts)
   end
 
   defp execute({:replicas, opts}) do
