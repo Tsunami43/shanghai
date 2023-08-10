@@ -961,6 +961,31 @@ $ shanghaictl status --format json
 
 ---
 
+### shanghaictl health
+
+Show node readiness and per-subsystem checks (from the `/ready` probe). Exits
+non-zero when the node is not ready.
+
+**Usage:**
+```bash
+shanghaictl health [--admin-url URL]
+```
+
+**Example:**
+```bash
+$ shanghaictl health
+
+Readiness: ready
+
+Checks:
+  ✓ cluster_membership
+  ✓ replication_monitor
+  ✓ query_store
+  ✓ storage_segments
+```
+
+---
+
 ### shanghaictl node join
 
 Join a node to the cluster.
