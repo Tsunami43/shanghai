@@ -10,13 +10,35 @@ defmodule Shanghaictl.Commands.Health do
   """
   def run(opts \\ []) do
     admin_url = admin_url(opts)
+    format = output_format(opts)
 
     case fetch(admin_url) do
-      {:ok, status, body} -> display(status, body)
+      {:ok, status, body} -> render(status, body, format)
       {:error, :not_connected} -> not_connected()
       {:error, reason} -> error(reason)
     end
   end
+
+  defp output_format(opts) do
+    json? =
+      "--json" in opts or
+        opts
+        |> Enum.chunk_every(2, 1, :discard)
+        |> Enum.any?(&(&1 == ["--format", "json"]))
+
+    if json?, do: :json, else: :text
+  end
+
+  defp render(status, body, :json) do
+    IO.puts(to_json(body))
+    if status != 200, do: System.halt(1)
+  end
+
+  defp render(status, body, :text), do: display(status, body)
+
+  @doc false
+  @spec to_json(map()) :: String.t()
+  def to_json(body), do: Jason.encode!(body)
 
   defp fetch(admin_url) do
     case Req.get("#{admin_url}/ready") do

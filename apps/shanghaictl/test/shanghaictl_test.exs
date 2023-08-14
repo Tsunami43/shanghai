@@ -1,7 +1,7 @@
 defmodule ShanghaictlTest do
   use ExUnit.Case, async: true
 
-  alias Shanghaictl.Commands.{Metrics, Status}
+  alias Shanghaictl.Commands.{Health, Metrics, Status}
 
   doctest Shanghaictl
 
@@ -113,6 +113,17 @@ defmodule ShanghaictlTest do
 
     test "is nil when absent" do
       assert Status.local_node_line(nil) == nil
+    end
+  end
+
+  describe "Health.to_json/1" do
+    test "round-trips the readiness body as JSON" do
+      body = %{"status" => "ready", "checks" => %{"query_store" => true}}
+
+      decoded = body |> Health.to_json() |> Jason.decode!()
+
+      assert decoded["status"] == "ready"
+      assert decoded["checks"]["query_store"] == true
     end
   end
 
