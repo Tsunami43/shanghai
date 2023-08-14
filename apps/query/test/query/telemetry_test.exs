@@ -31,7 +31,9 @@ defmodule Query.TelemetryTest do
   test "write emits a telemetry event with duration and result" do
     {:ok, :written} = Query.write("k", "v")
 
-    assert_receive {:telemetry, @event, %{duration_ms: duration}, %{operation: :write, result: :ok}}
+    assert_receive {:telemetry, @event, %{duration_ms: duration},
+                    %{operation: :write, result: :ok}}
+
     assert is_number(duration) and duration >= 0
   end
 

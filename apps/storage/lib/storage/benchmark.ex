@@ -174,7 +174,9 @@ defmodule Storage.Benchmark do
 
     # Guard against a sub-millisecond run and against zero successful writes.
     throughput = trunc(total_writes / (max(duration_ms, 1) / 1000))
-    avg_latency_ms = if total_writes > 0, do: Float.round(duration_ms / total_writes, 3), else: 0.0
+
+    avg_latency_ms =
+      if total_writes > 0, do: Float.round(duration_ms / total_writes, 3), else: 0.0
 
     result = %{
       num_processes: num_processes,

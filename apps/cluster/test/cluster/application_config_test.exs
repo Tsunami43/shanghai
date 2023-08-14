@@ -35,6 +35,7 @@ defmodule Cluster.ApplicationConfigTest do
 
     Application.put_env(:cluster, :gossip_fanout, 7)
     Application.put_env(:cluster, :gossip_interval_ms, 500)
+
     on_exit(fn ->
       Application.delete_env(:cluster, :gossip_fanout)
       Application.delete_env(:cluster, :gossip_interval_ms)

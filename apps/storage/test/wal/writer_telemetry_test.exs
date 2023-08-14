@@ -41,7 +41,11 @@ defmodule Storage.WAL.WriterTelemetryTest do
 
     on_exit(fn ->
       :telemetry.detach(handler_id)
-      Enum.each(SegmentManager.list_segments(), fn {id, _pid} -> SegmentManager.stop_segment(id) end)
+
+      Enum.each(SegmentManager.list_segments(), fn {id, _pid} ->
+        SegmentManager.stop_segment(id)
+      end)
+
       File.rm_rf(dir)
     end)
 

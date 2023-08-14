@@ -34,7 +34,10 @@ defmodule Replication.FollowerDurabilityTest do
     start_supervised!({Follower, group_id: group})
 
     on_exit(fn ->
-      Enum.each(SegmentManager.list_segments(), fn {id, _pid} -> SegmentManager.stop_segment(id) end)
+      Enum.each(SegmentManager.list_segments(), fn {id, _pid} ->
+        SegmentManager.stop_segment(id)
+      end)
+
       File.rm_rf(dir)
     end)
 

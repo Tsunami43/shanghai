@@ -35,7 +35,10 @@ defmodule Replication.LeaderDurabilityTest do
     start_supervised!({Leader, group_id: group, replica_count: 1})
 
     on_exit(fn ->
-      Enum.each(SegmentManager.list_segments(), fn {id, _pid} -> SegmentManager.stop_segment(id) end)
+      Enum.each(SegmentManager.list_segments(), fn {id, _pid} ->
+        SegmentManager.stop_segment(id)
+      end)
+
       File.rm_rf(dir)
     end)
 

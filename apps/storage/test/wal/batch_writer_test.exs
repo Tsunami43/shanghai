@@ -28,7 +28,8 @@ defmodule Storage.WAL.BatchWriterTest do
     {:ok, segment: segment}
   end
 
-  defp entry(lsn), do: LogEntry.new(LogSequenceNumber.new(lsn), "payload-#{lsn}", %NodeId{value: "n"}, %{})
+  defp entry(lsn),
+    do: LogEntry.new(LogSequenceNumber.new(lsn), "payload-#{lsn}", %NodeId{value: "n"}, %{})
 
   test "append flushes on the batch timeout and returns an offset" do
     assert {:ok, offset} = BatchWriter.append(entry(0))

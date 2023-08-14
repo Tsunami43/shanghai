@@ -22,7 +22,14 @@ defmodule Replication.EventsTest do
 
   test "ReplicaFellBehind computes the lag and implements Event" do
     replica = NodeId.new("node-2")
-    event = ReplicaFellBehind.new("group-a", replica, ReplicationOffset.new(4), ReplicationOffset.new(10))
+
+    event =
+      ReplicaFellBehind.new(
+        "group-a",
+        replica,
+        ReplicationOffset.new(4),
+        ReplicationOffset.new(10)
+      )
 
     assert event.replica_node_id == replica
     assert event.lag == 6
