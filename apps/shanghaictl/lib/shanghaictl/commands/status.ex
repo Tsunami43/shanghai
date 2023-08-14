@@ -9,17 +9,57 @@ defmodule Shanghaictl.Commands.Status do
   Shows cluster status including nodes and their states.
   """
   def run(opts \\ []) do
-    IO.puts("Shanghai Cluster Status")
-    IO.puts(String.duplicate("=", 40))
-    IO.puts("")
-
-    admin_url = Keyword.get(opts, :admin_url, @default_admin_url)
+    admin_url = admin_url(opts)
+    format = output_format(opts)
 
     case get_cluster_info(admin_url) do
-      {:ok, info} -> display_cluster_info(info)
+      {:ok, info} -> render(info, format)
       {:error, :not_connected} -> display_not_connected()
       {:error, reason} -> display_error(reason)
     end
+  end
+
+  defp admin_url(opts) do
+    case opts do
+      ["--admin-url", url | _rest] -> url
+      _ -> @default_admin_url
+    end
+  end
+
+  defp output_format(opts) do
+    json? =
+      "--json" in opts or
+        opts
+        |> Enum.chunk_every(2, 1, :discard)
+        |> Enum.any?(&(&1 == ["--format", "json"]))
+
+    if json?, do: :json, else: :text
+  end
+
+  defp render(info, :json), do: IO.puts(to_json(info))
+
+  defp render(info, :text) do
+    IO.puts("Shanghai Cluster Status")
+    IO.puts(String.duplicate("=", 40))
+    IO.puts("")
+    display_cluster_info(info)
+  end
+
+  @doc false
+  @spec to_json(map()) :: String.t()
+  def to_json(info) do
+    Jason.encode!(%{
+      cluster_state: to_string(info.cluster_state),
+      local_node_id: info.local_node_id,
+      nodes:
+        Enum.map(info.nodes, fn node ->
+          %{
+            id: node.id,
+            status: to_string(node.status),
+            heartbeat_age_ms: node.heartbeat_age
+          }
+        end)
+    })
   end
 
   defp get_cluster_info(admin_url) do

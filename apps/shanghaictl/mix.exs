@@ -24,6 +24,7 @@ defmodule Shanghaictl.MixProject do
   defp deps do
     [
       {:req, "~> 0.4"},
+      {:jason, "~> 1.4"},
       {:cluster, in_umbrella: true},
       {:replication, in_umbrella: true}
     ]

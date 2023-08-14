@@ -115,4 +115,23 @@ defmodule ShanghaictlTest do
       assert Status.local_node_line(nil) == nil
     end
   end
+
+  describe "Status.to_json/1" do
+    test "encodes the cluster info as JSON" do
+      info = %{
+        cluster_state: :healthy,
+        local_node_id: "node-1",
+        nodes: [%{id: "node-1", status: :up, heartbeat_age: 50}]
+      }
+
+      decoded = info |> Status.to_json() |> Jason.decode!()
+
+      assert decoded["cluster_state"] == "healthy"
+      assert decoded["local_node_id"] == "node-1"
+      assert [node] = decoded["nodes"]
+      assert node["id"] == "node-1"
+      assert node["status"] == "up"
+      assert node["heartbeat_age_ms"] == 50
+    end
+  end
 end
