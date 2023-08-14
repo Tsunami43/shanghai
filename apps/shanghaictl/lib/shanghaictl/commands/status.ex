@@ -3,37 +3,18 @@ defmodule Shanghaictl.Commands.Status do
   Status command for inspecting cluster health.
   """
 
-  @default_admin_url "http://localhost:9090"
-
   @doc """
   Shows cluster status including nodes and their states.
   """
   def run(opts \\ []) do
-    admin_url = admin_url(opts)
-    format = output_format(opts)
+    admin_url = Shanghaictl.Options.admin_url(opts)
+    format = Shanghaictl.Options.format(opts)
 
     case get_cluster_info(admin_url) do
       {:ok, info} -> render(info, format)
       {:error, :not_connected} -> display_not_connected()
       {:error, reason} -> display_error(reason)
     end
-  end
-
-  defp admin_url(opts) do
-    case opts do
-      ["--admin-url", url | _rest] -> url
-      _ -> @default_admin_url
-    end
-  end
-
-  defp output_format(opts) do
-    json? =
-      "--json" in opts or
-        opts
-        |> Enum.chunk_every(2, 1, :discard)
-        |> Enum.any?(&(&1 == ["--format", "json"]))
-
-    if json?, do: :json, else: :text
   end
 
   defp render(info, :json), do: IO.puts(to_json(info))

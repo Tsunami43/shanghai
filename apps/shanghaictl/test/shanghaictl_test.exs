@@ -2,8 +2,10 @@ defmodule ShanghaictlTest do
   use ExUnit.Case, async: true
 
   alias Shanghaictl.Commands.{Health, Metrics, Status}
+  alias Shanghaictl.Options
 
   doctest Shanghaictl
+  doctest Shanghaictl.Options
 
   describe "parse/1" do
     test "no args and 'help' map to :help" do
@@ -113,6 +115,22 @@ defmodule ShanghaictlTest do
 
     test "is nil when absent" do
       assert Status.local_node_line(nil) == nil
+    end
+  end
+
+  describe "Options" do
+    test "format/1 detects json in either form" do
+      assert Options.format(["--json"]) == :json
+      assert Options.format(["--format", "json"]) == :json
+      assert Options.format(["x", "--format", "json"]) == :json
+      assert Options.format([]) == :text
+      assert Options.format(["--format", "text"]) == :text
+    end
+
+    test "admin_url/1 reads --admin-url or defaults" do
+      assert Options.admin_url(["--admin-url", "http://h:9090"]) == "http://h:9090"
+      assert Options.admin_url(["k", "--admin-url", "http://h:1"]) == "http://h:1"
+      assert Options.admin_url([]) == "http://localhost:9090"
     end
   end
 

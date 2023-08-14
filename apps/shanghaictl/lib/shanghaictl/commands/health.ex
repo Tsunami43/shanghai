@@ -3,30 +3,18 @@ defmodule Shanghaictl.Commands.Health do
   Health command: reports node readiness from the Admin API `/ready` probe.
   """
 
-  @default_admin_url "http://localhost:9090"
-
   @doc """
   Shows readiness and per-subsystem checks. Supports `--admin-url URL`.
   """
   def run(opts \\ []) do
-    admin_url = admin_url(opts)
-    format = output_format(opts)
+    admin_url = Shanghaictl.Options.admin_url(opts)
+    format = Shanghaictl.Options.format(opts)
 
     case fetch(admin_url) do
       {:ok, status, body} -> render(status, body, format)
       {:error, :not_connected} -> not_connected()
       {:error, reason} -> error(reason)
     end
-  end
-
-  defp output_format(opts) do
-    json? =
-      "--json" in opts or
-        opts
-        |> Enum.chunk_every(2, 1, :discard)
-        |> Enum.any?(&(&1 == ["--format", "json"]))
-
-    if json?, do: :json, else: :text
   end
 
   defp render(status, body, :json) do
@@ -46,13 +34,6 @@ defmodule Shanghaictl.Commands.Health do
       {:ok, %{status: status}} -> {:error, "API returned status #{status}"}
       {:error, %{reason: :econnrefused}} -> {:error, :not_connected}
       {:error, reason} -> {:error, "HTTP request failed: #{inspect(reason)}"}
-    end
-  end
-
-  defp admin_url(opts) do
-    case opts do
-      ["--admin-url", url | _rest] -> url
-      _ -> @default_admin_url
     end
   end
 
