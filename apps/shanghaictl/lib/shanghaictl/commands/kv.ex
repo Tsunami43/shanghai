@@ -3,8 +3,6 @@ defmodule Shanghaictl.Commands.Kv do
   Key/value command for reading values from the store over the Admin API.
   """
 
-  @default_admin_url "http://localhost:9090"
-
   @doc """
   Reads a single key. Expects `[key | opts]`; supports `--admin-url URL`.
   """
@@ -15,7 +13,7 @@ defmodule Shanghaictl.Commands.Kv do
   end
 
   def get([key | opts]) do
-    admin_url = admin_url(opts)
+    admin_url = Shanghaictl.Options.admin_url(opts)
 
     case fetch(admin_url, key) do
       {:ok, value} -> IO.puts(format_value(value))
@@ -31,7 +29,7 @@ defmodule Shanghaictl.Commands.Kv do
   """
   def count(args) do
     {prefix, opts} = split_prefix(args)
-    admin_url = admin_url(opts)
+    admin_url = Shanghaictl.Options.admin_url(opts)
 
     case fetch_count(admin_url, prefix) do
       {:ok, n} -> IO.puts(to_string(n))
@@ -66,13 +64,6 @@ defmodule Shanghaictl.Commands.Kv do
       {:ok, %{status: status}} -> {:error, "API returned status #{status}"}
       {:error, %{reason: :econnrefused}} -> {:error, :not_connected}
       {:error, reason} -> {:error, "HTTP request failed: #{inspect(reason)}"}
-    end
-  end
-
-  defp admin_url(opts) do
-    case opts do
-      ["--admin-url", url | _rest] -> url
-      _ -> @default_admin_url
     end
   end
 

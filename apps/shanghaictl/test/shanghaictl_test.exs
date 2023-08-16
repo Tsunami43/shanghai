@@ -127,9 +127,10 @@ defmodule ShanghaictlTest do
       assert Options.format(["--format", "text"]) == :text
     end
 
-    test "admin_url/1 reads --admin-url or defaults" do
+    test "admin_url/1 reads both flag forms or defaults" do
       assert Options.admin_url(["--admin-url", "http://h:9090"]) == "http://h:9090"
       assert Options.admin_url(["k", "--admin-url", "http://h:1"]) == "http://h:1"
+      assert Options.admin_url(["--admin-url=http://h:2"]) == "http://h:2"
       assert Options.admin_url([]) == "http://localhost:9090"
     end
   end

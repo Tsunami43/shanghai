@@ -3,13 +3,11 @@ defmodule Shanghaictl.Commands.Node do
   Node management commands for joining and leaving the cluster.
   """
 
-  @default_admin_url "http://localhost:9090"
-
   @doc """
   Adds a node to the cluster.
   """
   def join([node_id | opts]) when is_binary(node_id) do
-    admin_url = extract_admin_url(opts)
+    admin_url = Shanghaictl.Options.admin_url(opts)
     {host, port} = extract_node_address(opts)
 
     IO.puts("Adding node #{node_id} (#{host}:#{port}) to cluster...")
@@ -33,7 +31,7 @@ defmodule Shanghaictl.Commands.Node do
   Removes a node from the cluster.
   """
   def leave([node_id | opts]) when is_binary(node_id) do
-    admin_url = extract_admin_url(opts)
+    admin_url = Shanghaictl.Options.admin_url(opts)
 
     IO.puts("Removing node #{node_id} from cluster...")
 
@@ -56,7 +54,7 @@ defmodule Shanghaictl.Commands.Node do
   Shows details for a single node by id.
   """
   def get([node_id | opts]) when is_binary(node_id) do
-    admin_url = extract_admin_url(opts)
+    admin_url = Shanghaictl.Options.admin_url(opts)
 
     case request_node_get(admin_url, node_id) do
       {:ok, node} -> display_node(node)
@@ -99,13 +97,6 @@ defmodule Shanghaictl.Commands.Node do
   defp get_error(reason) do
     IO.puts("Error: #{reason}")
     System.halt(1)
-  end
-
-  defp extract_admin_url(opts) do
-    Enum.find_value(opts, @default_admin_url, fn
-      "--admin-url=" <> url -> url
-      _ -> nil
-    end)
   end
 
   defp extract_node_address(opts) do

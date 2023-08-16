@@ -3,8 +3,6 @@ defmodule Shanghaictl.Commands.Metrics do
   Metrics command for viewing performance and operational metrics.
   """
 
-  @default_admin_url "http://localhost:9090"
-
   @doc """
   Shows operational metrics including WAL, replication, and heartbeat stats.
   """
@@ -13,20 +11,13 @@ defmodule Shanghaictl.Commands.Metrics do
     IO.puts(String.duplicate("=", 50))
     IO.puts("")
 
-    admin_url = extract_admin_url(opts)
+    admin_url = Shanghaictl.Options.admin_url(opts)
 
     case get_metrics(admin_url) do
       {:ok, metrics} -> display_metrics(metrics)
       {:error, :not_connected} -> display_not_connected()
       {:error, reason} -> display_error(reason)
     end
-  end
-
-  defp extract_admin_url(opts) do
-    Enum.find_value(opts, @default_admin_url, fn
-      "--admin-url=" <> url -> url
-      _ -> nil
-    end)
   end
 
   defp get_metrics(admin_url) do
