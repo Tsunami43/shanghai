@@ -16,6 +16,11 @@ defmodule StorageTest do
     assert info.current_lsn >= 0
   end
 
+  test "list_snapshots/0 is [] when the snapshot manager is not running" do
+    refute is_pid(Process.whereis(Storage.Snapshot.Manager))
+    assert Storage.list_snapshots() == []
+  end
+
   describe "with a running WAL" do
     setup do
       Storage.WALTestInfra.ensure_started()

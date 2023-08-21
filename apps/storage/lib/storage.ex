@@ -7,6 +7,7 @@ defmodule Storage do
   `data_root`; the segment `Registry`/`SegmentManager` are always running.
   """
 
+  alias Storage.Snapshot.Manager, as: SnapshotManager
   alias Storage.WAL.{Reader, Segment, SegmentManager, Writer}
 
   @doc "Appends data to the WAL. Requires the WAL `Writer` to be running."
@@ -82,6 +83,22 @@ defmodule Storage do
           acc
       end
     end)
+  end
+
+  @doc """
+  Lists persisted snapshots (most recent first when the manager sorts them), or
+  `[]` when the snapshot manager is not running (e.g. no `data_root` configured).
+  """
+  @spec list_snapshots() :: [map()]
+  def list_snapshots do
+    if is_pid(Process.whereis(SnapshotManager)) do
+      case SnapshotManager.list_snapshots() do
+        {:ok, snapshots} -> snapshots
+        _error -> []
+      end
+    else
+      []
+    end
   end
 
   # The next LSN the Writer will assign, or 0 when it is not running.
