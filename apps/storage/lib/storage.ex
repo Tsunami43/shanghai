@@ -41,13 +41,15 @@ defmodule Storage do
   @spec info() :: %{
           wal_running: boolean(),
           active_segments: non_neg_integer(),
-          current_lsn: non_neg_integer()
+          current_lsn: non_neg_integer(),
+          snapshots: non_neg_integer()
         }
   def info do
     %{
       wal_running: is_pid(Process.whereis(Writer)),
       active_segments: SegmentManager.count(),
-      current_lsn: current_lsn()
+      current_lsn: current_lsn(),
+      snapshots: length(list_snapshots())
     }
   end
 

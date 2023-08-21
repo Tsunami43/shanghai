@@ -49,6 +49,11 @@ defmodule AdminApi.Prometheus do
         "shanghai_wal_bytes",
         "Total on-disk size of all WAL segments in bytes.",
         Map.get(wal, :bytes, 0)
+      ),
+      gauge(
+        "shanghai_storage_snapshots",
+        "Number of persisted snapshots.",
+        Map.get(info, :snapshots, 0)
       )
     ]
   end

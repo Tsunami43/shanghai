@@ -14,6 +14,8 @@ defmodule StorageTest do
     assert info.active_segments >= 0
     assert is_integer(info.current_lsn)
     assert info.current_lsn >= 0
+    assert is_integer(info.snapshots)
+    assert info.snapshots >= 0
   end
 
   test "list_snapshots/0 is [] when the snapshot manager is not running" do
