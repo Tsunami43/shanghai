@@ -62,7 +62,8 @@ defmodule Shanghaictl.Commands.Metrics do
       "  Segments: #{Map.get(storage, "segments", Map.get(storage, "active_segments"))}",
       "  Current LSN: #{Map.get(storage, "current_lsn")}",
       "  Entries: #{Map.get(storage, "entries")}",
-      "  Size: #{Map.get(storage, "bytes")} bytes"
+      "  Size: #{Map.get(storage, "bytes")} bytes",
+      "  Snapshots: #{Map.get(storage, "snapshots")}"
     ]
   end
 

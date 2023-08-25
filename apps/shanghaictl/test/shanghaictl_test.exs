@@ -92,7 +92,8 @@ defmodule ShanghaictlTest do
         "segments" => 2,
         "current_lsn" => 100,
         "entries" => 100,
-        "bytes" => 4096
+        "bytes" => 4096,
+        "snapshots" => 3
       }
 
       joined = storage |> Metrics.storage_lines() |> Enum.join("\n")
@@ -100,6 +101,7 @@ defmodule ShanghaictlTest do
       assert joined =~ "Segments: 2"
       assert joined =~ "Entries: 100"
       assert joined =~ "Size: 4096 bytes"
+      assert joined =~ "Snapshots: 3"
     end
 
     test "falls back to a no-data line" do
