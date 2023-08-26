@@ -1,7 +1,7 @@
 defmodule ShanghaictlTest do
   use ExUnit.Case, async: true
 
-  alias Shanghaictl.Commands.{Health, Metrics, Status}
+  alias Shanghaictl.Commands.{Health, Metrics, Replicas, Status}
   alias Shanghaictl.Options
 
   doctest Shanghaictl
@@ -134,6 +134,19 @@ defmodule ShanghaictlTest do
       assert Options.admin_url(["k", "--admin-url", "http://h:1"]) == "http://h:1"
       assert Options.admin_url(["--admin-url=http://h:2"]) == "http://h:2"
       assert Options.admin_url([]) == "http://localhost:9090"
+    end
+  end
+
+  describe "Replicas.summary_line/1" do
+    test "renders the aggregate counts" do
+      summary = %{"groups" => 2, "replicas" => 3, "lagging" => 1, "stale" => 0}
+
+      assert Replicas.summary_line(summary) ==
+               "Summary: 2 group(s), 3 replica(s), 1 lagging, 0 stale"
+    end
+
+    test "is nil when absent" do
+      assert Replicas.summary_line(nil) == nil
     end
   end
 

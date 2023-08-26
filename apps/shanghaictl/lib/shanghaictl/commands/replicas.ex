@@ -3,8 +3,6 @@ defmodule Shanghaictl.Commands.Replicas do
   Replicas command for inspecting replication groups.
   """
 
-  @default_admin_url "http://localhost:9090"
-
   @doc """
   Shows replication group status including leaders and followers.
   """
@@ -13,26 +11,19 @@ defmodule Shanghaictl.Commands.Replicas do
     IO.puts(String.duplicate("=", 40))
     IO.puts("")
 
-    admin_url = extract_admin_url(opts)
+    admin_url = Shanghaictl.Options.admin_url(opts)
 
     case get_replicas_info(admin_url) do
-      {:ok, replicas} -> display_replicas(replicas)
+      {:ok, body} -> display(body)
       {:error, :not_connected} -> display_not_connected()
       {:error, reason} -> display_error(reason)
     end
   end
 
-  defp extract_admin_url(opts) do
-    Enum.find_value(opts, @default_admin_url, fn
-      "--admin-url=" <> url -> url
-      _ -> nil
-    end)
-  end
-
   defp get_replicas_info(admin_url) do
     case Req.get("#{admin_url}/api/v1/replicas") do
-      {:ok, %{status: 200, body: %{"replicas" => replicas}}} ->
-        {:ok, replicas}
+      {:ok, %{status: 200, body: %{"replicas" => _replicas} = body}} ->
+        {:ok, body}
 
       {:ok, %{status: status}} ->
         {:error, "API returned status #{status}"}
@@ -43,6 +34,21 @@ defmodule Shanghaictl.Commands.Replicas do
       {:error, reason} ->
         {:error, "HTTP request failed: #{inspect(reason)}"}
     end
+  end
+
+  defp display(body) do
+    display_replicas(body["replicas"])
+
+    if line = summary_line(body["summary"]), do: IO.puts(line)
+  end
+
+  @doc false
+  @spec summary_line(map() | nil) :: String.t() | nil
+  def summary_line(nil), do: nil
+
+  def summary_line(summary) when is_map(summary) do
+    "Summary: #{summary["groups"]} group(s), #{summary["replicas"]} replica(s), " <>
+      "#{summary["lagging"]} lagging, #{summary["stale"]} stale"
   end
 
   defp display_replicas(replicas) when is_list(replicas) do
