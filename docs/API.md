@@ -922,6 +922,28 @@ curl http://localhost:9090/api/v1/kv/user:1
 
 ---
 
+### GET /snapshots
+
+List persisted WAL snapshots. The list is empty when snapshotting is not
+configured (no `data_root`).
+
+**Request:**
+```bash
+curl http://localhost:9090/api/v1/snapshots
+```
+
+**Response (200):**
+```json
+{
+  "snapshots": [
+    {"id": "snapshot-000123", "lsn": 123, "size_bytes": 4096}
+  ],
+  "count": 1
+}
+```
+
+---
+
 ## CLI Commands
 
 ### shanghaictl status
