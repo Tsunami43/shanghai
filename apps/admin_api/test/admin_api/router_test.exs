@@ -93,6 +93,15 @@ defmodule AdminApi.RouterTest do
     :ok = Cluster.leave(node_id)
   end
 
+  test "GET /api/v1/snapshots returns a snapshot list and count" do
+    conn = get("/api/v1/snapshots")
+    assert conn.status == 200
+
+    body = json(conn)
+    assert is_list(body["snapshots"])
+    assert body["count"] == length(body["snapshots"])
+  end
+
   test "GET /api/v1/replicas returns a replicas list and summary" do
     conn = get("/api/v1/replicas")
     assert conn.status == 200

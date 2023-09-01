@@ -157,6 +157,12 @@ defmodule AdminApi.Router do
     send_json(conn, 200, %{replicas: replicas, summary: Replication.summary()})
   end
 
+  # Lists persisted WAL snapshots. Empty when snapshotting is not configured.
+  get "/api/v1/snapshots" do
+    snapshots = Storage.list_snapshots()
+    send_json(conn, 200, %{snapshots: snapshots, count: length(snapshots)})
+  end
+
   post "/api/v1/shutdown" do
     params = conn.body_params
     force = Map.get(params, "force", false)
