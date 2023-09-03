@@ -197,6 +197,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns true when a strict majority of the cluster's nodes are `:up` — the
+  condition for serving quorum reads and writes. Always false for an empty
+  cluster.
+  """
+  @spec quorum_available?(t()) :: boolean()
+  def quorum_available?(%__MODULE__{} = cluster) do
+    total = node_count(cluster)
+    up = status_count(cluster, :up)
+    total > 0 and up > div(total, 2)
+  end
+
+  @doc """
   Returns all pending events and clears the event list.
   """
   @spec take_events(t()) :: {[struct()], t()}

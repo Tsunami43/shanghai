@@ -205,4 +205,26 @@ defmodule Cluster.StateTest do
       assert cluster_without_events.events == []
     end
   end
+
+  describe "quorum_available?/1" do
+    test "is false for an empty cluster" do
+      refute State.quorum_available?(State.new(NodeId.new("local")))
+    end
+
+    test "is true only when a strict majority is up" do
+      cluster =
+        Enum.reduce(1..3, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "localhost", 4000 + i))
+          next
+        end)
+
+      assert State.quorum_available?(cluster)
+
+      {:ok, one_down} = State.mark_node_down(cluster, NodeId.new("n1"), :timeout)
+      assert State.quorum_available?(one_down)
+
+      {:ok, two_down} = State.mark_node_down(one_down, NodeId.new("n2"), :timeout)
+      refute State.quorum_available?(two_down)
+    end
+  end
 end
