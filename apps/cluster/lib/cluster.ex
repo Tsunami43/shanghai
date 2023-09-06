@@ -98,15 +98,23 @@ defmodule Cluster do
   defdelegate cluster_state(), to: Membership, as: :get_cluster
 
   @doc """
+  Returns `true` when a strict majority of cluster nodes are `:up` (quorum is
+  available for reads and writes).
+  """
+  @spec quorum_available?() :: boolean()
+  def quorum_available?, do: State.quorum_available?(cluster_state())
+
+  @doc """
   Returns a concise cluster status summary: the local node id, the total node
-  count, and per-status counts.
+  count, per-status counts, and whether quorum is available.
   """
   @spec status() :: %{
           local_node_id: NodeId.t(),
           node_count: non_neg_integer(),
           up: non_neg_integer(),
           suspect: non_neg_integer(),
-          down: non_neg_integer()
+          down: non_neg_integer(),
+          quorum_available: boolean()
         }
   def status do
     cluster = cluster_state()
@@ -116,7 +124,8 @@ defmodule Cluster do
       node_count: State.node_count(cluster),
       up: State.status_count(cluster, :up),
       suspect: State.status_count(cluster, :suspect),
-      down: State.status_count(cluster, :down)
+      down: State.status_count(cluster, :down),
+      quorum_available: State.quorum_available?(cluster)
     }
   end
 end
