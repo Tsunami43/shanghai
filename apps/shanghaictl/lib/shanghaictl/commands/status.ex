@@ -32,6 +32,7 @@ defmodule Shanghaictl.Commands.Status do
     Jason.encode!(%{
       cluster_state: to_string(info.cluster_state),
       local_node_id: info.local_node_id,
+      quorum_available: info.quorum_available,
       nodes:
         Enum.map(info.nodes, fn node ->
           %{
@@ -52,7 +53,8 @@ defmodule Shanghaictl.Commands.Status do
        %{
          nodes: Enum.map(nodes, &parse_node/1),
          cluster_state: String.to_atom(state),
-         local_node_id: status["local_node_id"]
+         local_node_id: status["local_node_id"],
+         quorum_available: status["quorum_available"]
        }}
     else
       {:ok, %{status: status}} ->
@@ -79,10 +81,17 @@ defmodule Shanghaictl.Commands.Status do
   def local_node_line(nil), do: nil
   def local_node_line(id), do: "Local Node:    #{id}"
 
+  @doc false
+  @spec quorum_line(boolean() | nil) :: String.t() | nil
+  def quorum_line(nil), do: nil
+  def quorum_line(true), do: "Quorum:        available"
+  def quorum_line(false), do: "Quorum:        unavailable"
+
   defp display_cluster_info(info) do
     IO.puts("Cluster State: #{format_state(info.cluster_state)}")
 
     if line = local_node_line(info.local_node_id), do: IO.puts(line)
+    if line = quorum_line(info.quorum_available), do: IO.puts(line)
 
     IO.puts("")
     IO.puts("Nodes:")

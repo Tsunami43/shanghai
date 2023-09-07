@@ -120,6 +120,17 @@ defmodule ShanghaictlTest do
     end
   end
 
+  describe "Status.quorum_line/1" do
+    test "renders availability" do
+      assert Status.quorum_line(true) == "Quorum:        available"
+      assert Status.quorum_line(false) == "Quorum:        unavailable"
+    end
+
+    test "is nil when absent" do
+      assert Status.quorum_line(nil) == nil
+    end
+  end
+
   describe "Options" do
     test "format/1 detects json in either form" do
       assert Options.format(["--json"]) == :json
@@ -166,6 +177,7 @@ defmodule ShanghaictlTest do
       info = %{
         cluster_state: :healthy,
         local_node_id: "node-1",
+        quorum_available: true,
         nodes: [%{id: "node-1", status: :up, heartbeat_age: 50}]
       }
 
@@ -173,6 +185,7 @@ defmodule ShanghaictlTest do
 
       assert decoded["cluster_state"] == "healthy"
       assert decoded["local_node_id"] == "node-1"
+      assert decoded["quorum_available"] == true
       assert [node] = decoded["nodes"]
       assert node["id"] == "node-1"
       assert node["status"] == "up"
