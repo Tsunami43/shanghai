@@ -57,6 +57,17 @@ defmodule AdminApi.RouterTest do
     assert body["checks"]["storage_segments"] == true
   end
 
+  test "GET /api/v1/info reports version and runtime details" do
+    conn = get("/api/v1/info")
+    assert conn.status == 200
+
+    body = json(conn)
+    assert is_binary(body["node_id"])
+    assert is_binary(body["version"])
+    assert body["elixir_version"] == System.version()
+    assert is_binary(body["otp_release"])
+  end
+
   test "GET /api/v1/status reports cluster health fields" do
     conn = get("/api/v1/status")
     assert conn.status == 200

@@ -44,6 +44,18 @@ defmodule AdminApi.Router do
     |> send_resp(200, AdminApi.Prometheus.render())
   end
 
+  # Static node/runtime information, useful for version and environment checks.
+  get "/api/v1/info" do
+    info = %{
+      node_id: NodeId.to_string(Cluster.local_node_id()),
+      version: node_version(),
+      elixir_version: System.version(),
+      otp_release: List.to_string(:erlang.system_info(:otp_release))
+    }
+
+    send_json(conn, 200, info)
+  end
+
   get "/api/v1/status" do
     cluster = Cluster.cluster_state()
     nodes = Cluster.State.all_nodes(cluster)
@@ -293,6 +305,14 @@ defmodule AdminApi.Router do
   end
 
   defp process_alive?(name), do: is_pid(Process.whereis(name))
+
+  # The admin_api application version, or "unknown" if it cannot be read.
+  defp node_version do
+    case :application.get_key(:admin_api, :vsn) do
+      {:ok, vsn} -> List.to_string(vsn)
+      _ -> "unknown"
+    end
+  end
 
   # Store/cache runtime summary, or an empty map if the query layer is down.
   defp query_store_info do
