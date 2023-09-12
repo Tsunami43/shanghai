@@ -14,6 +14,7 @@ shanghaictl <command> [options]
 | `version` | Show version |
 | `status` | Cluster status and node health |
 | `health` | Node readiness and subsystem checks |
+| `info` | Node version and runtime details |
 | `replicas` | Replication groups and their status |
 | `metrics` | Performance and operational metrics |
 | `node join <id>` | Add a node to the cluster |

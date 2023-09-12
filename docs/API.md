@@ -749,6 +749,27 @@ http://<host>:<admin_port>/api/v1
 
 Default admin port: `9090`
 
+### GET /info
+
+Get node version and runtime details.
+
+**Request:**
+```bash
+curl http://localhost:9090/api/v1/info
+```
+
+**Response:**
+```json
+{
+  "node_id": "node-1",
+  "version": "0.1.0",
+  "elixir_version": "1.16.0",
+  "otp_release": "26"
+}
+```
+
+---
+
 ### GET /status
 
 Get cluster status.
@@ -979,6 +1000,27 @@ Nodes:
 ```bash
 $ shanghaictl status --format json
 {"cluster_state":"healthy","nodes":[...]}
+```
+
+---
+
+### shanghaictl info
+
+Show node version and runtime details (from the `/api/v1/info` endpoint).
+
+**Usage:**
+```bash
+shanghaictl info [--admin-url URL] [--format json]
+```
+
+**Example:**
+```bash
+$ shanghaictl info
+
+Node:    node-1
+Version: 0.1.0
+Elixir:  1.16.0
+OTP:     26
 ```
 
 ---
