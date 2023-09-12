@@ -1,7 +1,7 @@
 defmodule ShanghaictlTest do
   use ExUnit.Case, async: true
 
-  alias Shanghaictl.Commands.{Health, Metrics, Replicas, Status}
+  alias Shanghaictl.Commands.{Health, Info, Metrics, Replicas, Status}
   alias Shanghaictl.Options
 
   doctest Shanghaictl
@@ -22,6 +22,7 @@ defmodule ShanghaictlTest do
       assert Shanghaictl.parse(["replicas"]) == {:replicas, []}
       assert Shanghaictl.parse(["metrics"]) == {:metrics, []}
       assert Shanghaictl.parse(["health"]) == {:health, []}
+      assert Shanghaictl.parse(["info"]) == {:info, []}
     end
 
     test "node join/leave/get are distinguished" do
@@ -145,6 +146,24 @@ defmodule ShanghaictlTest do
       assert Options.admin_url(["k", "--admin-url", "http://h:1"]) == "http://h:1"
       assert Options.admin_url(["--admin-url=http://h:2"]) == "http://h:2"
       assert Options.admin_url([]) == "http://localhost:9090"
+    end
+  end
+
+  describe "Info.info_lines/1" do
+    test "renders node and runtime details" do
+      info = %{
+        "node_id" => "node-1",
+        "version" => "0.1.0",
+        "elixir_version" => "1.16.0",
+        "otp_release" => "26"
+      }
+
+      joined = info |> Info.info_lines() |> Enum.join("\n")
+
+      assert joined =~ "Node:    node-1"
+      assert joined =~ "Version: 0.1.0"
+      assert joined =~ "Elixir:  1.16.0"
+      assert joined =~ "OTP:     26"
     end
   end
 
