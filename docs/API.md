@@ -129,6 +129,25 @@ Atomic read-modify-write. Applies `fun` to the current value (or `default` when
 the key is absent) and stores the result; a raising `fun` yields
 `{:error, {:update_failed, message}}`.
 
+### update_existing/2
+
+```elixir
+@spec update_existing(key :: String.t(), fun :: (term() -> term())) ::
+        {:ok, term()} | {:error, :not_found | term()}
+```
+
+Like `update/3`, but only applies when the key already exists; never creates it.
+
+### get_or_store/2
+
+```elixir
+@spec get_or_store(key :: String.t(), fun :: (-> term())) ::
+        {:ok, term()} | {:error, term()}
+```
+
+Returns the value at `key`, or computes it with `fun`, stores it, and returns
+it. Race-safe: a concurrent writer's value wins and `fun`'s result is discarded.
+
 ### Bulk operations
 
 ```elixir

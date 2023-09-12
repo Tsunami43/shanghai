@@ -20,8 +20,12 @@ Query.transact([
 # Atomic get-and-delete (pop) — useful for queues
 Query.take("job:1")                             #=> {:ok, %{...}}  (and removes the key)
 
-# Atomic read-modify-write
+# Atomic read-modify-write (upsert with a default)
 Query.update("tags", [], &["new" | &1])         #=> {:ok, ["new", ...]}
+Query.update_existing("tags", &["x" | &1])      #=> {:ok, [...]} | {:error, :not_found}
+
+# Get-or-compute (race-safe cache fill)
+Query.get_or_store("config", fn -> load() end)  #=> {:ok, value}
 
 # Atomic counter
 Query.increment("hits")                         #=> {:ok, 1}   (missing key starts at 0)
