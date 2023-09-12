@@ -168,6 +168,38 @@ defmodule Query do
   end
 
   @doc """
+  Returns the value at `key`, or computes it with `fun`, stores it, and returns
+  it when the key is absent (get-or-compute).
+
+  The store step is race-safe: if another writer populates the key first, the
+  already-stored value is returned and `fun`'s result is discarded.
+
+  ## Examples
+
+      iex> Query.get_or_store("config", fn -> %{loaded: true} end)
+      {:ok, %{loaded: true}}
+  """
+  @spec get_or_store(String.t(), (-> term())) :: {:ok, term()} | {:error, term()}
+  def get_or_store(key, fun) when is_function(fun, 0) do
+    case read(key) do
+      {:ok, value} ->
+        {:ok, value}
+
+      {:error, :not_found} ->
+        value = fun.()
+
+        case put_new(key, value) do
+          {:ok, :written} -> {:ok, value}
+          {:error, :exists} -> read(key)
+          other -> other
+        end
+
+      other ->
+        other
+    end
+  end
+
+  @doc """
   Atomically reads and removes `key` (a pop), returning `{:ok, value}` or
   `{:error, :not_found}`. Useful for queue/work-stealing patterns.
 
