@@ -111,6 +111,12 @@ defmodule Cluster.Entities.Node do
   end
 
   @doc """
+  Returns the node's network address as a `host:port` string.
+  """
+  @spec address(t()) :: String.t()
+  def address(%__MODULE__{host: host, port: port}), do: "#{host}:#{port}"
+
+  @doc """
   Returns the Erlang node name for this node.
   """
   @spec erlang_node_name(t()) :: atom()

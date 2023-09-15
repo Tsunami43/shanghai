@@ -276,7 +276,7 @@ defmodule AdminApi.Router do
     %{
       id: node.id.value,
       status: Atom.to_string(node.status),
-      address: "#{node.host}:#{node.port}",
+      address: Node.address(node),
       heartbeat_age_ms: heartbeat_age_ms,
       last_seen: last_seen_unix,
       metadata: node.metadata

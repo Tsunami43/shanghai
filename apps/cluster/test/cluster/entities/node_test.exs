@@ -129,4 +129,11 @@ defmodule Cluster.Entities.NodeTest do
       assert erlang_name == :node1@localhost
     end
   end
+
+  describe "address/1" do
+    test "formats host and port" do
+      node = Node.new(NodeId.new("node1"), "10.0.0.1", 4000)
+      assert Node.address(node) == "10.0.0.1:4000"
+    end
+  end
 end
