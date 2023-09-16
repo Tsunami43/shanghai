@@ -98,8 +98,19 @@ defmodule AdminApi.Prometheus do
 
   defp cache_metrics do
     stats = safe(fn -> elem(Query.Cache.stats(), 1) end, %{})
+    store = safe(fn -> elem(Query.info(), 1).store end, %{})
 
     [
+      gauge(
+        "shanghai_query_store_keys",
+        "Number of keys in the materialized store.",
+        Map.get(store, :size, 0)
+      ),
+      gauge(
+        "shanghai_query_store_memory_bytes",
+        "Approximate memory used by the store index in bytes.",
+        Map.get(store, :memory_bytes, 0)
+      ),
       gauge(
         "shanghai_query_cache_size",
         "Number of entries currently in the query read cache.",
