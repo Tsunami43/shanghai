@@ -57,6 +57,16 @@ defmodule AdminApi.RouterTest do
     assert body["checks"]["storage_segments"] == true
   end
 
+  test "GET /api/v1 lists the available endpoints" do
+    conn = get("/api/v1")
+    assert conn.status == 200
+
+    body = json(conn)
+    assert body["service"] == "shanghai"
+    assert is_list(body["endpoints"])
+    assert "/api/v1/status" in body["endpoints"]
+  end
+
   test "GET /api/v1/info reports version and runtime details" do
     conn = get("/api/v1/info")
     assert conn.status == 200

@@ -44,6 +44,27 @@ defmodule AdminApi.Router do
     |> send_resp(200, AdminApi.Prometheus.render())
   end
 
+  # API discovery: lists the available endpoints.
+  get "/api/v1" do
+    send_json(conn, 200, %{
+      service: "shanghai",
+      endpoints: [
+        "/health",
+        "/ready",
+        "/metrics",
+        "/api/v1/info",
+        "/api/v1/status",
+        "/api/v1/nodes",
+        "/api/v1/nodes/:id",
+        "/api/v1/replicas",
+        "/api/v1/snapshots",
+        "/api/v1/metrics",
+        "/api/v1/kv",
+        "/api/v1/kv/:key"
+      ]
+    })
+  end
+
   # Static node/runtime information, useful for version and environment checks.
   get "/api/v1/info" do
     info = %{
