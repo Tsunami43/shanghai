@@ -460,7 +460,8 @@ defmodule Query.Store do
     info = %{
       durable: state.durable,
       recovered: state.recovered,
-      size: :ets.info(state.table, :size)
+      size: :ets.info(state.table, :size),
+      memory_bytes: table_memory_bytes(state.table)
     }
 
     {:reply, {:ok, info}, state}
@@ -491,6 +492,15 @@ defmodule Query.Store do
 
       {:error, reason} ->
         {:reply, {:error, reason}, state}
+    end
+  end
+
+  # Approximate memory footprint of the index table, in bytes. ETS reports
+  # memory in words; convert using the emulator word size.
+  defp table_memory_bytes(table) do
+    case :ets.info(table, :memory) do
+      words when is_integer(words) -> words * :erlang.system_info(:wordsize)
+      _ -> 0
     end
   end
 

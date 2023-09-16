@@ -22,6 +22,8 @@ defmodule Query.InfoTest do
     assert info.store.size == 2
     assert is_boolean(info.store.durable)
     assert is_integer(info.store.recovered)
+    assert is_integer(info.store.memory_bytes)
+    assert info.store.memory_bytes > 0
 
     assert info.cache.size >= 1
     assert is_integer(info.cache.max_size)
