@@ -86,6 +86,7 @@ defmodule Shanghaictl.Commands.Metrics do
       "  Durable: #{Map.get(store, "durable")}",
       "  Recovered: #{Map.get(store, "recovered")}",
       "  Keys: #{Map.get(store, "size")}",
+      "  Memory: #{Map.get(store, "memory_bytes")} bytes",
       "  Cache:",
       "    Size: #{Map.get(cache, "size")}/#{Map.get(cache, "max_size")}",
       "    Hits: #{Map.get(cache, "hits")}",

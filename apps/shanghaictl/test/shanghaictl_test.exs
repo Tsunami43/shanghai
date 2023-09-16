@@ -62,7 +62,7 @@ defmodule ShanghaictlTest do
   describe "Metrics.store_lines/1" do
     test "renders store and cache figures" do
       store = %{
-        "store" => %{"durable" => false, "recovered" => 0, "size" => 3},
+        "store" => %{"durable" => false, "recovered" => 0, "size" => 3, "memory_bytes" => 512},
         "cache" => %{
           "size" => 2,
           "max_size" => 10_000,
@@ -76,6 +76,7 @@ defmodule ShanghaictlTest do
       joined = Enum.join(lines, "\n")
 
       assert joined =~ "Keys: 3"
+      assert joined =~ "Memory: 512 bytes"
       assert joined =~ "Hits: 8"
       assert joined =~ "Hit Ratio: 0.8"
     end
