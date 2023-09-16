@@ -4,6 +4,8 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
   alias Cluster.ValueObjects.Heartbeat
   alias CoreDomain.Types.NodeId
 
+  doctest Heartbeat
+
   describe "new/3" do
     test "creates a new heartbeat with default metrics" do
       node_id = NodeId.new("node1")

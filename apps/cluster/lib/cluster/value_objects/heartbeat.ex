@@ -27,13 +27,9 @@ defmodule Cluster.ValueObjects.Heartbeat do
   ## Examples
 
       iex> node_id = CoreDomain.Types.NodeId.new("node1")
-      iex> Cluster.ValueObjects.Heartbeat.new(node_id, 1)
-      %Cluster.ValueObjects.Heartbeat{
-        node_id: node_id,
-        sequence: 1,
-        timestamp: ~U[2023-07-01 00:00:00Z],
-        metrics: %{}
-      }
+      iex> hb = Cluster.ValueObjects.Heartbeat.new(node_id, 1)
+      iex> {hb.node_id, hb.sequence, hb.metrics}
+      {CoreDomain.Types.NodeId.new("node1"), 1, %{}}
   """
   @spec new(NodeId.t(), non_neg_integer(), map()) :: t()
   def new(node_id, sequence, metrics \\ %{}) do
