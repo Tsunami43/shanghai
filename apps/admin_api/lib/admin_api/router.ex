@@ -12,6 +12,7 @@ defmodule AdminApi.Router do
   alias CoreDomain.Types.NodeId
 
   plug(AdminApi.Plugs.CorrelationId)
+  plug(AdminApi.Plugs.RequestLogger)
   plug(:match)
   plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
   plug(:dispatch)
