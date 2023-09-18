@@ -183,6 +183,8 @@ defmodule AdminApi.RouterTest do
     assert Map.has_key?(body, "storage")
     assert is_integer(body["storage"]["bytes"])
     assert is_boolean(body["storage"]["wal_running"])
+    assert is_map(body["storage"]["compaction"])
+    assert is_boolean(body["storage"]["compaction"]["running"])
   end
 
   test "sets an X-Correlation-ID response header" do

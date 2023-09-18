@@ -344,9 +344,11 @@ defmodule AdminApi.Router do
     end
   end
 
-  # WAL runtime summary plus aggregate on-disk size.
+  # WAL runtime summary plus aggregate on-disk size and compaction status.
   defp storage_info do
-    Map.merge(Storage.info(), Storage.wal_stats())
+    Storage.info()
+    |> Map.merge(Storage.wal_stats())
+    |> Map.put(:compaction, Storage.compaction_status())
   end
 
   # JSON carries only a subset of Erlang terms; fall back to an inspected string
