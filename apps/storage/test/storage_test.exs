@@ -23,6 +23,11 @@ defmodule StorageTest do
     assert Storage.list_snapshots() == []
   end
 
+  test "compaction_status/0 reports not running when the scheduler is down" do
+    refute is_pid(Process.whereis(Storage.Compaction.Scheduler))
+    assert Storage.compaction_status() == %{running: false}
+  end
+
   describe "with a running WAL" do
     setup do
       Storage.WALTestInfra.ensure_started()

@@ -7,6 +7,7 @@ defmodule Storage do
   `data_root`; the segment `Registry`/`SegmentManager` are always running.
   """
 
+  alias Storage.Compaction.Scheduler, as: CompactionScheduler
   alias Storage.Snapshot.Manager, as: SnapshotManager
   alias Storage.WAL.{Reader, Segment, SegmentManager, Writer}
 
@@ -100,6 +101,25 @@ defmodule Storage do
       end
     else
       []
+    end
+  end
+
+  @doc """
+  Returns the compaction scheduler status: `%{running: true, enabled: bool,
+  interval_ms: n}` when the scheduler is up, otherwise `%{running: false}`.
+  """
+  @spec compaction_status() :: map()
+  def compaction_status do
+    if is_pid(Process.whereis(CompactionScheduler)) do
+      case CompactionScheduler.stats() do
+        {:ok, stats} ->
+          %{running: true, enabled: stats.enabled, interval_ms: stats.interval}
+
+        _error ->
+          %{running: false}
+      end
+    else
+      %{running: false}
     end
   end
 
