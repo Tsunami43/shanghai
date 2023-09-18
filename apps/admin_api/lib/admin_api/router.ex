@@ -173,6 +173,17 @@ defmodule AdminApi.Router do
     end
   end
 
+  # List keys under an optional `?prefix=`, bounded by `?limit=` (default 100).
+  # Keys only — values are not returned, keeping responses small.
+  get "/api/v1/keys" do
+    conn = fetch_query_params(conn)
+    prefix = conn.query_params["prefix"] || ""
+    limit = parse_limit(conn.query_params["limit"], 100)
+
+    keys = for {key, _value} <- Query.Store.scan(prefix, limit: limit), do: key
+    send_json(conn, 200, %{keys: keys, count: length(keys), limit: limit})
+  end
+
   # Read a single key from the materialized store. Read-only and safe to expose
   # for operational inspection and debugging.
   get "/api/v1/kv/:key" do
@@ -327,6 +338,16 @@ defmodule AdminApi.Router do
   end
 
   defp process_alive?(name), do: is_pid(Process.whereis(name))
+
+  # Parses a positive integer limit from a query string, falling back to default.
+  defp parse_limit(nil, default), do: default
+
+  defp parse_limit(value, default) do
+    case Integer.parse(value) do
+      {n, _rest} when n >= 0 -> n
+      _ -> default
+    end
+  end
 
   # The admin_api application version, or "unknown" if it cannot be read.
   defp node_version do

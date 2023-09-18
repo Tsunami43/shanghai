@@ -151,6 +151,20 @@ defmodule AdminApi.RouterTest do
     assert body["count"] == 2
   end
 
+  test "GET /api/v1/keys lists keys under a prefix with a limit" do
+    {:ok, :written} = Query.write("keys-api:1", 1)
+    {:ok, :written} = Query.write("keys-api:2", 2)
+    {:ok, :written} = Query.write("keys-api:3", 3)
+
+    conn = get("/api/v1/keys?prefix=keys-api:&limit=2")
+    assert conn.status == 200
+
+    body = json(conn)
+    assert body["keys"] == ["keys-api:1", "keys-api:2"]
+    assert body["count"] == 2
+    assert body["limit"] == 2
+  end
+
   test "GET /api/v1/kv/:key returns a stored value" do
     {:ok, :written} = Query.write("admin-api:kv", "hello")
 
