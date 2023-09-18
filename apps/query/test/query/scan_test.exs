@@ -20,6 +20,17 @@ defmodule Query.ScanTest do
     assert length(pairs) == 3
   end
 
+  test "scan respects a :limit" do
+    {:ok, :written} = Query.write("p:1", 1)
+    {:ok, :written} = Query.write("p:2", 2)
+    {:ok, :written} = Query.write("p:3", 3)
+
+    assert {:ok, [{"p:1", 1}, {"p:2", 2}]} = Query.scan("p:", limit: 2)
+    assert {:ok, []} = Query.scan("p:", limit: 0)
+    assert {:ok, all} = Query.scan("p:", limit: 99)
+    assert length(all) == 3
+  end
+
   test "scan on a non-matching prefix returns an empty list" do
     {:ok, :written} = Query.write("k", "v")
     assert {:ok, []} = Query.scan("nope:")

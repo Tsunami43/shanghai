@@ -330,18 +330,22 @@ defmodule Query do
   end
 
   @doc """
-  Returns all `{key, value}` pairs whose key starts with `prefix`.
+  Returns `{key, value}` pairs whose key starts with `prefix`, sorted by key.
 
   Useful for range/collection access patterns (event streams, per-entity keys).
+  Pass `limit:` to cap the number of pairs returned (pagination for large sets).
 
   ## Examples
 
       iex> Query.scan("events:order-1:")
       {:ok, [{"events:order-1:1", ...}, {"events:order-1:2", ...}]}
+
+      iex> Query.scan("events:order-1:", limit: 1)
+      {:ok, [{"events:order-1:1", ...}]}
   """
-  @spec scan(binary()) :: {:ok, [{binary(), term()}]}
-  def scan(prefix) when is_binary(prefix) do
-    measure(:scan, fn -> {:ok, Query.Store.scan(prefix)} end)
+  @spec scan(binary(), keyword()) :: {:ok, [{binary(), term()}]}
+  def scan(prefix, opts \\ []) when is_binary(prefix) do
+    measure(:scan, fn -> {:ok, Query.Store.scan(prefix, opts)} end)
   end
 
   @doc """

@@ -127,12 +127,15 @@ defmodule Query.Store do
   end
 
   @doc """
-  Returns all `{key, value}` pairs whose (binary) key starts with `prefix`.
+  Returns `{key, value}` pairs whose (binary) key starts with `prefix`.
 
   Non-binary keys are ignored. Results are sorted by key for a stable order.
+  Options:
+
+  - `:limit` - return at most this many pairs (from the start of the sorted set)
   """
-  @spec scan(binary()) :: [{binary(), term()}]
-  def scan(prefix) when is_binary(prefix) do
+  @spec scan(binary(), keyword()) :: [{binary(), term()}]
+  def scan(prefix, opts \\ []) when is_binary(prefix) do
     reducer = fn
       {key, value}, acc when is_binary(key) ->
         if String.starts_with?(key, prefix), do: [{key, value} | acc], else: acc
@@ -141,8 +144,15 @@ defmodule Query.Store do
         acc
     end
 
-    :ets.foldl(reducer, [], @default_table)
-    |> Enum.sort_by(&elem(&1, 0))
+    pairs =
+      :ets.foldl(reducer, [], @default_table)
+      |> Enum.sort_by(&elem(&1, 0))
+
+    case Keyword.get(opts, :limit) do
+      nil -> pairs
+      limit when is_integer(limit) and limit >= 0 -> Enum.take(pairs, limit)
+      _ -> pairs
+    end
   rescue
     ArgumentError -> []
   end
