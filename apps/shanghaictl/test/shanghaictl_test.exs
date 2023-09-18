@@ -49,6 +49,11 @@ defmodule ShanghaictlTest do
       assert Shanghaictl.parse(["kv", "count", "user:"]) == {:kv_count, ["user:"]}
     end
 
+    test "kv keys carries an optional prefix" do
+      assert Shanghaictl.parse(["kv", "keys"]) == {:kv_keys, []}
+      assert Shanghaictl.parse(["kv", "keys", "user:"]) == {:kv_keys, ["user:"]}
+    end
+
     test "kv without a subcommand is :unknown" do
       assert Shanghaictl.parse(["kv"]) == {:unknown, ["kv"]}
     end

@@ -42,6 +42,32 @@ defmodule Shanghaictl.Commands.Kv do
   defp split_prefix([prefix | opts]), do: {prefix, opts}
   defp split_prefix([]), do: {nil, []}
 
+  @doc """
+  Lists keys, optionally under a prefix. Prints one key per line.
+  """
+  def keys(args) do
+    {prefix, opts} = split_prefix(args)
+    admin_url = Shanghaictl.Options.admin_url(opts)
+
+    case fetch_keys(admin_url, prefix) do
+      {:ok, []} -> IO.puts("(no keys)")
+      {:ok, keys} -> Enum.each(keys, &IO.puts/1)
+      {:error, :not_connected} -> not_connected()
+      {:error, reason} -> error(reason)
+    end
+  end
+
+  defp fetch_keys(admin_url, prefix) do
+    query = if prefix, do: "?prefix=#{URI.encode(prefix)}", else: ""
+
+    case Req.get("#{admin_url}/api/v1/keys#{query}") do
+      {:ok, %{status: 200, body: %{"keys" => keys}}} -> {:ok, keys}
+      {:ok, %{status: status}} -> {:error, "API returned status #{status}"}
+      {:error, %{reason: :econnrefused}} -> {:error, :not_connected}
+      {:error, reason} -> {:error, "HTTP request failed: #{inspect(reason)}"}
+    end
+  end
+
   defp fetch_count(admin_url, prefix) do
     url =
       case prefix do
