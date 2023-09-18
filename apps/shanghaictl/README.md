@@ -22,6 +22,7 @@ shanghaictl <command> [options]
 | `node get <id>` | Show details for a single node |
 | `kv get <key>` | Read a value from the store by key |
 | `kv count [prefix]` | Count stored keys (optionally under a prefix) |
+| `kv keys [prefix]` | List stored keys (optionally under a prefix) |
 | `shutdown` | Safely shut down a node |
 
 Commands talk to a node's `admin_api` (see that app for the HTTP surface).

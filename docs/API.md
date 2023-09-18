@@ -934,6 +934,27 @@ Without a prefix the response is `{"count": <total>}`.
 
 ---
 
+### GET /keys
+
+List keys, optionally under a `prefix` query parameter, bounded by `limit`
+(default 100). Keys only — values are not returned.
+
+**Request:**
+```bash
+curl "http://localhost:9090/api/v1/keys?prefix=user:&limit=50"
+```
+
+**Response (200):**
+```json
+{
+  "keys": ["user:1", "user:2"],
+  "count": 2,
+  "limit": 50
+}
+```
+
+---
+
 ### GET /kv/:key
 
 Read a single value from the store by key. Read-only, intended for operational
@@ -1192,6 +1213,24 @@ shanghaictl kv count [prefix] [--admin-url URL]
 ```bash
 $ shanghaictl kv count user:
 42
+```
+
+---
+
+### shanghaictl kv keys
+
+List stored keys, optionally under a prefix (one per line).
+
+**Usage:**
+```bash
+shanghaictl kv keys [prefix] [--admin-url URL]
+```
+
+**Example:**
+```bash
+$ shanghaictl kv keys user:
+user:1
+user:2
 ```
 
 ---
