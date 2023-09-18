@@ -162,7 +162,7 @@ delete counterparts to `mget/1`).
 ### Collection and introspection
 
 ```elixir
-@spec scan(prefix :: String.t()) :: {:ok, [{String.t(), term()}]}
+@spec scan(prefix :: String.t(), opts :: keyword()) :: {:ok, [{String.t(), term()}]}
 @spec exists?(key :: String.t()) :: boolean()
 @spec count_prefix(prefix :: String.t()) :: non_neg_integer()
 @spec keys() :: [term()]
@@ -171,7 +171,8 @@ delete counterparts to `mget/1`).
 ```
 
 `exists?/1` is a cheap membership check and `count_prefix/1` counts keys under a
-prefix without materializing them.
+prefix without materializing them. `scan/2` accepts `limit:` to cap the number
+of pairs returned (pagination).
 
 ---
 

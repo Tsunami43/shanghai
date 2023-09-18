@@ -49,6 +49,7 @@ Query.delete_prefix("session:1:")               #=> {:ok, {:deleted, 2}}
 
 # Collection / range access
 Query.scan("events:order-1:")                   #=> {:ok, [{"events:order-1:1", ...}, ...]}
+Query.scan("events:order-1:", limit: 10)        #=> {:ok, [...]}  (paginated)
 Query.exists?("user:1")                         #=> true
 Query.count_prefix("user:")                     #=> 3
 Query.keys()                                    #=> ["user:1", ...]
