@@ -92,6 +92,25 @@ defmodule ShanghaictlTest do
     end
   end
 
+  describe "Metrics.query_lines/1" do
+    test "renders per-operation counts and average latency" do
+      query = %{
+        "read" => %{"count" => 10, "avg" => 0.5},
+        "write" => %{"count" => 4, "avg" => 1.25}
+      }
+
+      joined = query |> Metrics.query_lines() |> Enum.join("\n")
+
+      assert joined =~ "read: 10 ops, avg 0.5ms"
+      assert joined =~ "write: 4 ops, avg 1.25ms"
+    end
+
+    test "falls back to a no-data line" do
+      assert Metrics.query_lines(nil) == ["Query Operations: No data"]
+      assert Metrics.query_lines(%{}) == ["Query Operations: No data"]
+    end
+  end
+
   describe "Metrics.storage_lines/1" do
     test "renders WAL size figures" do
       storage = %{

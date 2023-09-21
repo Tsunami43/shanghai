@@ -40,10 +40,36 @@ defmodule Shanghaictl.Commands.Metrics do
     display_wal_metrics(metrics["wal"])
     display_storage_metrics(metrics["storage"])
     display_store_metrics(metrics["store"])
+    display_query_metrics(metrics["query"])
     display_replication_metrics(metrics["replication"])
     display_heartbeat_metrics(metrics["heartbeat"])
     display_membership_change(metrics["last_membership_change"])
   end
+
+  defp display_query_metrics(query) do
+    query
+    |> query_lines()
+    |> Enum.each(&IO.puts/1)
+
+    IO.puts("")
+  end
+
+  @doc false
+  @spec query_lines(map() | nil) :: [String.t()]
+  def query_lines(query) when is_map(query) and map_size(query) > 0 do
+    header = "Query Operations:"
+
+    rows =
+      query
+      |> Enum.sort_by(fn {op, _stat} -> op end)
+      |> Enum.map(fn {op, stat} ->
+        "  #{op}: #{Map.get(stat, "count", 0)} ops, avg #{format_float(Map.get(stat, "avg", 0))}ms"
+      end)
+
+    [header | rows]
+  end
+
+  def query_lines(_), do: ["Query Operations: No data"]
 
   defp display_storage_metrics(storage) do
     storage
