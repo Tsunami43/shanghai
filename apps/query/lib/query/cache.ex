@@ -164,6 +164,7 @@ defmodule Query.Cache do
     stats = %{
       size: :ets.info(state.table, :size),
       max_size: state.max_size,
+      ttl_ms: state.ttl_ms,
       hits: hits,
       misses: misses,
       hit_ratio: if(total > 0, do: hits / total, else: 0.0)

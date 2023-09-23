@@ -35,6 +35,7 @@ defmodule Query.CacheTest do
       assert stats.hits == 2
       assert stats.misses == 1
       assert_in_delta stats.hit_ratio, 2 / 3, 1.0e-9
+      assert Map.has_key?(stats, :ttl_ms)
     end
 
     test "evicts oldest entries beyond max_size (FIFO)" do
