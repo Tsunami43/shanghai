@@ -52,6 +52,16 @@ Writes `value` under `key`. `opts` accepts `:consistency` (`:strong` |
 
 Atomic get-and-delete (a pop) — reads and removes `key` in one step.
 
+### rename/2
+
+```elixir
+@spec rename(from :: String.t(), to :: String.t()) ::
+        {:ok, :renamed} | {:error, :not_found}
+```
+
+Atomically moves the value at `from` to `to` in a single WAL record; overwrites
+any existing value at `to`.
+
 ### put_new/2
 
 ```elixir

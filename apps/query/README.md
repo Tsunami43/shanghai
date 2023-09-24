@@ -20,6 +20,9 @@ Query.transact([
 # Atomic get-and-delete (pop) — useful for queues
 Query.take("job:1")                             #=> {:ok, %{...}}  (and removes the key)
 
+# Atomic rename (move value to a new key)
+Query.rename("draft:1", "post:1")               #=> {:ok, :renamed} | {:error, :not_found}
+
 # Atomic read-modify-write (upsert with a default)
 Query.update("tags", [], &["new" | &1])         #=> {:ok, ["new", ...]}
 Query.update_existing("tags", &["x" | &1])      #=> {:ok, [...]} | {:error, :not_found}
