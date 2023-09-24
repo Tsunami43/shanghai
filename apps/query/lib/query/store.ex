@@ -220,6 +220,14 @@ defmodule Query.Store do
     do: GenServer.call(server, {:update, key, default, fun})
 
   @doc """
+  Atomically moves the value at `from` to `to` (write `to` + delete `from` in a
+  single WAL record). Returns `{:ok, :renamed}`, or `{:error, :not_found}` when
+  `from` is absent.
+  """
+  @spec rename(GenServer.server(), term(), term()) :: {:ok, :renamed} | {:error, term()}
+  def rename(server \\ __MODULE__, from, to), do: GenServer.call(server, {:rename, from, to})
+
+  @doc """
   Deletes every (binary) key that starts with `prefix` as one atomic WAL record.
   Returns `{:ok, {:deleted, count}}` with the number of keys removed.
   """
@@ -428,6 +436,25 @@ defmodule Query.Store do
         rescue
           error ->
             {:reply, {:error, {:update_failed, Exception.message(error)}}, state}
+        end
+
+      [] ->
+        {:reply, {:error, :not_found}, state}
+    end
+  end
+
+  def handle_call({:rename, from, to}, _from, state) do
+    case :ets.lookup(state.table, from) do
+      [{^from, value}] ->
+        ops = [{:write, to, value}, {:delete, from}]
+
+        case append(state, %{op: :txn, ops: ops}) do
+          :ok ->
+            Enum.each(ops, &apply_txn_op(state.table, &1))
+            {:reply, {:ok, :renamed}, state}
+
+          {:error, reason} ->
+            {:reply, {:error, reason}, state}
         end
 
       [] ->

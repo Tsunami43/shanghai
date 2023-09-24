@@ -200,6 +200,32 @@ defmodule Query do
   end
 
   @doc """
+  Atomically renames `from` to `to`, moving the value in a single WAL record.
+
+  Returns `{:ok, :renamed}`, or `{:error, :not_found}` when `from` does not
+  exist. Any existing value at `to` is overwritten.
+
+  ## Examples
+
+      iex> Query.write("draft:1", "text")
+      iex> Query.rename("draft:1", "post:1")
+      {:ok, :renamed}
+  """
+  @spec rename(String.t(), String.t()) :: {:ok, :renamed} | {:error, term()}
+  def rename(from, to) do
+    measure(:rename, fn ->
+      result = Query.Store.rename(from, to)
+
+      if match?({:ok, _}, result) do
+        Query.Cache.invalidate(from)
+        Query.Cache.invalidate(to)
+      end
+
+      result
+    end)
+  end
+
+  @doc """
   Atomically reads and removes `key` (a pop), returning `{:ok, value}` or
   `{:error, :not_found}`. Useful for queue/work-stealing patterns.
 
