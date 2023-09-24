@@ -115,6 +115,7 @@ defmodule Shanghaictl.Commands.Metrics do
       "  Memory: #{Map.get(store, "memory_bytes")} bytes",
       "  Cache:",
       "    Size: #{Map.get(cache, "size")}/#{Map.get(cache, "max_size")}",
+      "    TTL: #{format_ttl(Map.get(cache, "ttl_ms"))}",
       "    Hits: #{Map.get(cache, "hits")}",
       "    Misses: #{Map.get(cache, "misses")}",
       "    Hit Ratio: #{format_float(Map.get(cache, "hit_ratio"))}"
@@ -215,4 +216,7 @@ defmodule Shanghaictl.Commands.Metrics do
 
   defp format_float(value) when is_float(value), do: Float.round(value, 2)
   defp format_float(value), do: value
+
+  defp format_ttl(nil), do: "none"
+  defp format_ttl(ms), do: "#{ms}ms"
 end

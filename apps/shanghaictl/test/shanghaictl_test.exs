@@ -71,6 +71,7 @@ defmodule ShanghaictlTest do
         "cache" => %{
           "size" => 2,
           "max_size" => 10_000,
+          "ttl_ms" => 60_000,
           "hits" => 8,
           "misses" => 2,
           "hit_ratio" => 0.8
@@ -82,8 +83,15 @@ defmodule ShanghaictlTest do
 
       assert joined =~ "Keys: 3"
       assert joined =~ "Memory: 512 bytes"
+      assert joined =~ "TTL: 60000ms"
       assert joined =~ "Hits: 8"
       assert joined =~ "Hit Ratio: 0.8"
+    end
+
+    test "renders TTL as none when unset" do
+      store = %{"store" => %{"size" => 0}, "cache" => %{"ttl_ms" => nil}}
+      joined = store |> Metrics.store_lines() |> Enum.join("\n")
+      assert joined =~ "TTL: none"
     end
 
     test "falls back to a no-data line" do
