@@ -37,6 +37,26 @@ follow semantic versioning.
   store/cache section in `shanghaictl metrics`.
 - `Observability.Logger.ensure_correlation_id/0`, a get-or-create used by the
   Admin API correlation-id plug (which now honors a client-supplied header).
+- **More Query operations**: `update_existing/2` (update-if-present),
+  `get_or_store/2` (race-safe get-or-compute), `rename/2` (atomic key move), and
+  `scan/2` with a `:limit` for pagination.
+- **Cluster/storage introspection**: `Cluster.State.quorum_available?/1` and
+  `Cluster.quorum_available?/0` (majority-up predicate, surfaced in status),
+  `Cluster.member?/1`, `Cluster.up_nodes/0`, `Node.address/1`,
+  `Storage.wal_stats/0`, `Storage.list_snapshots/0`, and
+  `Storage.compaction_status/0`.
+- **Cache/store visibility**: cache hit/miss counters, `hit_ratio` and `ttl_ms`
+  in `Query.Cache.stats/0`, and `memory_bytes` in `Query.Store.info/0`.
+- **Admin API endpoints**: `GET /api/v1` (endpoint catalog), `/api/v1/info`,
+  `/api/v1/nodes/:id`, `/api/v1/snapshots`, `/api/v1/keys`, `/api/v1/kv`
+  (key count), and a `store`/`storage` section plus `local_node_id` and
+  `quorum_available` in the metrics/status payloads. A `RequestLogger` plug
+  emits structured per-request logs.
+- **CLI commands**: `shanghaictl health`, `info`, `kv count`, `kv keys`,
+  `node get`, `--format json` for `status`/`health`/`info`, and richer
+  `metrics`/`replicas` output.
+- **Prometheus**: query cache/latency, WAL log length/segments/entries/bytes,
+  snapshot count, and store key-count/memory gauges.
 - **WAL batched-fsync foundation**: `Storage.WAL.Segment.append_entry_no_sync/2`
   and `sync/1`, letting a batch amortize one fsync over many writes.
 - **Introspection helpers**: `Cluster.status/0` (node counts by status) and the
