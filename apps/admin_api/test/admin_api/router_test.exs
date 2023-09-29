@@ -216,9 +216,15 @@ defmodule AdminApi.RouterTest do
     assert get_resp_header(conn, "x-correlation-id") == ["trace-123"]
   end
 
-  test "unknown routes return 404" do
+  test "unknown routes return a JSON 404" do
     conn = get("/api/v1/nope")
     assert conn.status == 404
+    assert [content_type] = get_resp_header(conn, "content-type")
+    assert content_type =~ "application/json"
+
+    body = json(conn)
+    assert body["error"] == "not_found"
+    assert body["path"] == "/api/v1/nope"
   end
 
   test "GET /metrics returns Prometheus text exposition format" do

@@ -252,7 +252,7 @@ defmodule AdminApi.Router do
   end
 
   match _ do
-    send_resp(conn, 404, "Not found")
+    send_json(conn, 404, %{error: "not_found", path: conn.request_path})
   end
 
   defp validate_node_params(%{"id" => id, "action" => action} = params)
