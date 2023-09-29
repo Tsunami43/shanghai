@@ -42,6 +42,8 @@ defmodule AdminApi.RouterTest do
   test "GET /health returns ok" do
     conn = get("/health")
     assert conn.status == 200
+    assert [content_type] = get_resp_header(conn, "content-type")
+    assert content_type =~ "application/json"
     assert json(conn) == %{"status" => "ok"}
   end
 

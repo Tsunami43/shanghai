@@ -18,7 +18,7 @@ defmodule AdminApi.Router do
   plug(:dispatch)
 
   get "/health" do
-    send_resp(conn, 200, Jason.encode!(%{status: "ok"}))
+    send_json(conn, 200, %{status: "ok"})
   end
 
   # Readiness probe: is the node actually able to serve? Distinct from /health
