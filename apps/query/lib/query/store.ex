@@ -228,6 +228,13 @@ defmodule Query.Store do
   def rename(server \\ __MODULE__, from, to), do: GenServer.call(server, {:rename, from, to})
 
   @doc """
+  Copies the value at `from` to `to`, keeping `from`. Returns `{:ok, :copied}`,
+  or `{:error, :not_found}` when `from` is absent.
+  """
+  @spec copy(GenServer.server(), term(), term()) :: {:ok, :copied} | {:error, term()}
+  def copy(server \\ __MODULE__, from, to), do: GenServer.call(server, {:copy, from, to})
+
+  @doc """
   Deletes every (binary) key that starts with `prefix` as one atomic WAL record.
   Returns `{:ok, {:deleted, count}}` with the number of keys removed.
   """
@@ -452,6 +459,23 @@ defmodule Query.Store do
           :ok ->
             Enum.each(ops, &apply_txn_op(state.table, &1))
             {:reply, {:ok, :renamed}, state}
+
+          {:error, reason} ->
+            {:reply, {:error, reason}, state}
+        end
+
+      [] ->
+        {:reply, {:error, :not_found}, state}
+    end
+  end
+
+  def handle_call({:copy, from, to}, _from, state) do
+    case :ets.lookup(state.table, from) do
+      [{^from, value}] ->
+        case append(state, %{op: :put, key: to, value: value}) do
+          :ok ->
+            :ets.insert(state.table, {to, value})
+            {:reply, {:ok, :copied}, state}
 
           {:error, reason} ->
             {:reply, {:error, reason}, state}

@@ -226,6 +226,27 @@ defmodule Query do
   end
 
   @doc """
+  Copies the value at `from` to `to`, keeping `from`.
+
+  Returns `{:ok, :copied}`, or `{:error, :not_found}` when `from` does not
+  exist. Any existing value at `to` is overwritten.
+
+  ## Examples
+
+      iex> Query.write("template", %{fields: []})
+      iex> Query.copy("template", "doc:1")
+      {:ok, :copied}
+  """
+  @spec copy(String.t(), String.t()) :: {:ok, :copied} | {:error, term()}
+  def copy(from, to) do
+    measure(:copy, fn ->
+      result = Query.Store.copy(from, to)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate(to)
+      result
+    end)
+  end
+
+  @doc """
   Atomically reads and removes `key` (a pop), returning `{:ok, value}` or
   `{:error, :not_found}`. Useful for queue/work-stealing patterns.
 
