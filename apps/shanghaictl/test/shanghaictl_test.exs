@@ -23,6 +23,7 @@ defmodule ShanghaictlTest do
       assert Shanghaictl.parse(["metrics"]) == {:metrics, []}
       assert Shanghaictl.parse(["health"]) == {:health, []}
       assert Shanghaictl.parse(["info"]) == {:info, []}
+      assert Shanghaictl.parse(["compact"]) == {:compact, []}
     end
 
     test "node join/leave/get are distinguished" do

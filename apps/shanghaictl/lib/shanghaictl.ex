@@ -6,7 +6,17 @@ defmodule Shanghaictl do
   Shanghai clusters, nodes, and replication.
   """
 
-  alias Shanghaictl.Commands.{Health, Info, Kv, Metrics, Node, Replicas, Shutdown, Status}
+  alias Shanghaictl.Commands.{
+    Compact,
+    Health,
+    Info,
+    Kv,
+    Metrics,
+    Node,
+    Replicas,
+    Shutdown,
+    Status
+  }
 
   @doc """
   Main entry point for the CLI.
@@ -22,7 +32,7 @@ defmodule Shanghaictl do
           :help
           | :version
           | {:status | :replicas | :metrics | :node_join | :node_leave | :shutdown, [String.t()]}
-          | {:health | :info | :node_get | :kv_get | :kv_count | :kv_keys, [String.t()]}
+          | {:health | :info | :compact | :node_get | :kv_get | :kv_count | :kv_keys, [String.t()]}
           | {:unknown, [String.t()]}
 
   @doc """
@@ -43,6 +53,7 @@ defmodule Shanghaictl do
   def parse(["status" | opts]), do: {:status, opts}
   def parse(["health" | opts]), do: {:health, opts}
   def parse(["info" | opts]), do: {:info, opts}
+  def parse(["compact" | opts]), do: {:compact, opts}
   def parse(["replicas" | opts]), do: {:replicas, opts}
   def parse(["metrics" | opts]), do: {:metrics, opts}
   def parse(["node", "join" | opts]), do: {:node_join, opts}
@@ -75,6 +86,7 @@ defmodule Shanghaictl do
       kv get <key>      Read a value from the store by key
       kv count [prefix] Count stored keys (optionally under a prefix)
       kv keys [prefix]  List stored keys (optionally under a prefix)
+      compact           Trigger a WAL compaction run
       shutdown          Safely shutdown a node
 
     For more information, see the documentation.
@@ -91,6 +103,10 @@ defmodule Shanghaictl do
 
   defp execute({:info, opts}) do
     Info.run(opts)
+  end
+
+  defp execute({:compact, opts}) do
+    Compact.run(opts)
   end
 
   defp execute({:replicas, opts}) do
