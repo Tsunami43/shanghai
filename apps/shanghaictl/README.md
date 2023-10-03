@@ -23,6 +23,7 @@ shanghaictl <command> [options]
 | `kv get <key>` | Read a value from the store by key |
 | `kv count [prefix]` | Count stored keys (optionally under a prefix) |
 | `kv keys [prefix]` | List stored keys (optionally under a prefix) |
+| `compact` | Trigger a WAL compaction run |
 | `shutdown` | Safely shut down a node |
 
 Commands talk to a node's `admin_api` (see that app for the HTTP surface).

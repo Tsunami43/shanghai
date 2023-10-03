@@ -1004,6 +1004,28 @@ curl http://localhost:9090/api/v1/kv/user:1
 
 ---
 
+### POST /compaction
+
+Trigger a WAL compaction run. Returns `503` when compaction is not configured
+on the node.
+
+**Request:**
+```bash
+curl -X POST http://localhost:9090/api/v1/compaction
+```
+
+**Response (202):**
+```json
+{ "status": "compaction_triggered" }
+```
+
+**Response (503):**
+```json
+{ "error": "compaction_not_running" }
+```
+
+---
+
 ### GET /snapshots
 
 List persisted WAL snapshots. The list is empty when snapshotting is not
@@ -1062,6 +1084,19 @@ Nodes:
 $ shanghaictl status --format json
 {"cluster_state":"healthy","nodes":[...]}
 ```
+
+---
+
+### shanghaictl compact
+
+Trigger a WAL compaction run.
+
+**Usage:**
+```bash
+shanghaictl compact [--admin-url URL]
+```
+
+Exits non-zero if compaction is not configured or the node is unreachable.
 
 ---
 
