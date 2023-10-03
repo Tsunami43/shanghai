@@ -1,19 +1,31 @@
 defmodule Cluster.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
-  @moduledoc false
+  @moduledoc """
+  OTP Application for the Shanghai Cluster.
+
+  Starts and supervises the cluster management processes:
+  - Membership: Tracks cluster topology and membership changes
+  - Heartbeat: Monitors node liveness via heartbeats
+  - Gossip: Propagates events and state across the cluster
+  """
 
   use Application
+  require Logger
 
   @impl true
   def start(_type, _args) do
+    Logger.info("Starting Shanghai Cluster application")
+
     children = [
-      # Starts a worker by calling: Cluster.Worker.start_link(arg)
-      # {Cluster.Worker, arg}
+      # Membership must start first as Heartbeat and Gossip depend on it
+      {Cluster.Membership, []},
+      # Heartbeat monitors node liveness
+      {Cluster.Heartbeat, []},
+      # Gossip propagates events across the cluster
+      {Cluster.Gossip, []}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
+    # Use :one_for_one strategy: if a child process crashes, only that process is restarted
+    # This ensures independence between the cluster components
     opts = [strategy: :one_for_one, name: Cluster.Supervisor]
     Supervisor.start_link(children, opts)
   end
