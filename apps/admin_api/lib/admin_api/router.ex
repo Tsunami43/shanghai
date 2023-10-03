@@ -203,6 +203,17 @@ defmodule AdminApi.Router do
     send_json(conn, 200, %{replicas: replicas, summary: Replication.summary()})
   end
 
+  # Triggers a compaction run. Returns 503 when compaction is not configured.
+  post "/api/v1/compaction" do
+    case Storage.trigger_compaction() do
+      :ok ->
+        send_json(conn, 202, %{status: "compaction_triggered"})
+
+      {:error, :not_running} ->
+        send_json(conn, 503, %{error: "compaction_not_running"})
+    end
+  end
+
   # Lists persisted WAL snapshots. Empty when snapshotting is not configured.
   get "/api/v1/snapshots" do
     snapshots = Storage.list_snapshots()

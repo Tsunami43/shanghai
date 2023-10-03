@@ -105,6 +105,19 @@ defmodule Storage do
   end
 
   @doc """
+  Triggers a compaction run immediately when the scheduler is running. Returns
+  `:ok`, or `{:error, :not_running}` when compaction is not configured.
+  """
+  @spec trigger_compaction() :: :ok | {:error, :not_running}
+  def trigger_compaction do
+    if is_pid(Process.whereis(CompactionScheduler)) do
+      CompactionScheduler.trigger_compaction()
+    else
+      {:error, :not_running}
+    end
+  end
+
+  @doc """
   Returns the compaction scheduler status: `%{running: true, enabled: bool,
   interval_ms: n}` when the scheduler is up, otherwise `%{running: false}`.
   """

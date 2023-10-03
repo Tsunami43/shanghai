@@ -28,6 +28,11 @@ defmodule StorageTest do
     assert Storage.compaction_status() == %{running: false}
   end
 
+  test "trigger_compaction/0 errors when the scheduler is down" do
+    refute is_pid(Process.whereis(Storage.Compaction.Scheduler))
+    assert Storage.trigger_compaction() == {:error, :not_running}
+  end
+
   describe "with a running WAL" do
     setup do
       Storage.WALTestInfra.ensure_started()
