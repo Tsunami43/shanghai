@@ -62,6 +62,16 @@ Atomic get-and-delete (a pop) — reads and removes `key` in one step.
 Atomically moves the value at `from` to `to` in a single WAL record; overwrites
 any existing value at `to`.
 
+### copy/2
+
+```elixir
+@spec copy(from :: String.t(), to :: String.t()) ::
+        {:ok, :copied} | {:error, :not_found}
+```
+
+Copies the value at `from` to `to`, keeping `from`; overwrites any existing
+value at `to`.
+
 ### put_new/2
 
 ```elixir
