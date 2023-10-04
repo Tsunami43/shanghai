@@ -100,6 +100,22 @@ defmodule Storage.WAL.Writer do
   end
 
   @doc """
+  Like `append/1`, but returns the assigned LSN directly and raises on error.
+
+  ## Examples
+
+      iex> Writer.append!("my data")
+      1
+  """
+  @spec append!(term()) :: non_neg_integer()
+  def append!(data) do
+    case append(data) do
+      {:ok, lsn} -> lsn
+      {:error, reason} -> raise "WAL append failed: #{inspect(reason)}"
+    end
+  end
+
+  @doc """
   Gets current Writer information.
 
   ## Examples

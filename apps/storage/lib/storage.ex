@@ -15,6 +15,10 @@ defmodule Storage do
   @spec append(term()) :: {:ok, non_neg_integer()} | {:error, term()}
   defdelegate append(data), to: Writer
 
+  @doc "Like `append/1`, but returns the LSN directly and raises on error."
+  @spec append!(term()) :: non_neg_integer()
+  defdelegate append!(data), to: Writer
+
   @doc "Reads a log entry by LSN. Requires the WAL `Reader` to be running."
   @spec read(non_neg_integer()) :: {:ok, term()} | {:error, term()}
   defdelegate read(lsn), to: Reader

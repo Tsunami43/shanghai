@@ -83,6 +83,15 @@ defmodule StorageTest do
       assert info.active_segments >= 1
     end
 
+    test "append!/1 returns the LSN directly" do
+      lsn = Storage.append!("bang")
+      assert is_integer(lsn) and lsn >= 0
+
+      Process.sleep(10)
+      assert {:ok, entry} = Storage.read(lsn)
+      assert entry.data == "bang"
+    end
+
     test "read_range/2 round-trips a batch of entries through the facade" do
       {:ok, first} = Storage.append("range-a")
       {:ok, _second} = Storage.append("range-b")
