@@ -35,9 +35,15 @@ mix test
 # Start Shanghai
 iex -S mix
 
-# Write to WAL
-iex> {:ok, lsn} = Storage.WAL.Writer.append("Hello, Shanghai!")
-{:ok, 1}
+# Key/value operations via the Query API (durable, WAL-backed)
+iex> Query.write("user:1", %{name: "Alice"})
+{:ok, :written}
+iex> Query.read("user:1")
+{:ok, %{name: "Alice"}}
+
+# Append directly to the WAL (LSNs start at 0)
+iex> {:ok, lsn} = Storage.append("Hello, Shanghai!")
+{:ok, 0}
 
 # Check cluster status
 iex> Cluster.Membership.all_nodes()
