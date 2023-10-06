@@ -41,6 +41,7 @@ Query.increment("hits", 5)                      #=> {:ok, 6}
 Query.cas("counter", :absent, 1)                #=> {:ok, :swapped}   (only if missing)
 Query.cas("counter", 1, 2)                      #=> {:ok, :swapped}   (only if current == 1)
 Query.cas("counter", 1, 3)                      #=> {:error, :precondition_failed}
+Query.delete_if("lock", "owner-a")              #=> {:ok, :deleted}   (only if current == "owner-a")
 
 # Conditional writes
 Query.put_new("user:1", %{})                    #=> {:ok, :written} | {:error, :exists}

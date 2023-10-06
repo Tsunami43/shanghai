@@ -138,6 +138,15 @@ missing key as `0`.
 
 Compare-and-swap. Pass `:absent` as `expected` to write only when the key is missing.
 
+### delete_if/2
+
+```elixir
+@spec delete_if(key :: String.t(), expected :: term()) ::
+        {:ok, :deleted} | {:error, :precondition_failed | :not_found}
+```
+
+Conditional delete: removes `key` only if its current value equals `expected`.
+
 ### update/3
 
 ```elixir
