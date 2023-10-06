@@ -244,6 +244,14 @@ defmodule Query.Store do
   def copy(server \\ __MODULE__, from, to), do: GenServer.call(server, {:copy, from, to})
 
   @doc """
+  Atomically swaps the values of `a` and `b` (both must exist) in a single WAL
+  record. Returns `{:ok, :swapped}`, or `{:error, :not_found}` when either is
+  absent.
+  """
+  @spec swap(GenServer.server(), term(), term()) :: {:ok, :swapped} | {:error, term()}
+  def swap(server \\ __MODULE__, a, b), do: GenServer.call(server, {:swap, a, b})
+
+  @doc """
   Deletes every (binary) key that starts with `prefix` as one atomic WAL record.
   Returns `{:ok, {:deleted, count}}` with the number of keys removed.
   """
@@ -495,6 +503,24 @@ defmodule Query.Store do
 
       [] ->
         {:reply, {:error, :not_found}, state}
+    end
+  end
+
+  def handle_call({:swap, a, b}, _from, state) do
+    with [{^a, va}] <- :ets.lookup(state.table, a),
+         [{^b, vb}] <- :ets.lookup(state.table, b) do
+      ops = [{:write, a, vb}, {:write, b, va}]
+
+      case append(state, %{op: :txn, ops: ops}) do
+        :ok ->
+          Enum.each(ops, &apply_txn_op(state.table, &1))
+          {:reply, {:ok, :swapped}, state}
+
+        {:error, reason} ->
+          {:reply, {:error, reason}, state}
+      end
+    else
+      _absent -> {:reply, {:error, :not_found}, state}
     end
   end
 

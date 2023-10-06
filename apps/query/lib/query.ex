@@ -247,6 +247,33 @@ defmodule Query do
   end
 
   @doc """
+  Atomically swaps the values of `a` and `b` in a single WAL record.
+
+  Both keys must exist. Returns `{:ok, :swapped}`, or `{:error, :not_found}`
+  when either key is absent.
+
+  ## Examples
+
+      iex> Query.write("a", 1)
+      iex> Query.write("b", 2)
+      iex> Query.swap("a", "b")
+      {:ok, :swapped}
+  """
+  @spec swap(String.t(), String.t()) :: {:ok, :swapped} | {:error, term()}
+  def swap(a, b) do
+    measure(:swap, fn ->
+      result = Query.Store.swap(a, b)
+
+      if match?({:ok, _}, result) do
+        Query.Cache.invalidate(a)
+        Query.Cache.invalidate(b)
+      end
+
+      result
+    end)
+  end
+
+  @doc """
   Atomically reads and removes `key` (a pop), returning `{:ok, value}` or
   `{:error, :not_found}`. Useful for queue/work-stealing patterns.
 
