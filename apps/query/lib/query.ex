@@ -266,6 +266,27 @@ defmodule Query do
   end
 
   @doc """
+  Deletes `key` only if its current value equals `expected` (conditional delete).
+
+  Returns `{:ok, :deleted}`, `{:error, :precondition_failed}` if the value does
+  not match, or `{:error, :not_found}` when the key is absent.
+
+  ## Examples
+
+      iex> Query.write("lock", "owner-a")
+      iex> Query.delete_if("lock", "owner-a")
+      {:ok, :deleted}
+  """
+  @spec delete_if(String.t(), term()) :: {:ok, :deleted} | {:error, term()}
+  def delete_if(key, expected) do
+    measure(:delete_if, fn ->
+      result = Query.Store.delete_if(key, expected)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate(key)
+      result
+    end)
+  end
+
+  @doc """
   Atomic compare-and-swap for optimistic concurrency.
 
   Writes `new` only if the current value equals `expected`; pass `:absent` to

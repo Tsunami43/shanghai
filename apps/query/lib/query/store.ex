@@ -173,6 +173,15 @@ defmodule Query.Store do
   def take(server \\ __MODULE__, key), do: GenServer.call(server, {:take, key})
 
   @doc """
+  Deletes `key` only if its current value equals `expected`. Returns
+  `{:ok, :deleted}`, `{:error, :precondition_failed}` on a mismatch, or
+  `{:error, :not_found}` when the key is absent.
+  """
+  @spec delete_if(GenServer.server(), term(), term()) :: {:ok, :deleted} | {:error, term()}
+  def delete_if(server \\ __MODULE__, key, expected),
+    do: GenServer.call(server, {:delete_if, key, expected})
+
+  @doc """
   Atomically writes `value` and returns the previous value: `{:ok, old}` when
   the key existed, or `{:ok, :absent}` when it did not.
   """
@@ -362,6 +371,26 @@ defmodule Query.Store do
 
       {:error, reason} ->
         {:reply, {:error, reason}, state}
+    end
+  end
+
+  def handle_call({:delete_if, key, expected}, _from, state) do
+    case :ets.lookup(state.table, key) do
+      [{^key, ^expected}] ->
+        case append(state, %{op: :delete, key: key}) do
+          :ok ->
+            :ets.delete(state.table, key)
+            {:reply, {:ok, :deleted}, state}
+
+          {:error, reason} ->
+            {:reply, {:error, reason}, state}
+        end
+
+      [{^key, _other}] ->
+        {:reply, {:error, :precondition_failed}, state}
+
+      [] ->
+        {:reply, {:error, :not_found}, state}
     end
   end
 
