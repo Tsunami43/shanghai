@@ -26,6 +26,9 @@ Query.rename("draft:1", "post:1")               #=> {:ok, :renamed} | {:error, :
 # Atomic copy (duplicate value, keep the source)
 Query.copy("template", "doc:1")                 #=> {:ok, :copied} | {:error, :not_found}
 
+# Atomic swap (exchange two keys' values)
+Query.swap("a", "b")                            #=> {:ok, :swapped} | {:error, :not_found}
+
 # Atomic read-modify-write (upsert with a default)
 Query.update("tags", [], &["new" | &1])         #=> {:ok, ["new", ...]}
 Query.update_existing("tags", &["x" | &1])      #=> {:ok, [...]} | {:error, :not_found}

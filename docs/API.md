@@ -72,6 +72,16 @@ any existing value at `to`.
 Copies the value at `from` to `to`, keeping `from`; overwrites any existing
 value at `to`.
 
+### swap/2
+
+```elixir
+@spec swap(a :: String.t(), b :: String.t()) ::
+        {:ok, :swapped} | {:error, :not_found}
+```
+
+Atomically exchanges the values of `a` and `b` (both must exist) in a single
+WAL record.
+
 ### put_new/2
 
 ```elixir
