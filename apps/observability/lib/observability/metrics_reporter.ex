@@ -24,6 +24,7 @@ defmodule Observability.MetricsReporter do
               replication_lags: %{},
               heartbeats: %{},
               query_ops: %{},
+              compactions: %{count: 0, last_duration_ms: 0, bytes_reclaimed: 0},
               last_membership_change: nil
   end
 
@@ -59,6 +60,13 @@ defmodule Observability.MetricsReporter do
   """
   def get_query_stats do
     GenServer.call(__MODULE__, :get_query_stats)
+  end
+
+  @doc """
+  Get compaction statistics (count, last duration, total bytes reclaimed).
+  """
+  def get_compaction_stats do
+    GenServer.call(__MODULE__, :get_compaction_stats)
   end
 
   @doc """
@@ -105,6 +113,10 @@ defmodule Observability.MetricsReporter do
 
   def handle_call(:get_query_stats, _from, state) do
     {:reply, state.query_ops, state}
+  end
+
+  def handle_call(:get_compaction_stats, _from, state) do
+    {:reply, state.compactions, state}
   end
 
   def handle_call(:get_last_membership_change, _from, state) do
@@ -207,6 +219,24 @@ defmodule Observability.MetricsReporter do
     current = Map.get(state.query_ops, operation, %{})
     updated = update_stat(current, measurements.duration_ms)
     %{state | query_ops: Map.put(state.query_ops, operation, updated)}
+  end
+
+  defp process_telemetry_event(
+         [:shanghai, :storage, :compaction, :complete],
+         measurements,
+         _metadata,
+         state
+       ) do
+    reclaimed =
+      max(Map.get(measurements, :bytes_before, 0) - Map.get(measurements, :bytes_after, 0), 0)
+
+    compactions = %{
+      count: state.compactions.count + 1,
+      last_duration_ms: Map.get(measurements, :duration_ms, 0),
+      bytes_reclaimed: state.compactions.bytes_reclaimed + reclaimed
+    }
+
+    %{state | compactions: compactions}
   end
 
   defp process_telemetry_event(_event_name, _measurements, _metadata, state) do
