@@ -36,6 +36,9 @@ Query.update_existing("tags", &["x" | &1])      #=> {:ok, [...]} | {:error, :not
 # Get-or-compute (race-safe cache fill)
 Query.get_or_store("config", fn -> load() end)  #=> {:ok, value}
 
+# Access-style get-and-update (custom return + optional :pop)
+Query.get_and_update("counter", fn v -> {v, v + 1} end)  #=> {:ok, old}
+
 # Atomic counter
 Query.increment("hits")                         #=> {:ok, 1}   (missing key starts at 0)
 Query.increment("hits", 5)                      #=> {:ok, 6}

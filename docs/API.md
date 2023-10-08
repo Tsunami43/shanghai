@@ -168,6 +168,17 @@ Atomic read-modify-write. Applies `fun` to the current value (or `default` when
 the key is absent) and stores the result; a raising `fun` yields
 `{:error, {:update_failed, message}}`.
 
+### get_and_update/2
+
+```elixir
+@spec get_and_update(key :: String.t(), fun :: (term() -> {term(), term()} | :pop)) ::
+        {:ok, term()} | {:error, term()}
+```
+
+Access-style atomic get-and-update. `fun` returns `{return_value, new_value}`
+(stores `new_value`, replies `{:ok, return_value}`) or `:pop` (deletes the key,
+replies with the previous value).
+
 ### update_existing/2
 
 ```elixir
