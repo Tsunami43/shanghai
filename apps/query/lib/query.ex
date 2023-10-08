@@ -356,6 +356,29 @@ defmodule Query do
   end
 
   @doc """
+  Atomic get-and-update in the `Access` style.
+
+  `fun` receives the current value (or `nil` when absent) and returns
+  `{return_value, new_value}` — `new_value` is stored and `{:ok, return_value}`
+  is returned — or `:pop` to delete the key and return the previous value.
+
+  ## Examples
+
+      iex> Query.write("counter", 5)
+      iex> Query.get_and_update("counter", fn v -> {v, v + 1} end)
+      {:ok, 5}
+  """
+  @spec get_and_update(String.t(), (term() -> {term(), term()} | :pop)) ::
+          {:ok, term()} | {:error, term()}
+  def get_and_update(key, fun) when is_function(fun, 1) do
+    measure(:get_and_update, fn ->
+      result = Query.Store.get_and_update(key, fun)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate(key)
+      result
+    end)
+  end
+
+  @doc """
   Atomic read-modify-write that only applies when `key` already exists.
 
   Applies `fun` to the current value and stores the result, returning

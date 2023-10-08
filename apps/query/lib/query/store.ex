@@ -260,6 +260,17 @@ defmodule Query.Store do
     do: GenServer.call(server, {:delete_prefix, prefix})
 
   @doc """
+  Atomic get-and-update (Access style). `fun` receives the current value (or
+  `nil` when absent) and returns `{return_value, new_value}` to store `new_value`
+  and reply `{:ok, return_value}`, or `:pop` to delete the key and reply
+  `{:ok, current}`.
+  """
+  @spec get_and_update(GenServer.server(), term(), (term() -> {term(), term()} | :pop)) ::
+          {:ok, term()} | {:error, term()}
+  def get_and_update(server \\ __MODULE__, key, fun) when is_function(fun, 1),
+    do: GenServer.call(server, {:get_and_update, key, fun})
+
+  @doc """
   Atomic read-modify-write that only applies when `key` already exists. Returns
   `{:ok, new_value}`, or `{:error, :not_found}` when the key is absent.
   """
@@ -460,6 +471,41 @@ defmodule Query.Store do
 
       {:error, reason} ->
         {:reply, {:error, reason}, state}
+    end
+  end
+
+  def handle_call({:get_and_update, key, fun}, _from, state) do
+    current =
+      case :ets.lookup(state.table, key) do
+        [{^key, value}] -> value
+        [] -> nil
+      end
+
+    try do
+      case fun.(current) do
+        {return_value, new_value} ->
+          case append(state, %{op: :put, key: key, value: new_value}) do
+            :ok ->
+              :ets.insert(state.table, {key, new_value})
+              {:reply, {:ok, return_value}, state}
+
+            {:error, reason} ->
+              {:reply, {:error, reason}, state}
+          end
+
+        :pop ->
+          case append(state, %{op: :delete, key: key}) do
+            :ok ->
+              :ets.delete(state.table, key)
+              {:reply, {:ok, current}, state}
+
+            {:error, reason} ->
+              {:reply, {:error, reason}, state}
+          end
+      end
+    rescue
+      error ->
+        {:reply, {:error, {:update_failed, Exception.message(error)}}, state}
     end
   end
 
