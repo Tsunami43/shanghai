@@ -41,6 +41,7 @@ defmodule Shanghaictl.Commands.Metrics do
     display_storage_metrics(metrics["storage"])
     display_store_metrics(metrics["store"])
     display_query_metrics(metrics["query"])
+    display_compaction_metrics(metrics["compaction"])
     display_replication_metrics(metrics["replication"])
     display_heartbeat_metrics(metrics["heartbeat"])
     display_membership_change(metrics["last_membership_change"])
@@ -53,6 +54,27 @@ defmodule Shanghaictl.Commands.Metrics do
 
     IO.puts("")
   end
+
+  defp display_compaction_metrics(compaction) do
+    compaction
+    |> compaction_lines()
+    |> Enum.each(&IO.puts/1)
+
+    IO.puts("")
+  end
+
+  @doc false
+  @spec compaction_lines(map() | nil) :: [String.t()]
+  def compaction_lines(%{"count" => count} = stats) do
+    [
+      "Compaction:",
+      "  Runs: #{count}",
+      "  Last Duration: #{format_float(Map.get(stats, "last_duration_ms", 0))}ms",
+      "  Bytes Reclaimed: #{Map.get(stats, "bytes_reclaimed", 0)}"
+    ]
+  end
+
+  def compaction_lines(_), do: ["Compaction: No data"]
 
   @doc false
   @spec query_lines(map() | nil) :: [String.t()]

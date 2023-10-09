@@ -120,6 +120,23 @@ defmodule ShanghaictlTest do
     end
   end
 
+  describe "Metrics.compaction_lines/1" do
+    test "renders run count, duration and reclaimed bytes" do
+      stats = %{"count" => 3, "last_duration_ms" => 12.0, "bytes_reclaimed" => 4096}
+
+      joined = stats |> Metrics.compaction_lines() |> Enum.join("\n")
+
+      assert joined =~ "Runs: 3"
+      assert joined =~ "Last Duration: 12.0ms"
+      assert joined =~ "Bytes Reclaimed: 4096"
+    end
+
+    test "falls back to a no-data line" do
+      assert Metrics.compaction_lines(nil) == ["Compaction: No data"]
+      assert Metrics.compaction_lines(%{}) == ["Compaction: No data"]
+    end
+  end
+
   describe "Metrics.storage_lines/1" do
     test "renders WAL size figures" do
       storage = %{
