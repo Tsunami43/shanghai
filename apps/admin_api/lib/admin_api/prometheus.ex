@@ -55,6 +55,24 @@ defmodule AdminApi.Prometheus do
         "Number of persisted snapshots.",
         Map.get(info, :snapshots, 0)
       )
+      | compaction_metrics()
+    ]
+  end
+
+  defp compaction_metrics do
+    stats = safe(fn -> Observability.MetricsReporter.get_compaction_stats() end, %{})
+
+    [
+      counter(
+        "shanghai_compaction_runs_total",
+        "Total compaction runs completed.",
+        Map.get(stats, :count, 0)
+      ),
+      counter(
+        "shanghai_compaction_bytes_reclaimed_total",
+        "Total bytes reclaimed by compaction.",
+        Map.get(stats, :bytes_reclaimed, 0)
+      )
     ]
   end
 

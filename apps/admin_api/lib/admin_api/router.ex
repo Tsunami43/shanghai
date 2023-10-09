@@ -156,6 +156,7 @@ defmodule AdminApi.Router do
       query: Observability.MetricsReporter.get_query_stats(),
       store: query_store_info(),
       storage: storage_info(),
+      compaction: Observability.MetricsReporter.get_compaction_stats(),
       last_membership_change: Observability.MetricsReporter.get_last_membership_change()
     }
 
