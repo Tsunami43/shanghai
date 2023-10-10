@@ -7,17 +7,23 @@ defmodule Shanghaictl.Commands.Metrics do
   Shows operational metrics including WAL, replication, and heartbeat stats.
   """
   def run(opts \\ []) do
-    IO.puts("Shanghai Operational Metrics")
-    IO.puts(String.duplicate("=", 50))
-    IO.puts("")
-
     admin_url = Shanghaictl.Options.admin_url(opts)
+    format = Shanghaictl.Options.format(opts)
 
     case get_metrics(admin_url) do
-      {:ok, metrics} -> display_metrics(metrics)
+      {:ok, metrics} -> render(metrics, format)
       {:error, :not_connected} -> display_not_connected()
       {:error, reason} -> display_error(reason)
     end
+  end
+
+  defp render(metrics, :json), do: IO.puts(Jason.encode!(metrics))
+
+  defp render(metrics, :text) do
+    IO.puts("Shanghai Operational Metrics")
+    IO.puts(String.duplicate("=", 50))
+    IO.puts("")
+    display_metrics(metrics)
   end
 
   defp get_metrics(admin_url) do
