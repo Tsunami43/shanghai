@@ -135,7 +135,11 @@ defmodule Query.Store do
   - `:limit` - return at most this many pairs (from the start of the sorted set)
   """
   @spec scan(binary(), keyword()) :: [{binary(), term()}]
-  def scan(prefix, opts \\ []) when is_binary(prefix) do
+  def scan(prefix, opts \\ []) when is_binary(prefix), do: scan_table(@default_table, prefix, opts)
+
+  # Prefix scan against a specific ETS table (the default store or a named
+  # instance's table). Sorted by key; honors an optional `:limit`.
+  defp scan_table(table, prefix, opts) do
     reducer = fn
       {key, value}, acc when is_binary(key) ->
         if String.starts_with?(key, prefix), do: [{key, value} | acc], else: acc
@@ -145,7 +149,7 @@ defmodule Query.Store do
     end
 
     pairs =
-      :ets.foldl(reducer, [], @default_table)
+      :ets.foldl(reducer, [], table)
       |> Enum.sort_by(&elem(&1, 0))
 
     case Keyword.get(opts, :limit) do
@@ -588,7 +592,7 @@ defmodule Query.Store do
   end
 
   def handle_call({:delete_prefix, prefix}, _from, state) do
-    keys = for {key, _value} <- scan(prefix), do: key
+    keys = for {key, _value} <- scan_table(state.table, prefix, []), do: key
 
     case keys do
       [] ->

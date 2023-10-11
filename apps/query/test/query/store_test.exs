@@ -88,6 +88,43 @@ defmodule Query.StoreTest do
     :ok = GenServer.stop(store_b)
   end
 
+  test "atomic key operations survive recovery" do
+    {:ok, store_a} = Query.Store.start_link(name: :store_ra, table: :qs_test_ra)
+
+    {:ok, :written} = Query.Store.put(store_a, "src", "value")
+    {:ok, :renamed} = Query.Store.rename(store_a, "src", "dst")
+
+    {:ok, :written} = Query.Store.put(store_a, "x", 1)
+    {:ok, :written} = Query.Store.put(store_a, "y", 2)
+    {:ok, :swapped} = Query.Store.swap(store_a, "x", "y")
+
+    {:ok, :written} = Query.Store.put(store_a, "tpl", "t")
+    {:ok, :copied} = Query.Store.copy(store_a, "tpl", "cpy")
+
+    {:ok, :written} = Query.Store.put(store_a, "p:1", 1)
+    {:ok, :written} = Query.Store.put(store_a, "p:2", 2)
+    {:ok, {:deleted, 2}} = Query.Store.delete_prefix(store_a, "p:")
+
+    :ok = GenServer.stop(store_a)
+
+    {:ok, store_b} = Query.Store.start_link(name: :store_rb, table: :qs_test_rb)
+
+    # rename moved the value
+    assert {:error, :not_found} = Query.Store.get(store_b, "src")
+    assert {:ok, "value"} = Query.Store.get(store_b, "dst")
+    # swap exchanged the values
+    assert {:ok, 2} = Query.Store.get(store_b, "x")
+    assert {:ok, 1} = Query.Store.get(store_b, "y")
+    # copy duplicated the value, keeping the source
+    assert {:ok, "t"} = Query.Store.get(store_b, "tpl")
+    assert {:ok, "t"} = Query.Store.get(store_b, "cpy")
+    # delete_prefix removed the range
+    assert {:error, :not_found} = Query.Store.get(store_b, "p:1")
+    assert {:error, :not_found} = Query.Store.get(store_b, "p:2")
+
+    :ok = GenServer.stop(store_b)
+  end
+
   # Starts a process, tolerating the case where it is already running.
   defp ensure_started(fun) do
     case fun.() do
