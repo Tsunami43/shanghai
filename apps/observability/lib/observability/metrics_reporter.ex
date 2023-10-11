@@ -76,6 +76,14 @@ defmodule Observability.MetricsReporter do
     GenServer.call(__MODULE__, :get_last_membership_change)
   end
 
+  @doc """
+  Clears all aggregated statistics, resetting the reporter to its initial state.
+  Intended for test isolation and metric rotation.
+  """
+  def reset do
+    GenServer.call(__MODULE__, :reset)
+  end
+
   ## Server Callbacks
 
   @impl true
@@ -121,6 +129,10 @@ defmodule Observability.MetricsReporter do
 
   def handle_call(:get_last_membership_change, _from, state) do
     {:reply, state.last_membership_change, state}
+  end
+
+  def handle_call(:reset, _from, _state) do
+    {:reply, :ok, %State{}}
   end
 
   @impl true
