@@ -425,6 +425,19 @@ defmodule Query do
   end
 
   @doc """
+  Atomically subtracts `amount` (default `1`) from the numeric value at `key`,
+  treating a missing key as `0`. Returns `{:ok, new_value}`.
+
+  ## Examples
+
+      iex> Query.write("stock", 10)
+      iex> Query.decrement("stock", 3)
+      {:ok, 7}
+  """
+  @spec decrement(String.t(), number()) :: {:ok, number()} | {:error, term()}
+  def decrement(key, amount \\ 1) when is_number(amount), do: increment(key, -amount)
+
+  @doc """
   Deletes every key that starts with `prefix`, returning `{:ok, {:deleted, count}}`.
 
   The removal is a single atomic WAL record — either all matching keys are gone

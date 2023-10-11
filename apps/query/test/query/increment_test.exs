@@ -27,6 +27,13 @@ defmodule Query.IncrementTest do
     assert {:ok, "not a number"} = Query.read("k")
   end
 
+  test "decrement subtracts, defaulting to 1 and treating a missing key as 0" do
+    {:ok, :written} = Query.write("stock", 10)
+    assert {:ok, 7} = Query.decrement("stock", 3)
+    assert {:ok, 6} = Query.decrement("stock")
+    assert {:ok, -1} = Query.decrement("fresh")
+  end
+
   test "increment invalidates the read cache" do
     {:ok, 1} = Query.increment("c")
     # Populate the cache.
