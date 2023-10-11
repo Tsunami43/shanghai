@@ -52,7 +52,7 @@ iex> Cluster.Membership.all_nodes()
 
 ## Architecture
 
-Shanghai consists of four main subsystems:
+Shanghai consists of five main subsystems:
 
 ### 1. Storage (WAL)
 
@@ -90,7 +90,20 @@ Asynchronous multi-master replication with backpressure.
 **Throughput:** 50,000+ entries/sec (LAN)
 **Lag:** <100ms under normal load
 
-### 4. Observability
+### 4. Query (Key/Value API)
+
+The primary user-facing interface — a durable, WAL-backed key/value store.
+
+- **Rich operations**: reads/writes, conditional writes (`put_new`, `replace`,
+  `cas`, `delete_if`), atomic counters, `get_and_update`, bulk `mset`/`mget`/
+  `mdelete`, `rename`/`copy`/`swap`, and prefix `scan`/`count_prefix`
+- **Read-through cache** with TTL, bounded eviction, and hit-ratio metrics
+- **Crash recovery** by replaying the WAL on start-up
+- **Observable by default** — every operation emits telemetry
+
+**See:** [Query README](apps/query/README.md)
+
+### 5. Observability
 
 Built-in metrics, logging, and monitoring.
 
