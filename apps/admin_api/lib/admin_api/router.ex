@@ -221,6 +221,20 @@ defmodule AdminApi.Router do
     send_json(conn, 200, %{snapshots: snapshots, count: length(snapshots)})
   end
 
+  # Creates a snapshot at the current LSN. 503 when not configured.
+  post "/api/v1/snapshots" do
+    case Storage.create_snapshot() do
+      {:ok, snapshot_id} ->
+        send_json(conn, 201, %{status: "snapshot_created", snapshot_id: snapshot_id})
+
+      {:error, :not_running} ->
+        send_json(conn, 503, %{error: "snapshots_not_running"})
+
+      {:error, reason} ->
+        send_json(conn, 500, %{error: "snapshot_failed: #{inspect(reason)}"})
+    end
+  end
+
   post "/api/v1/shutdown" do
     params = conn.body_params
     force = Map.get(params, "force", false)

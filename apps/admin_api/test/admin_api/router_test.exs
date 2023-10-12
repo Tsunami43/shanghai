@@ -127,6 +127,16 @@ defmodule AdminApi.RouterTest do
     assert json(conn)["error"] == "compaction_not_running"
   end
 
+  test "POST /api/v1/snapshots returns 503 when snapshots are not running" do
+    conn =
+      :post
+      |> conn("/api/v1/snapshots")
+      |> AdminApi.Router.call(@opts)
+
+    assert conn.status == 503
+    assert json(conn)["error"] == "snapshots_not_running"
+  end
+
   test "GET /api/v1/snapshots returns a snapshot list and count" do
     conn = get("/api/v1/snapshots")
     assert conn.status == 200

@@ -93,6 +93,19 @@ defmodule Storage do
   end
 
   @doc """
+  Creates a snapshot at the current WAL LSN. Returns `{:ok, snapshot_id}`, or
+  `{:error, :not_running}` when snapshotting is not configured.
+  """
+  @spec create_snapshot() :: {:ok, String.t()} | {:error, term()}
+  def create_snapshot do
+    if is_pid(Process.whereis(SnapshotManager)) do
+      SnapshotManager.create_snapshot(current_lsn())
+    else
+      {:error, :not_running}
+    end
+  end
+
+  @doc """
   Lists persisted snapshots (most recent first when the manager sorts them), or
   `[]` when the snapshot manager is not running (e.g. no `data_root` configured).
   """

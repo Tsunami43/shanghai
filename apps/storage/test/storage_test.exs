@@ -33,6 +33,11 @@ defmodule StorageTest do
     assert Storage.trigger_compaction() == {:error, :not_running}
   end
 
+  test "create_snapshot/0 errors when the manager is down" do
+    refute is_pid(Process.whereis(Storage.Snapshot.Manager))
+    assert Storage.create_snapshot() == {:error, :not_running}
+  end
+
   describe "with a running WAL" do
     setup do
       Storage.WALTestInfra.ensure_started()
