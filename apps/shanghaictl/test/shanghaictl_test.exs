@@ -1,7 +1,7 @@
 defmodule ShanghaictlTest do
   use ExUnit.Case, async: true
 
-  alias Shanghaictl.Commands.{Health, Info, Metrics, Replicas, Status}
+  alias Shanghaictl.Commands.{Health, Info, Metrics, Replicas, Snapshot, Status}
   alias Shanghaictl.Options
 
   doctest Shanghaictl
@@ -24,6 +24,8 @@ defmodule ShanghaictlTest do
       assert Shanghaictl.parse(["health"]) == {:health, []}
       assert Shanghaictl.parse(["info"]) == {:info, []}
       assert Shanghaictl.parse(["compact"]) == {:compact, []}
+      assert Shanghaictl.parse(["snapshot", "list"]) == {:snapshot_list, []}
+      assert Shanghaictl.parse(["snapshot", "create"]) == {:snapshot_create, []}
     end
 
     test "node join/leave/get are distinguished" do
@@ -215,6 +217,16 @@ defmodule ShanghaictlTest do
       assert joined =~ "Version: 0.1.0"
       assert joined =~ "Elixir:  1.16.0"
       assert joined =~ "OTP:     26"
+    end
+  end
+
+  describe "Snapshot.snapshot_line/1" do
+    test "renders id with lsn when present" do
+      assert Snapshot.snapshot_line(%{"id" => "snap-1", "lsn" => 42}) == "snap-1 (lsn: 42)"
+    end
+
+    test "renders just the id when lsn is absent" do
+      assert Snapshot.snapshot_line(%{"id" => "snap-2"}) == "snap-2"
     end
   end
 

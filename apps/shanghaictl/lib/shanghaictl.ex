@@ -15,6 +15,7 @@ defmodule Shanghaictl do
     Node,
     Replicas,
     Shutdown,
+    Snapshot,
     Status
   }
 
@@ -33,6 +34,7 @@ defmodule Shanghaictl do
           | :version
           | {:status | :replicas | :metrics | :node_join | :node_leave | :shutdown, [String.t()]}
           | {:health | :info | :compact | :node_get | :kv_get | :kv_count | :kv_keys, [String.t()]}
+          | {:snapshot_create | :snapshot_list, [String.t()]}
           | {:unknown, [String.t()]}
 
   @doc """
@@ -54,6 +56,8 @@ defmodule Shanghaictl do
   def parse(["health" | opts]), do: {:health, opts}
   def parse(["info" | opts]), do: {:info, opts}
   def parse(["compact" | opts]), do: {:compact, opts}
+  def parse(["snapshot", "create" | opts]), do: {:snapshot_create, opts}
+  def parse(["snapshot", "list" | opts]), do: {:snapshot_list, opts}
   def parse(["replicas" | opts]), do: {:replicas, opts}
   def parse(["metrics" | opts]), do: {:metrics, opts}
   def parse(["node", "join" | opts]), do: {:node_join, opts}
@@ -87,6 +91,8 @@ defmodule Shanghaictl do
       kv count [prefix] Count stored keys (optionally under a prefix)
       kv keys [prefix]  List stored keys (optionally under a prefix)
       compact           Trigger a WAL compaction run
+      snapshot list     List persisted snapshots
+      snapshot create   Create a snapshot at the current LSN
       shutdown          Safely shutdown a node
 
     For more information, see the documentation.
@@ -107,6 +113,14 @@ defmodule Shanghaictl do
 
   defp execute({:compact, opts}) do
     Compact.run(opts)
+  end
+
+  defp execute({:snapshot_create, opts}) do
+    Snapshot.create(opts)
+  end
+
+  defp execute({:snapshot_list, opts}) do
+    Snapshot.list(opts)
   end
 
   defp execute({:replicas, opts}) do
