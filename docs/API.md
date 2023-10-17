@@ -1078,6 +1078,23 @@ curl http://localhost:9090/api/v1/snapshots
 
 ---
 
+### POST /snapshots
+
+Create a snapshot at the current LSN. Returns `503` when snapshotting is not
+configured.
+
+**Request:**
+```bash
+curl -X POST http://localhost:9090/api/v1/snapshots
+```
+
+**Response (201):**
+```json
+{ "status": "snapshot_created", "snapshot_id": "snapshot-000123" }
+```
+
+---
+
 ## CLI Commands
 
 ### shanghaictl status
@@ -1127,6 +1144,24 @@ shanghaictl compact [--admin-url URL]
 ```
 
 Exits non-zero if compaction is not configured or the node is unreachable.
+
+---
+
+### shanghaictl snapshot
+
+List or create WAL snapshots.
+
+**Usage:**
+```bash
+shanghaictl snapshot list [--admin-url URL]
+shanghaictl snapshot create [--admin-url URL]
+```
+
+**Example:**
+```bash
+$ shanghaictl snapshot create
+Snapshot created: snapshot-000123
+```
 
 ---
 

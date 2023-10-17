@@ -24,6 +24,8 @@ shanghaictl <command> [options]
 | `kv count [prefix]` | Count stored keys (optionally under a prefix) |
 | `kv keys [prefix]` | List stored keys (optionally under a prefix) |
 | `compact` | Trigger a WAL compaction run |
+| `snapshot list` | List persisted snapshots |
+| `snapshot create` | Create a snapshot at the current LSN |
 | `shutdown` | Safely shut down a node |
 
 Commands talk to a node's `admin_api` (see that app for the HTTP surface).
