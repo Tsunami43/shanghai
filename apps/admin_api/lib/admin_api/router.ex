@@ -59,9 +59,12 @@ defmodule AdminApi.Router do
         "/api/v1/nodes/:id",
         "/api/v1/replicas",
         "/api/v1/snapshots",
+        "POST /api/v1/snapshots",
+        "POST /api/v1/compaction",
         "/api/v1/metrics",
         "/api/v1/kv",
-        "/api/v1/kv/:key"
+        "/api/v1/kv/:key",
+        "/api/v1/keys"
       ]
     })
   end

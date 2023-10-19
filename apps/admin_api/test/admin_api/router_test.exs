@@ -67,6 +67,9 @@ defmodule AdminApi.RouterTest do
     assert body["service"] == "shanghai"
     assert is_list(body["endpoints"])
     assert "/api/v1/status" in body["endpoints"]
+    assert "/api/v1/info" in body["endpoints"]
+    assert "/api/v1/keys" in body["endpoints"]
+    assert "POST /api/v1/compaction" in body["endpoints"]
   end
 
   test "GET /api/v1/info reports version and runtime details" do
