@@ -197,6 +197,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the number of nodes required for a majority quorum (`⌊n/2⌋ + 1`), or
+  `0` for an empty cluster.
+  """
+  @spec quorum_size(t()) :: non_neg_integer()
+  def quorum_size(%__MODULE__{} = cluster) do
+    case node_count(cluster) do
+      0 -> 0
+      total -> div(total, 2) + 1
+    end
+  end
+
+  @doc """
   Returns true when a strict majority of the cluster's nodes are `:up` — the
   condition for serving quorum reads and writes. Always false for an empty
   cluster.

@@ -206,6 +206,20 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "quorum_size/1" do
+    test "is zero for an empty cluster and the majority otherwise" do
+      assert State.quorum_size(State.new(NodeId.new("local"))) == 0
+
+      cluster =
+        Enum.reduce(1..3, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "localhost", 4000 + i))
+          next
+        end)
+
+      assert State.quorum_size(cluster) == 2
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))
