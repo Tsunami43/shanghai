@@ -50,4 +50,9 @@ defmodule Query.TelemetryTest do
     {:ok, :committed} = Query.transact([{:write, "k", "v"}])
     assert_receive {:telemetry, @event, _m, %{operation: :transact, result: :ok}}
   end
+
+  test "decrement emits its own operation tag, not :increment" do
+    {:ok, -1} = Query.decrement("c")
+    assert_receive {:telemetry, @event, _m, %{operation: :decrement, result: :ok}}
+  end
 end

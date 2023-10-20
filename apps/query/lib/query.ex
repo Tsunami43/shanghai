@@ -435,7 +435,13 @@ defmodule Query do
       {:ok, 7}
   """
   @spec decrement(String.t(), number()) :: {:ok, number()} | {:error, term()}
-  def decrement(key, amount \\ 1) when is_number(amount), do: increment(key, -amount)
+  def decrement(key, amount \\ 1) when is_number(amount) do
+    measure(:decrement, fn ->
+      result = Query.Store.increment(key, -amount)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate(key)
+      result
+    end)
+  end
 
   @doc """
   Deletes every key that starts with `prefix`, returning `{:ok, {:deleted, count}}`.
