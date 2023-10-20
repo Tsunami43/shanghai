@@ -50,6 +50,7 @@ defmodule Observability.Metrics do
   Metadata:
   - `:segment_id` - WAL segment identifier
   """
+  @spec wal_write_completed(number(), non_neg_integer(), term()) :: :ok
   def wal_write_completed(duration_ms, bytes, segment_id) do
     :telemetry.execute(
       [:shanghai, :storage, :wal, :write],
@@ -69,6 +70,7 @@ defmodule Observability.Metrics do
   Metadata:
   - `:segment_id` - WAL segment identifier
   """
+  @spec wal_sync_completed(number(), term()) :: :ok
   def wal_sync_completed(duration_ms, segment_id) do
     :telemetry.execute(
       [:shanghai, :storage, :wal, :sync],
@@ -91,6 +93,7 @@ defmodule Observability.Metrics do
   - `:follower_id` - Follower node identifier
   - `:leader_id` - Leader node identifier
   """
+  @spec replication_lag_measured(number(), number(), term(), term(), term()) :: :ok
   def replication_lag_measured(offset_lag, time_lag_ms, group_id, follower_id, leader_id) do
     :telemetry.execute(
       [:shanghai, :replication, :lag],
@@ -112,6 +115,7 @@ defmodule Observability.Metrics do
   - `:group_id` - Replication group identifier
   - `:follower_id` - Follower node identifier
   """
+  @spec replication_catchup_completed(number(), non_neg_integer(), term(), term()) :: :ok
   def replication_catchup_completed(duration_ms, records, group_id, follower_id) do
     :telemetry.execute(
       [:shanghai, :replication, :catchup],
@@ -132,6 +136,7 @@ defmodule Observability.Metrics do
   - `:source_node` - Node that sent the heartbeat
   - `:target_node` - Node that received the heartbeat
   """
+  @spec heartbeat_completed(number(), term(), term()) :: :ok
   def heartbeat_completed(rtt_ms, source_node, target_node) do
     :telemetry.execute(
       [:shanghai, :cluster, :heartbeat],
@@ -152,6 +157,7 @@ defmodule Observability.Metrics do
   - `:event_type` - Type of change (`:node_joined`, `:node_left`, `:node_down`)
   - `:node_id` - Node affected by the change
   """
+  @spec cluster_membership_changed(non_neg_integer(), atom(), term()) :: :ok
   def cluster_membership_changed(node_count, event_type, node_id) do
     :telemetry.execute(
       [:shanghai, :cluster, :membership_change],
@@ -173,6 +179,7 @@ defmodule Observability.Metrics do
   Metadata:
   - `:segment_ids` - List of segments compacted
   """
+  @spec compaction_completed(number(), non_neg_integer(), non_neg_integer(), list()) :: :ok
   def compaction_completed(duration_ms, bytes_before, bytes_after, segment_ids) do
     :telemetry.execute(
       [:shanghai, :storage, :compaction, :complete],
@@ -193,6 +200,7 @@ defmodule Observability.Metrics do
   - `:operation` - The operation performed (`:read`, `:write`, `:delete`, `:transact`)
   - `:result` - Outcome tag (`:ok` or `:error`)
   """
+  @spec query_operation_completed(atom(), number(), atom()) :: :ok
   def query_operation_completed(operation, duration_ms, result) do
     :telemetry.execute(
       [:shanghai, :query, :operation],
@@ -204,6 +212,7 @@ defmodule Observability.Metrics do
   @doc """
   Returns a list of all defined telemetry event names.
   """
+  @spec event_names() :: [[atom()]]
   def event_names do
     [
       [:shanghai, :storage, :wal, :write],
