@@ -33,6 +33,7 @@ defmodule Shanghaictl.Commands.Status do
       cluster_state: to_string(info.cluster_state),
       local_node_id: info.local_node_id,
       quorum_available: info.quorum_available,
+      quorum_size: info.quorum_size,
       nodes:
         Enum.map(info.nodes, fn node ->
           %{
@@ -54,7 +55,8 @@ defmodule Shanghaictl.Commands.Status do
          nodes: Enum.map(nodes, &parse_node/1),
          cluster_state: String.to_atom(state),
          local_node_id: status["local_node_id"],
-         quorum_available: status["quorum_available"]
+         quorum_available: status["quorum_available"],
+         quorum_size: status["quorum_size"]
        }}
     else
       {:ok, %{status: status}} ->
@@ -82,16 +84,19 @@ defmodule Shanghaictl.Commands.Status do
   def local_node_line(id), do: "Local Node:    #{id}"
 
   @doc false
-  @spec quorum_line(boolean() | nil) :: String.t() | nil
-  def quorum_line(nil), do: nil
-  def quorum_line(true), do: "Quorum:        available"
-  def quorum_line(false), do: "Quorum:        unavailable"
+  @spec quorum_line(boolean() | nil, non_neg_integer() | nil) :: String.t() | nil
+  def quorum_line(nil, _size), do: nil
+  def quorum_line(true, size), do: "Quorum:        available#{quorum_needed(size)}"
+  def quorum_line(false, size), do: "Quorum:        unavailable#{quorum_needed(size)}"
+
+  defp quorum_needed(nil), do: ""
+  defp quorum_needed(size), do: " (#{size} needed)"
 
   defp display_cluster_info(info) do
     IO.puts("Cluster State: #{format_state(info.cluster_state)}")
 
     if line = local_node_line(info.local_node_id), do: IO.puts(line)
-    if line = quorum_line(info.quorum_available), do: IO.puts(line)
+    if line = quorum_line(info.quorum_available, info.quorum_size), do: IO.puts(line)
 
     IO.puts("")
     IO.puts("Nodes:")

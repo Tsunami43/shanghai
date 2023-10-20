@@ -174,14 +174,18 @@ defmodule ShanghaictlTest do
     end
   end
 
-  describe "Status.quorum_line/1" do
-    test "renders availability" do
-      assert Status.quorum_line(true) == "Quorum:        available"
-      assert Status.quorum_line(false) == "Quorum:        unavailable"
+  describe "Status.quorum_line/2" do
+    test "renders availability with the needed size" do
+      assert Status.quorum_line(true, 2) == "Quorum:        available (2 needed)"
+      assert Status.quorum_line(false, 2) == "Quorum:        unavailable (2 needed)"
     end
 
-    test "is nil when absent" do
-      assert Status.quorum_line(nil) == nil
+    test "omits the size when absent" do
+      assert Status.quorum_line(true, nil) == "Quorum:        available"
+    end
+
+    test "is nil when availability is absent" do
+      assert Status.quorum_line(nil, 2) == nil
     end
   end
 
@@ -260,6 +264,7 @@ defmodule ShanghaictlTest do
         cluster_state: :healthy,
         local_node_id: "node-1",
         quorum_available: true,
+        quorum_size: 2,
         nodes: [%{id: "node-1", status: :up, heartbeat_age: 50}]
       }
 
@@ -268,6 +273,7 @@ defmodule ShanghaictlTest do
       assert decoded["cluster_state"] == "healthy"
       assert decoded["local_node_id"] == "node-1"
       assert decoded["quorum_available"] == true
+      assert decoded["quorum_size"] == 2
       assert [node] = decoded["nodes"]
       assert node["id"] == "node-1"
       assert node["status"] == "up"
