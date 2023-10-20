@@ -198,11 +198,30 @@ defmodule ShanghaictlTest do
       assert Options.format(["--format", "text"]) == :text
     end
 
-    test "admin_url/1 reads both flag forms or defaults" do
+    test "admin_url/1 reads both flag forms" do
       assert Options.admin_url(["--admin-url", "http://h:9090"]) == "http://h:9090"
       assert Options.admin_url(["k", "--admin-url", "http://h:1"]) == "http://h:1"
       assert Options.admin_url(["--admin-url=http://h:2"]) == "http://h:2"
+    end
+
+    test "admin_url/1 resolves flag > env > default" do
+      original = System.get_env("SHANGHAI_ADMIN_URL")
+
+      on_exit(fn ->
+        if original do
+          System.put_env("SHANGHAI_ADMIN_URL", original)
+        else
+          System.delete_env("SHANGHAI_ADMIN_URL")
+        end
+      end)
+
+      System.delete_env("SHANGHAI_ADMIN_URL")
       assert Options.admin_url([]) == "http://localhost:9090"
+
+      System.put_env("SHANGHAI_ADMIN_URL", "http://env:9090")
+      assert Options.admin_url([]) == "http://env:9090"
+      # An explicit flag still wins over the env var.
+      assert Options.admin_url(["--admin-url", "http://flag:1"]) == "http://flag:1"
     end
   end
 

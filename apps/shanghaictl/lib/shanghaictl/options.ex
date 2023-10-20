@@ -32,8 +32,11 @@ defmodule Shanghaictl.Options do
   end
 
   @doc """
-  Returns the admin URL from the args, accepting both `--admin-url URL` and
-  `--admin-url=URL`. Falls back to the default (`http://localhost:9090`).
+  Returns the admin URL, resolved in order of precedence:
+
+  1. `--admin-url URL` or `--admin-url=URL` from the args
+  2. the `SHANGHAI_ADMIN_URL` environment variable
+  3. the default (`http://localhost:9090`)
 
   ## Examples
 
@@ -42,27 +45,30 @@ defmodule Shanghaictl.Options do
 
       iex> Shanghaictl.Options.admin_url(["--admin-url=http://h:1"])
       "http://h:1"
-
-      iex> Shanghaictl.Options.admin_url([])
-      "http://localhost:9090"
   """
   @spec admin_url([String.t()]) :: String.t()
   def admin_url(args) do
+    from_args(args) || from_env() || @default_admin_url
+  end
+
+  defp from_args(args) do
     equals =
       Enum.find_value(args, fn
         "--admin-url=" <> url -> url
         _ -> nil
       end)
 
-    cond do
-      equals ->
-        equals
+    equals ||
+      case Enum.drop_while(args, &(&1 != "--admin-url")) do
+        ["--admin-url", url | _rest] -> url
+        _ -> nil
+      end
+  end
 
-      true ->
-        case Enum.drop_while(args, &(&1 != "--admin-url")) do
-          ["--admin-url", url | _rest] -> url
-          _ -> @default_admin_url
-        end
+  defp from_env do
+    case System.get_env("SHANGHAI_ADMIN_URL") do
+      url when is_binary(url) and url != "" -> url
+      _ -> nil
     end
   end
 end
