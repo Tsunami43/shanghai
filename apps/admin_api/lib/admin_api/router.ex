@@ -104,6 +104,7 @@ defmodule AdminApi.Router do
       nodes_down: down_count,
       nodes_suspect: suspect_count,
       quorum_available: Cluster.State.quorum_available?(cluster),
+      quorum_size: Cluster.State.quorum_size(cluster),
       timestamp: System.system_time(:second)
     }
 

@@ -114,7 +114,8 @@ defmodule Cluster do
           up: non_neg_integer(),
           suspect: non_neg_integer(),
           down: non_neg_integer(),
-          quorum_available: boolean()
+          quorum_available: boolean(),
+          quorum_size: non_neg_integer()
         }
   def status do
     cluster = cluster_state()
@@ -125,7 +126,8 @@ defmodule Cluster do
       up: State.status_count(cluster, :up),
       suspect: State.status_count(cluster, :suspect),
       down: State.status_count(cluster, :down),
-      quorum_available: State.quorum_available?(cluster)
+      quorum_available: State.quorum_available?(cluster),
+      quorum_size: State.quorum_size(cluster)
     }
   end
 end
