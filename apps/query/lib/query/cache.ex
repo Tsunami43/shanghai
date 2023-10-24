@@ -76,6 +76,15 @@ defmodule Query.Cache do
   @spec invalidate(term()) :: :ok
   def invalidate(key), do: GenServer.call(__MODULE__, {:invalidate, key})
 
+  @doc """
+  Removes several keys from the cache in one call. Synchronous — once it returns,
+  a direct `get/1` for any of the keys will miss. More efficient than repeated
+  `invalidate/1` for bulk mutations.
+  """
+  @spec invalidate_many([term()]) :: :ok
+  def invalidate_many(keys) when is_list(keys),
+    do: GenServer.call(__MODULE__, {:invalidate_many, keys})
+
   @doc "Removes every cached entry."
   @spec clear() :: :ok
   def clear, do: GenServer.call(__MODULE__, :clear)
@@ -146,6 +155,15 @@ defmodule Query.Cache do
   def handle_call({:invalidate, key}, _from, state) do
     drop_lru_entry(state, key)
     :ets.delete(state.table, key)
+    {:reply, :ok, state}
+  end
+
+  def handle_call({:invalidate_many, keys}, _from, state) do
+    Enum.each(keys, fn key ->
+      drop_lru_entry(state, key)
+      :ets.delete(state.table, key)
+    end)
+
     {:reply, :ok, state}
   end
 

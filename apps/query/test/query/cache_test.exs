@@ -25,6 +25,18 @@ defmodule Query.CacheTest do
       assert :miss = Query.Cache.get("c:2")
     end
 
+    test "invalidate_many removes several entries in one call" do
+      :ok = Query.Cache.put("m:1", 1)
+      :ok = Query.Cache.put("m:2", 2)
+      :ok = Query.Cache.put("m:3", 3)
+
+      :ok = Query.Cache.invalidate_many(["m:1", "m:3"])
+
+      assert :miss = Query.Cache.get("m:1")
+      assert {:ok, 2} = Query.Cache.get("m:2")
+      assert :miss = Query.Cache.get("m:3")
+    end
+
     test "stats track hits, misses and hit ratio" do
       assert :miss = Query.Cache.get("c:stat")
       :ok = Query.Cache.put("c:stat", "v")

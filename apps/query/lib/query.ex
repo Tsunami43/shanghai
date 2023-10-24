@@ -461,7 +461,7 @@ defmodule Query do
     measure(:delete_prefix, fn ->
       keys = Query.Store.scan(prefix) |> Enum.map(&elem(&1, 0))
       result = Query.Store.delete_prefix(prefix)
-      if match?({:ok, _}, result), do: Enum.each(keys, &Query.Cache.invalidate/1)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate_many(keys)
       result
     end)
   end
@@ -503,10 +503,7 @@ defmodule Query do
 
     measure(:mset, fn ->
       result = Query.Store.transact(ops)
-
-      if match?({:ok, _}, result),
-        do: Enum.each(ops, fn {:write, k, _v} -> Query.Cache.invalidate(k) end)
-
+      if match?({:ok, _}, result), do: Query.Cache.invalidate_many(for {:write, k, _v} <- ops, do: k)
       result
     end)
   end
@@ -528,7 +525,7 @@ defmodule Query do
 
     measure(:mdelete, fn ->
       result = Query.Store.transact(ops)
-      if match?({:ok, _}, result), do: Enum.each(keys, &Query.Cache.invalidate/1)
+      if match?({:ok, _}, result), do: Query.Cache.invalidate_many(keys)
       result
     end)
   end
@@ -648,10 +645,13 @@ defmodule Query do
   end
 
   defp invalidate_ops(operations) do
-    Enum.each(operations, fn
-      {:write, key, _value} -> Query.Cache.invalidate(key)
-      {:delete, key} -> Query.Cache.invalidate(key)
-      _ -> :ok
-    end)
+    keys =
+      Enum.flat_map(operations, fn
+        {:write, key, _value} -> [key]
+        {:delete, key} -> [key]
+        _ -> []
+      end)
+
+    Query.Cache.invalidate_many(keys)
   end
 end
