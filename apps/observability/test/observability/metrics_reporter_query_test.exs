@@ -17,4 +17,14 @@ defmodule Observability.MetricsReporterQueryTest do
     assert probe.count == 2
     assert probe.sum == 6.0
   end
+
+  test "tracks the per-operation error count" do
+    Metrics.query_operation_completed(:probe_err_op, 1.0, :ok)
+    Metrics.query_operation_completed(:probe_err_op, 1.0, :error)
+    Metrics.query_operation_completed(:probe_err_op, 1.0, :error)
+
+    probe = MetricsReporter.get_query_stats()[:probe_err_op]
+    assert probe.count == 3
+    assert probe.errors == 2
+  end
 end

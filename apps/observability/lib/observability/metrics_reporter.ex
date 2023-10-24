@@ -225,11 +225,18 @@ defmodule Observability.MetricsReporter do
   defp process_telemetry_event(
          [:shanghai, :query, :operation],
          measurements,
-         %{operation: operation} = _metadata,
+         %{operation: operation} = metadata,
          state
        ) do
     current = Map.get(state.query_ops, operation, %{})
-    updated = update_stat(current, measurements.duration_ms)
+    prior_errors = Map.get(current, :errors, 0)
+    errors = if Map.get(metadata, :result) == :error, do: prior_errors + 1, else: prior_errors
+
+    updated =
+      current
+      |> update_stat(measurements.duration_ms)
+      |> Map.put(:errors, errors)
+
     %{state | query_ops: Map.put(state.query_ops, operation, updated)}
   end
 
