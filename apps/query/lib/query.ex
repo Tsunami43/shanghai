@@ -215,12 +215,7 @@ defmodule Query do
   def rename(from, to) do
     measure(:rename, fn ->
       result = Query.Store.rename(from, to)
-
-      if match?({:ok, _}, result) do
-        Query.Cache.invalidate(from)
-        Query.Cache.invalidate(to)
-      end
-
+      if match?({:ok, _}, result), do: Query.Cache.invalidate_many([from, to])
       result
     end)
   end
@@ -263,11 +258,7 @@ defmodule Query do
   def swap(a, b) do
     measure(:swap, fn ->
       result = Query.Store.swap(a, b)
-
-      if match?({:ok, _}, result) do
-        Query.Cache.invalidate(a)
-        Query.Cache.invalidate(b)
-      end
+      if match?({:ok, _}, result), do: Query.Cache.invalidate_many([a, b])
 
       result
     end)
@@ -503,7 +494,10 @@ defmodule Query do
 
     measure(:mset, fn ->
       result = Query.Store.transact(ops)
-      if match?({:ok, _}, result), do: Query.Cache.invalidate_many(for {:write, k, _v} <- ops, do: k)
+
+      if match?({:ok, _}, result),
+        do: Query.Cache.invalidate_many(for {:write, k, _v} <- ops, do: k)
+
       result
     end)
   end
