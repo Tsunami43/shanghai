@@ -29,3 +29,16 @@ shanghaictl <command> [options]
 | `shutdown` | Safely shut down a node |
 
 Commands talk to a node's `admin_api` (see that app for the HTTP surface).
+
+## Admin URL
+
+The Admin API base URL is resolved in order of precedence:
+
+1. `--admin-url URL` (or `--admin-url=URL`) on the command line
+2. the `SHANGHAI_ADMIN_URL` environment variable
+3. the default `http://localhost:9090`
+
+```bash
+export SHANGHAI_ADMIN_URL=http://node-1:9090
+shanghaictl status
+```
