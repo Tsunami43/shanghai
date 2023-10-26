@@ -91,7 +91,8 @@ defmodule Shanghaictl.Commands.Metrics do
       query
       |> Enum.sort_by(fn {op, _stat} -> op end)
       |> Enum.map(fn {op, stat} ->
-        "  #{op}: #{Map.get(stat, "count", 0)} ops, avg #{format_float(Map.get(stat, "avg", 0))}ms"
+        "  #{op}: #{Map.get(stat, "count", 0)} ops, avg #{format_float(Map.get(stat, "avg", 0))}ms, " <>
+          "#{Map.get(stat, "errors", 0)} errors"
       end)
 
     [header | rows]

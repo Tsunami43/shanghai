@@ -106,14 +106,14 @@ defmodule ShanghaictlTest do
   describe "Metrics.query_lines/1" do
     test "renders per-operation counts and average latency" do
       query = %{
-        "read" => %{"count" => 10, "avg" => 0.5},
-        "write" => %{"count" => 4, "avg" => 1.25}
+        "read" => %{"count" => 10, "avg" => 0.5, "errors" => 0},
+        "write" => %{"count" => 4, "avg" => 1.25, "errors" => 2}
       }
 
       joined = query |> Metrics.query_lines() |> Enum.join("\n")
 
-      assert joined =~ "read: 10 ops, avg 0.5ms"
-      assert joined =~ "write: 4 ops, avg 1.25ms"
+      assert joined =~ "read: 10 ops, avg 0.5ms, 0 errors"
+      assert joined =~ "write: 4 ops, avg 1.25ms, 2 errors"
     end
 
     test "falls back to a no-data line" do
