@@ -267,6 +267,7 @@ text exposition format, rendered by `AdminApi.Prometheus` from
 | `shanghai_compaction_bytes_reclaimed_total` | counter | — |
 | `shanghai_query_operations_total` | counter | `operation` |
 | `shanghai_query_operation_duration_ms` | summary | `operation` |
+| `shanghai_query_operation_errors_total` | counter | `operation` |
 | `shanghai_query_store_keys` | gauge | — |
 | `shanghai_query_store_memory_bytes` | gauge | — |
 | `shanghai_query_cache_size` | gauge | — |

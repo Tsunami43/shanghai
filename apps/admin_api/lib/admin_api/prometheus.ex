@@ -109,7 +109,25 @@ defmodule AdminApi.Prometheus do
         ]
       end)
 
-    [count_header, count_rows, duration_header | duration_rows]
+    error_header = [
+      "# HELP shanghai_query_operation_errors_total Query operations that returned an error.\n",
+      "# TYPE shanghai_query_operation_errors_total counter\n"
+    ]
+
+    error_rows =
+      Enum.map(ops, fn {operation, stat} ->
+        errors = Map.get(stat, :errors, 0)
+
+        [
+          "shanghai_query_operation_errors_total{operation=\"",
+          to_string(operation),
+          "\"} ",
+          num(errors),
+          "\n"
+        ]
+      end)
+
+    [count_header, count_rows, duration_header, duration_rows, error_header | error_rows]
   end
 
   # --- Query read-cache metrics (from the live cache stats) ---
