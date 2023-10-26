@@ -69,6 +69,19 @@ defmodule AdminApi.Router do
     })
   end
 
+  # Effective runtime configuration, useful for verifying a deployment.
+  get "/api/v1/config" do
+    cache = safe_query_cache_stats()
+
+    config = %{
+      cache: %{max_size: Map.get(cache, :max_size), ttl_ms: Map.get(cache, :ttl_ms)},
+      compaction: Storage.compaction_status(),
+      admin_port: Application.get_env(:admin_api, :port, 9090)
+    }
+
+    send_json(conn, 200, config)
+  end
+
   # Static node/runtime information, useful for version and environment checks.
   get "/api/v1/info" do
     info = %{
@@ -393,6 +406,16 @@ defmodule AdminApi.Router do
       {:ok, info} -> info
       _ -> %{}
     end
+  end
+
+  # Query read-cache stats, or an empty map if the cache is unavailable.
+  defp safe_query_cache_stats do
+    case Query.Cache.stats() do
+      {:ok, stats} -> stats
+      _ -> %{}
+    end
+  catch
+    :exit, _ -> %{}
   end
 
   # WAL runtime summary plus aggregate on-disk size and compaction status.

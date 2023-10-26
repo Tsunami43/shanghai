@@ -72,6 +72,17 @@ defmodule AdminApi.RouterTest do
     assert "POST /api/v1/compaction" in body["endpoints"]
   end
 
+  test "GET /api/v1/config reports effective runtime configuration" do
+    conn = get("/api/v1/config")
+    assert conn.status == 200
+
+    body = json(conn)
+    assert Map.has_key?(body, "cache")
+    assert Map.has_key?(body["cache"], "max_size")
+    assert Map.has_key?(body, "compaction")
+    assert is_integer(body["admin_port"])
+  end
+
   test "GET /api/v1/info reports version and runtime details" do
     conn = get("/api/v1/info")
     assert conn.status == 200
