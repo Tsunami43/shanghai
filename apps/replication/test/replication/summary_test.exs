@@ -28,6 +28,7 @@ defmodule Replication.SummaryTest do
     assert summary.replicas == 3
     assert is_integer(summary.lagging)
     assert is_integer(summary.stale)
+    assert is_boolean(summary.healthy)
   end
 
   test "healthy?/0 is true with no lagging or stale replicas" do

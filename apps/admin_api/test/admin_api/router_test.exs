@@ -171,6 +171,7 @@ defmodule AdminApi.RouterTest do
     assert is_integer(body["summary"]["replicas"])
     assert is_integer(body["summary"]["lagging"])
     assert is_integer(body["summary"]["stale"])
+    assert is_boolean(body["summary"]["healthy"])
   end
 
   test "GET /api/v1/kv counts stored keys, with an optional prefix filter" do

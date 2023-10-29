@@ -47,8 +47,10 @@ defmodule Shanghaictl.Commands.Replicas do
   def summary_line(nil), do: nil
 
   def summary_line(summary) when is_map(summary) do
+    health = if Map.get(summary, "healthy"), do: "healthy", else: "degraded"
+
     "Summary: #{summary["groups"]} group(s), #{summary["replicas"]} replica(s), " <>
-      "#{summary["lagging"]} lagging, #{summary["stale"]} stale"
+      "#{summary["lagging"]} lagging, #{summary["stale"]} stale (#{health})"
   end
 
   defp display_replicas(replicas) when is_list(replicas) do

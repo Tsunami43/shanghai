@@ -52,11 +52,15 @@ defmodule Replication do
         acc + map_size(Map.get(group, :replicas, %{}))
       end)
 
+    lagging = length(get_lagging_replicas())
+    stale = length(get_stale_replicas())
+
     %{
       groups: length(groups),
       replicas: replica_count,
-      lagging: length(get_lagging_replicas()),
-      stale: length(get_stale_replicas())
+      lagging: lagging,
+      stale: stale,
+      healthy: lagging == 0 and stale == 0
     }
   end
 

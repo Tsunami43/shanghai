@@ -273,10 +273,16 @@ defmodule ShanghaictlTest do
 
   describe "Replicas.summary_line/1" do
     test "renders the aggregate counts" do
-      summary = %{"groups" => 2, "replicas" => 3, "lagging" => 1, "stale" => 0}
+      summary = %{
+        "groups" => 2,
+        "replicas" => 3,
+        "lagging" => 1,
+        "stale" => 0,
+        "healthy" => false
+      }
 
       assert Replicas.summary_line(summary) ==
-               "Summary: 2 group(s), 3 replica(s), 1 lagging, 0 stale"
+               "Summary: 2 group(s), 3 replica(s), 1 lagging, 0 stale (degraded)"
     end
 
     test "is nil when absent" do
