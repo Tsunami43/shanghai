@@ -1195,6 +1195,17 @@ Show node version and runtime details (from the `/api/v1/info` endpoint).
 shanghaictl info [--admin-url URL] [--format json]
 ```
 
+---
+
+### shanghaictl config
+
+Show the node's effective runtime configuration (from `/api/v1/config`).
+
+**Usage:**
+```bash
+shanghaictl config [--admin-url URL] [--format json]
+```
+
 **Example:**
 ```bash
 $ shanghaictl info
