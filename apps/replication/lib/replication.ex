@@ -59,4 +59,12 @@ defmodule Replication do
       stale: length(get_stale_replicas())
     }
   end
+
+  @doc """
+  Returns `true` when replication is healthy: no lagging and no stale replicas.
+  """
+  @spec healthy?() :: boolean()
+  def healthy? do
+    get_lagging_replicas() == [] and get_stale_replicas() == []
+  end
 end
