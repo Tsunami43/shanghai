@@ -54,6 +54,7 @@ defmodule AdminApi.Router do
         "/ready",
         "/metrics",
         "/api/v1/info",
+        "/api/v1/config",
         "/api/v1/status",
         "/api/v1/nodes",
         "/api/v1/nodes/:id",

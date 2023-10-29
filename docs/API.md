@@ -840,6 +840,27 @@ curl http://localhost:9090/api/v1/info
 
 ---
 
+### GET /config
+
+Get the node's effective runtime configuration (useful for verifying a
+deployment).
+
+**Request:**
+```bash
+curl http://localhost:9090/api/v1/config
+```
+
+**Response:**
+```json
+{
+  "cache": { "max_size": 10000, "ttl_ms": null },
+  "compaction": { "running": true, "enabled": true, "interval_ms": 3600000 },
+  "admin_port": 9090
+}
+```
+
+---
+
 ### GET /status
 
 Get cluster status.
