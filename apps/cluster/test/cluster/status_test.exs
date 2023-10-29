@@ -25,6 +25,7 @@ defmodule Cluster.StatusTest do
     assert is_boolean(before.quorum_available)
     assert Cluster.quorum_available?() == before.quorum_available
     assert is_integer(before.quorum_size)
+    assert is_boolean(Cluster.healthy?())
 
     id = NodeId.new("status-test-#{:rand.uniform(999_999)}")
     :ok = Cluster.join(Node.new(id, "localhost", 4321))

@@ -105,6 +105,15 @@ defmodule Cluster do
   def quorum_available?, do: State.quorum_available?(cluster_state())
 
   @doc """
+  Returns `true` when the cluster is healthy: no `:down` and no `:suspect` nodes.
+  """
+  @spec healthy?() :: boolean()
+  def healthy? do
+    cluster = cluster_state()
+    State.status_count(cluster, :down) == 0 and State.status_count(cluster, :suspect) == 0
+  end
+
+  @doc """
   Returns a concise cluster status summary: the local node id, the total node
   count, per-status counts, and whether quorum is available.
   """
