@@ -8,6 +8,7 @@ defmodule Shanghaictl do
 
   alias Shanghaictl.Commands.{
     Compact,
+    Config,
     Health,
     Info,
     Kv,
@@ -33,7 +34,8 @@ defmodule Shanghaictl do
           :help
           | :version
           | {:status | :replicas | :metrics | :node_join | :node_leave | :shutdown, [String.t()]}
-          | {:health | :info | :compact | :node_get | :kv_get | :kv_count | :kv_keys, [String.t()]}
+          | {:health | :info | :config | :compact, [String.t()]}
+          | {:node_get | :kv_get | :kv_count | :kv_keys, [String.t()]}
           | {:snapshot_create | :snapshot_list, [String.t()]}
           | {:unknown, [String.t()]}
 
@@ -56,6 +58,7 @@ defmodule Shanghaictl do
   def parse(["health" | opts]), do: {:health, opts}
   def parse(["info" | opts]), do: {:info, opts}
   def parse(["compact" | opts]), do: {:compact, opts}
+  def parse(["config" | opts]), do: {:config, opts}
   def parse(["snapshot", "create" | opts]), do: {:snapshot_create, opts}
   def parse(["snapshot", "list" | opts]), do: {:snapshot_list, opts}
   def parse(["replicas" | opts]), do: {:replicas, opts}
@@ -82,6 +85,7 @@ defmodule Shanghaictl do
       status            Show cluster status and node health
       health            Show node readiness and subsystem checks
       info              Show node version and runtime details
+      config            Show effective runtime configuration
       replicas          Show replication groups and their status
       metrics           Show performance and operational metrics
       node join <id>    Add a node to the cluster
@@ -109,6 +113,10 @@ defmodule Shanghaictl do
 
   defp execute({:info, opts}) do
     Info.run(opts)
+  end
+
+  defp execute({:config, opts}) do
+    Config.run(opts)
   end
 
   defp execute({:compact, opts}) do

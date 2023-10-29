@@ -1,7 +1,7 @@
 defmodule ShanghaictlTest do
   use ExUnit.Case, async: true
 
-  alias Shanghaictl.Commands.{Health, Info, Metrics, Replicas, Snapshot, Status}
+  alias Shanghaictl.Commands.{Config, Health, Info, Metrics, Replicas, Snapshot, Status}
   alias Shanghaictl.Options
 
   doctest Shanghaictl
@@ -24,6 +24,7 @@ defmodule ShanghaictlTest do
       assert Shanghaictl.parse(["health"]) == {:health, []}
       assert Shanghaictl.parse(["info"]) == {:info, []}
       assert Shanghaictl.parse(["compact"]) == {:compact, []}
+      assert Shanghaictl.parse(["config"]) == {:config, []}
       assert Shanghaictl.parse(["snapshot", "list"]) == {:snapshot_list, []}
       assert Shanghaictl.parse(["snapshot", "create"]) == {:snapshot_create, []}
     end
@@ -222,6 +223,23 @@ defmodule ShanghaictlTest do
       assert Options.admin_url([]) == "http://env:9090"
       # An explicit flag still wins over the env var.
       assert Options.admin_url(["--admin-url", "http://flag:1"]) == "http://flag:1"
+    end
+  end
+
+  describe "Config.config_lines/1" do
+    test "renders cache, compaction and port settings" do
+      config = %{
+        "admin_port" => 9090,
+        "cache" => %{"max_size" => 10_000, "ttl_ms" => nil},
+        "compaction" => %{"running" => true, "enabled" => true}
+      }
+
+      joined = config |> Config.config_lines() |> Enum.join("\n")
+
+      assert joined =~ "Admin Port: 9090"
+      assert joined =~ "Max Size: 10000"
+      assert joined =~ "TTL: none"
+      assert joined =~ "Running: true"
     end
   end
 
