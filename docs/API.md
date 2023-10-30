@@ -840,6 +840,28 @@ curl http://localhost:9090/api/v1/info
 
 ---
 
+### GET /health (v1)
+
+Semantic system health across subsystems. Returns `503` when unhealthy.
+
+**Request:**
+```bash
+curl http://localhost:9090/api/v1/health
+```
+
+**Response (200):**
+```json
+{
+  "healthy": true,
+  "checks": { "cluster": true, "replication": true, "query": true, "storage": true }
+}
+```
+
+> Distinct from the top-level `GET /health` (liveness) and `GET /ready`
+> (readiness); this reports semantic subsystem health.
+
+---
+
 ### GET /config
 
 Get the node's effective runtime configuration (useful for verifying a
