@@ -57,6 +57,33 @@ follow semantic versioning.
   `metrics`/`replicas` output.
 - **Prometheus**: query cache/latency, WAL log length/segments/entries/bytes,
   snapshot count, and store key-count/memory gauges.
+- **Even more Query operations**: `rename/2`, `copy/2`, `swap/2` (atomic key
+  moves), `get_and_update/2` (Access-style), `delete_if/2` (conditional delete),
+  and `decrement/2`. Bulk mutations batch cache invalidation via
+  `Query.Cache.invalidate_many/1`.
+- **Health predicates**: `Cluster.healthy?/0`, `Replication.healthy?/0`,
+  `Admin.healthy?/0`, `Cluster.State.quorum_size/1`, and a `healthy` flag in the
+  replication summary.
+- **Admin API**: `GET /api/v1/health` (semantic subsystem health),
+  `/api/v1/config` (effective config), `/api/v1/keys` (prefix listing),
+  `POST /api/v1/snapshots` and `POST /api/v1/compaction` (maintenance triggers),
+  a `GET /api/v1` endpoint catalog, and JSON 404s.
+- **CLI**: `config`, `snapshot list|create`, `compact`, `kv keys` commands;
+  `SHANGHAI_ADMIN_URL` env-var resolution; query error counts in `metrics`.
+- **Observability**: per-operation query error counts, compaction-run
+  aggregation, `MetricsReporter.reset/0`, and typespecs plus emitter smoke tests
+  for `Observability.Metrics`.
+- **Storage**: `append!/1`, `wal_stats/0`, `list_snapshots/0`,
+  `compaction_status/0`, `create_snapshot/0`, and `trigger_compaction/0`.
+
+### Fixed (this cycle)
+- `Query.delete_prefix/1` scanned the default store table instead of the target
+  instance's table, breaking it for non-default `Query.Store` instances.
+- `Query.decrement/2` emitted an `:increment` telemetry op instead of
+  `:decrement`.
+- `/health` now sets the `application/json` content-type; unknown routes return
+  a JSON 404. The WAL `Storage.WAL.Writer.append!/1` referenced by the docs is
+  now implemented.
 - **WAL batched-fsync foundation**: `Storage.WAL.Segment.append_entry_no_sync/2`
   and `sync/1`, letting a batch amortize one fsync over many writes.
 - **Introspection helpers**: `Cluster.status/0` (node counts by status) and the
