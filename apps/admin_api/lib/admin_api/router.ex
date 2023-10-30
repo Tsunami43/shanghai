@@ -70,6 +70,19 @@ defmodule AdminApi.Router do
     })
   end
 
+  # Semantic system health across subsystems. Returns 503 when unhealthy.
+  get "/api/v1/health" do
+    checks = %{
+      cluster: safe_bool(fn -> Cluster.healthy?() end),
+      replication: safe_bool(fn -> Replication.healthy?() end),
+      query: process_alive?(Query.Store),
+      storage: process_alive?(Storage.WAL.SegmentManager)
+    }
+
+    healthy = Enum.all?(Map.values(checks))
+    send_json(conn, if(healthy, do: 200, else: 503), %{healthy: healthy, checks: checks})
+  end
+
   # Effective runtime configuration, useful for verifying a deployment.
   get "/api/v1/config" do
     cache = safe_query_cache_stats()
@@ -382,6 +395,13 @@ defmodule AdminApi.Router do
   end
 
   defp process_alive?(name), do: is_pid(Process.whereis(name))
+
+  # Evaluates a boolean check, treating a crash/exit as `false`.
+  defp safe_bool(fun) do
+    fun.() == true
+  catch
+    :exit, _ -> false
+  end
 
   # Parses a positive integer limit from a query string, falling back to default.
   defp parse_limit(nil, default), do: default

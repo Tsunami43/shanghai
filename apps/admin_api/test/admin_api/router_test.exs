@@ -72,6 +72,18 @@ defmodule AdminApi.RouterTest do
     assert "POST /api/v1/compaction" in body["endpoints"]
   end
 
+  test "GET /api/v1/health reports semantic subsystem health" do
+    conn = get("/api/v1/health")
+    assert conn.status in [200, 503]
+
+    body = json(conn)
+    assert is_boolean(body["healthy"])
+    assert is_boolean(body["checks"]["cluster"])
+    assert is_boolean(body["checks"]["replication"])
+    assert is_boolean(body["checks"]["query"])
+    assert is_boolean(body["checks"]["storage"])
+  end
+
   test "GET /api/v1/config reports effective runtime configuration" do
     conn = get("/api/v1/config")
     assert conn.status == 200
