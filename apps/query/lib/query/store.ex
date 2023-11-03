@@ -290,6 +290,14 @@ defmodule Query.Store do
   @spec transact(GenServer.server(), [tuple()]) :: {:ok, :committed} | {:error, term()}
   def transact(server \\ __MODULE__, ops), do: GenServer.call(server, {:transact, ops})
 
+  @doc """
+  Durably removes every key, persisting a `:clear` record to the WAL so the empty
+  state survives a restart. Returns `{:ok, :cleared}`. Unlike `reset/1`, this is
+  a real (durable) operation, not a test affordance.
+  """
+  @spec clear(GenServer.server()) :: {:ok, :cleared} | {:error, term()}
+  def clear(server \\ __MODULE__), do: GenServer.call(server, :clear_all)
+
   @doc "Returns runtime information about the store."
   @spec info(GenServer.server()) :: {:ok, map()}
   def info(server \\ __MODULE__), do: GenServer.call(server, :info)
@@ -638,6 +646,17 @@ defmodule Query.Store do
     {:reply, :ok, state}
   end
 
+  def handle_call(:clear_all, _from, state) do
+    case append(state, %{op: :clear}) do
+      :ok ->
+        :ets.delete_all_objects(state.table)
+        {:reply, {:ok, :cleared}, state}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
+  end
+
   ## Internal helpers
 
   defp lookup(table, key) do
@@ -722,6 +741,8 @@ defmodule Query.Store do
     do: :ets.insert(table, {key, value})
 
   defp apply_record(table, %{op: :delete, key: key}), do: :ets.delete(table, key)
+
+  defp apply_record(table, %{op: :clear}), do: :ets.delete_all_objects(table)
 
   defp apply_record(table, %{op: :txn, ops: ops}),
     do: Enum.each(ops, &apply_txn_op(table, &1))

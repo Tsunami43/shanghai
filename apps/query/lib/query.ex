@@ -581,6 +581,20 @@ defmodule Query do
   @spec count_prefix(binary()) :: non_neg_integer()
   defdelegate count_prefix(prefix), to: Query.Store
 
+  @doc """
+  Durably removes every key from the store and flushes the cache. Returns
+  `{:ok, :cleared}`. The empty state is persisted to the WAL, so it survives a
+  restart.
+  """
+  @spec clear() :: {:ok, :cleared} | {:error, term()}
+  def clear do
+    measure(:clear, fn ->
+      result = Query.Store.clear()
+      if match?({:ok, _}, result), do: Query.Cache.clear()
+      result
+    end)
+  end
+
   @doc "Returns every stored key."
   @spec keys() :: [term()]
   defdelegate keys(), to: Query.Store
