@@ -25,6 +25,7 @@ defmodule Query.Store do
       %{op: :put, key: key, value: value}
       %{op: :delete, key: key}
       %{op: :txn, ops: [{:write, k, v} | {:delete, k}]}
+      %{op: :clear}
 
   A transaction is a single WAL record, which makes it atomic on a single node:
   either all of its operations survive a crash, or none do.

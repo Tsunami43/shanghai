@@ -67,6 +67,7 @@ Query.exists?("user:1")                         #=> true
 Query.count_prefix("user:")                     #=> 3
 Query.keys()                                    #=> ["user:1", ...]
 Query.count()                                   #=> 42
+Query.clear()                                   #=> {:ok, :cleared}  (durable, survives restart)
 Query.info()                                    #=> {:ok, %{store: %{durable:, recovered:, size:}, cache: %{...}}}
 ```
 
