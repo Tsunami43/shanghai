@@ -125,6 +125,26 @@ defmodule Query.StoreTest do
     :ok = GenServer.stop(store_b)
   end
 
+  test "a durable clear survives recovery" do
+    {:ok, store_a} = Query.Store.start_link(name: :store_ca, table: :qs_test_ca)
+
+    {:ok, :written} = Query.Store.put(store_a, "old:1", 1)
+    {:ok, :written} = Query.Store.put(store_a, "old:2", 2)
+    {:ok, :cleared} = Query.Store.clear(store_a)
+    {:ok, :written} = Query.Store.put(store_a, "new:1", 3)
+
+    :ok = GenServer.stop(store_a)
+
+    {:ok, store_b} = Query.Store.start_link(name: :store_cb, table: :qs_test_cb)
+
+    # Keys written before the clear are gone; the post-clear key remains.
+    assert {:error, :not_found} = Query.Store.get(store_b, "old:1")
+    assert {:error, :not_found} = Query.Store.get(store_b, "old:2")
+    assert {:ok, 3} = Query.Store.get(store_b, "new:1")
+
+    :ok = GenServer.stop(store_b)
+  end
+
   # Starts a process, tolerating the case where it is already running.
   defp ensure_started(fun) do
     case fun.() do
