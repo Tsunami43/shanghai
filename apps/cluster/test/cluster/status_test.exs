@@ -46,6 +46,9 @@ defmodule Cluster.StatusTest do
 
     assert Cluster.member?(id)
     assert Enum.any?(Cluster.up_nodes(), &(&1.id == id))
+    assert is_list(Cluster.down_nodes())
+    assert is_list(Cluster.suspect_nodes())
+    refute Enum.any?(Cluster.down_nodes(), &(&1.id == id))
 
     :ok = Cluster.leave(id)
     refute Cluster.member?(id)

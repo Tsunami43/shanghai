@@ -59,6 +59,14 @@ defmodule Cluster do
   @spec up_nodes() :: [Node.t()]
   def up_nodes, do: Enum.filter(nodes(), &Node.up?/1)
 
+  @doc "Returns the nodes currently marked `:down`."
+  @spec down_nodes() :: [Node.t()]
+  def down_nodes, do: Enum.filter(nodes(), &Node.down?/1)
+
+  @doc "Returns the nodes currently marked `:suspect`."
+  @spec suspect_nodes() :: [Node.t()]
+  def suspect_nodes, do: Enum.filter(nodes(), &Node.suspect?/1)
+
   @doc """
   Requests a node to join the cluster.
   """
