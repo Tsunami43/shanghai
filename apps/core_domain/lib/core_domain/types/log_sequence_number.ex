@@ -67,6 +67,36 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def next(lsn), do: increment(lsn)
 
   @doc """
+  Returns the later (greater) of two LSNs.
+
+  ## Examples
+
+      iex> a = CoreDomain.Types.LogSequenceNumber.new(3)
+      iex> b = CoreDomain.Types.LogSequenceNumber.new(7)
+      iex> CoreDomain.Types.LogSequenceNumber.later(a, b).value
+      7
+  """
+  @spec later(t(), t()) :: t()
+  def later(%__MODULE__{value: a} = lsn_a, %__MODULE__{value: b} = lsn_b) do
+    if a >= b, do: lsn_a, else: lsn_b
+  end
+
+  @doc """
+  Returns the earlier (lesser) of two LSNs.
+
+  ## Examples
+
+      iex> a = CoreDomain.Types.LogSequenceNumber.new(3)
+      iex> b = CoreDomain.Types.LogSequenceNumber.new(7)
+      iex> CoreDomain.Types.LogSequenceNumber.earlier(a, b).value
+      3
+  """
+  @spec earlier(t(), t()) :: t()
+  def earlier(%__MODULE__{value: a} = lsn_a, %__MODULE__{value: b} = lsn_b) do
+    if a <= b, do: lsn_a, else: lsn_b
+  end
+
+  @doc """
   Advances an LSN by `n` positions (`n >= 0`).
 
   ## Examples

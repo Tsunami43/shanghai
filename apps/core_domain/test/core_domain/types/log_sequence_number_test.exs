@@ -29,4 +29,15 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.advance(LSN.new(10), 0) == LSN.new(10)
     assert LSN.advance(LSN.new(10), 5) == LSN.new(15)
   end
+
+  test "later/2 and earlier/2 pick the greater/lesser LSN" do
+    a = LSN.new(3)
+    b = LSN.new(7)
+
+    assert LSN.later(a, b) == b
+    assert LSN.later(b, a) == b
+    assert LSN.earlier(a, b) == a
+    assert LSN.earlier(b, a) == a
+    assert LSN.later(a, a) == a
+  end
 end
