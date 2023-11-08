@@ -40,4 +40,9 @@ defmodule CoreDomain.Entities.LogEntryTest do
     refute LogEntry.older_than?(entry(2), entry(1))
     refute LogEntry.older_than?(entry(3), entry(3))
   end
+
+  test "same_lsn?/2 is true only for equal LSNs" do
+    assert LogEntry.same_lsn?(entry(4), entry(4))
+    refute LogEntry.same_lsn?(entry(4), entry(5))
+  end
 end

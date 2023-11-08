@@ -50,4 +50,8 @@ defmodule CoreDomain.Entities.LogEntry do
   @doc "Returns `true` when `entry` has a strictly lower LSN than `other`."
   @spec older_than?(t(), t()) :: boolean()
   def older_than?(entry, other), do: compare(entry, other) == :lt
+
+  @doc "Returns `true` when two entries share the same LSN."
+  @spec same_lsn?(t(), t()) :: boolean()
+  def same_lsn?(entry, other), do: compare(entry, other) == :eq
 end
