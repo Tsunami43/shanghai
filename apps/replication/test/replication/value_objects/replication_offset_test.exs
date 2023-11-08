@@ -83,4 +83,16 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
       assert ReplicationOffset.lag(offset, offset) == 0
     end
   end
+
+  describe "later/2 and earlier/2" do
+    test "pick the greater/lesser offset" do
+      a = ReplicationOffset.new(5)
+      b = ReplicationOffset.new(15)
+
+      assert ReplicationOffset.later(a, b) == b
+      assert ReplicationOffset.later(b, a) == b
+      assert ReplicationOffset.earlier(a, b) == a
+      assert ReplicationOffset.earlier(b, a) == a
+    end
+  end
 end

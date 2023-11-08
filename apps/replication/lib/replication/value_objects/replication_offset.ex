@@ -66,6 +66,18 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     compare(offset1, offset2) == :lt
   end
 
+  @doc "Returns the later (greater) of two offsets."
+  @spec later(t(), t()) :: t()
+  def later(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do
+    if a >= b, do: off_a, else: off_b
+  end
+
+  @doc "Returns the earlier (lesser) of two offsets."
+  @spec earlier(t(), t()) :: t()
+  def earlier(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do
+    if a <= b, do: off_a, else: off_b
+  end
+
   @doc """
   Calculates the lag (difference) between two offsets.
   """
