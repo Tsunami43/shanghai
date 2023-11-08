@@ -60,4 +60,17 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   def stronger_than?(:strong, :causal), do: true
   def stronger_than?(:causal, :eventual), do: true
   def stronger_than?(_, _), do: false
+
+  @doc """
+  Returns the stronger of two consistency levels.
+
+  ## Examples
+
+      iex> CoreDomain.ValueObjects.ConsistencyLevel.stronger(:eventual, :strong)
+      :strong
+  """
+  @spec stronger(t(), t()) :: t()
+  def stronger(a, b) do
+    if stronger_than?(b, a), do: b, else: a
+  end
 end

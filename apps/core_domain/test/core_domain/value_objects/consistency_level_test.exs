@@ -48,4 +48,13 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       refute ConsistencyLevel.stronger_than?(:eventual, :strong)
     end
   end
+
+  describe "stronger/2" do
+    test "returns the stronger level regardless of argument order" do
+      assert ConsistencyLevel.stronger(:eventual, :strong) == :strong
+      assert ConsistencyLevel.stronger(:strong, :eventual) == :strong
+      assert ConsistencyLevel.stronger(:causal, :eventual) == :causal
+      assert ConsistencyLevel.stronger(:strong, :strong) == :strong
+    end
+  end
 end
