@@ -95,4 +95,11 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
       assert ReplicationOffset.earlier(b, a) == a
     end
   end
+
+  describe "to_integer/1" do
+    test "returns the raw value" do
+      assert ReplicationOffset.to_integer(ReplicationOffset.new(7)) == 7
+      assert ReplicationOffset.to_integer(ReplicationOffset.zero()) == 0
+    end
+  end
 end

@@ -66,6 +66,10 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     compare(offset1, offset2) == :lt
   end
 
+  @doc "Returns the raw integer value of an offset."
+  @spec to_integer(t()) :: non_neg_integer()
+  def to_integer(%__MODULE__{value: value}), do: value
+
   @doc "Returns the later (greater) of two offsets."
   @spec later(t(), t()) :: t()
   def later(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do
