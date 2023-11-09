@@ -28,6 +28,15 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.has_capability?(md, :replication)
   end
 
+  test "capabilities/1 returns a sorted list" do
+    md =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:storage)
+      |> NodeMetadata.add_capability(:query)
+
+    assert NodeMetadata.capabilities(md) == [:query, :storage]
+  end
+
   test "remove_capability drops a capability (idempotent)" do
     md = NodeMetadata.new() |> NodeMetadata.add_capability(:storage)
 

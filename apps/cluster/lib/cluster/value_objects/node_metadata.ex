@@ -71,6 +71,12 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   end
 
   @doc """
+  Returns the capabilities as a sorted list.
+  """
+  @spec capabilities(t()) :: [atom()]
+  def capabilities(%__MODULE__{capabilities: caps}), do: caps |> MapSet.to_list() |> Enum.sort()
+
+  @doc """
   Adds or updates a tag.
   """
   @spec put_tag(t(), atom() | String.t(), any()) :: t()
