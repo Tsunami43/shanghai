@@ -37,6 +37,17 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.capabilities(md) == [:query, :storage]
   end
 
+  test "has_all_capabilities?/2 checks for every required capability" do
+    md =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:storage)
+      |> NodeMetadata.add_capability(:query)
+
+    assert NodeMetadata.has_all_capabilities?(md, [:storage, :query])
+    assert NodeMetadata.has_all_capabilities?(md, [])
+    refute NodeMetadata.has_all_capabilities?(md, [:storage, :replication])
+  end
+
   test "remove_capability drops a capability (idempotent)" do
     md = NodeMetadata.new() |> NodeMetadata.add_capability(:storage)
 

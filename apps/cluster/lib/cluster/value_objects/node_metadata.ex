@@ -77,6 +77,14 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   def capabilities(%__MODULE__{capabilities: caps}), do: caps |> MapSet.to_list() |> Enum.sort()
 
   @doc """
+  Returns `true` when the metadata has all the given capabilities.
+  """
+  @spec has_all_capabilities?(t(), [atom()]) :: boolean()
+  def has_all_capabilities?(%__MODULE__{capabilities: caps}, required) when is_list(required) do
+    Enum.all?(required, &MapSet.member?(caps, &1))
+  end
+
+  @doc """
   Adds or updates a tag.
   """
   @spec put_tag(t(), atom() | String.t(), any()) :: t()
