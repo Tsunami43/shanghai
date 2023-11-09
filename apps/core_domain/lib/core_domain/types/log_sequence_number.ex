@@ -67,6 +67,17 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def next(lsn), do: increment(lsn)
 
   @doc """
+  Returns the raw integer value of an LSN.
+
+  ## Examples
+
+      iex> CoreDomain.Types.LogSequenceNumber.to_integer(CoreDomain.Types.LogSequenceNumber.new(9))
+      9
+  """
+  @spec to_integer(t()) :: non_neg_integer()
+  def to_integer(%__MODULE__{value: value}), do: value
+
+  @doc """
   Returns the later (greater) of two LSNs.
 
   ## Examples

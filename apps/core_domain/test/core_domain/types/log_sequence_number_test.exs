@@ -40,4 +40,9 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.earlier(b, a) == a
     assert LSN.later(a, a) == a
   end
+
+  test "to_integer/1 returns the raw value" do
+    assert LSN.to_integer(LSN.new(9)) == 9
+    assert LSN.to_integer(LSN.zero()) == 0
+  end
 end
