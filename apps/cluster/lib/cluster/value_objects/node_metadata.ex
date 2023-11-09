@@ -62,6 +62,15 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   end
 
   @doc """
+  Removes a capability from the metadata (idempotent).
+  """
+  @spec remove_capability(t(), atom()) :: t()
+  def remove_capability(%__MODULE__{capabilities: caps} = metadata, capability)
+      when is_atom(capability) do
+    %{metadata | capabilities: MapSet.delete(caps, capability)}
+  end
+
+  @doc """
   Adds or updates a tag.
   """
   @spec put_tag(t(), atom() | String.t(), any()) :: t()

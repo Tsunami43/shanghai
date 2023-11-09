@@ -28,6 +28,17 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.has_capability?(md, :replication)
   end
 
+  test "remove_capability drops a capability (idempotent)" do
+    md = NodeMetadata.new() |> NodeMetadata.add_capability(:storage)
+
+    md = NodeMetadata.remove_capability(md, :storage)
+    refute NodeMetadata.has_capability?(md, :storage)
+
+    # Removing an absent capability is a no-op.
+    md = NodeMetadata.remove_capability(md, :storage)
+    refute NodeMetadata.has_capability?(md, :storage)
+  end
+
   test "tags can be set and read with a default" do
     md = NodeMetadata.new() |> NodeMetadata.put_tag(:zone, "a")
 
