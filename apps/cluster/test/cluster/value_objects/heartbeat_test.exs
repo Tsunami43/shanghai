@@ -85,4 +85,16 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert updated.metrics == %{cpu: 0.8}
     end
   end
+
+  describe "newer_than?/2" do
+    test "compares by sequence number" do
+      node_id = NodeId.new("node1")
+      first = Heartbeat.new(node_id, 1)
+      second = Heartbeat.new(node_id, 2)
+
+      assert Heartbeat.newer_than?(second, first)
+      refute Heartbeat.newer_than?(first, second)
+      refute Heartbeat.newer_than?(first, first)
+    end
+  end
 end

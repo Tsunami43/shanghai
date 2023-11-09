@@ -58,6 +58,10 @@ defmodule Cluster.ValueObjects.Heartbeat do
     DateTime.diff(DateTime.utc_now(), timestamp, :millisecond)
   end
 
+  @doc "Returns `true` when `a` has a higher sequence number than `b`."
+  @spec newer_than?(t(), t()) :: boolean()
+  def newer_than?(%__MODULE__{sequence: a}, %__MODULE__{sequence: b}), do: a > b
+
   @doc """
   Adds health metrics to the heartbeat.
   """
