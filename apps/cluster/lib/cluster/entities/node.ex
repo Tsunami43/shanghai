@@ -116,6 +116,11 @@ defmodule Cluster.Entities.Node do
   @spec address(t()) :: String.t()
   def address(%__MODULE__{host: host, port: port}), do: "#{host}:#{port}"
 
+  @doc "Returns `true` when the node is not `:up` (`:down` or `:suspect`)."
+  @spec unavailable?(t()) :: boolean()
+  def unavailable?(%__MODULE__{status: :up}), do: false
+  def unavailable?(%__MODULE__{}), do: true
+
   @doc """
   Returns the Erlang node name for this node.
   """

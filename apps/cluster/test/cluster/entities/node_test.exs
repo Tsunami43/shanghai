@@ -136,4 +136,13 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.address(node) == "10.0.0.1:4000"
     end
   end
+
+  describe "unavailable?/1" do
+    test "is false when up and true otherwise" do
+      node = Node.new(NodeId.new("n"), "localhost", 4000)
+      refute Node.unavailable?(node)
+      assert Node.unavailable?(Node.mark_down(node))
+      assert Node.unavailable?(Node.mark_suspect(node))
+    end
+  end
 end
