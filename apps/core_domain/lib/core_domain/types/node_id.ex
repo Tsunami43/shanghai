@@ -41,6 +41,12 @@ defmodule CoreDomain.Types.NodeId do
   def equal?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a == b
 
   @doc """
+  Returns `true` when `value` is a non-empty binary suitable for a NodeId.
+  """
+  @spec valid?(term()) :: boolean()
+  def valid?(value), do: is_binary(value) and value != ""
+
+  @doc """
   Returns the underlying string value of a NodeId.
 
   ## Examples

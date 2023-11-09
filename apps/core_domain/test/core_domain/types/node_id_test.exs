@@ -26,4 +26,11 @@ defmodule CoreDomain.Types.NodeIdTest do
   test "to_string/1 returns the underlying value" do
     assert NodeId.to_string(NodeId.new("node-9")) == "node-9"
   end
+
+  test "valid?/1 accepts non-empty binaries and rejects others" do
+    assert NodeId.valid?("node-1")
+    refute NodeId.valid?("")
+    refute NodeId.valid?(nil)
+    refute NodeId.valid?(123)
+  end
 end
