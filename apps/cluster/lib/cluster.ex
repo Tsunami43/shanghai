@@ -68,6 +68,13 @@ defmodule Cluster do
   def suspect_nodes, do: Enum.filter(nodes(), &Node.suspect?/1)
 
   @doc """
+  Returns the health ratio of the cluster: the fraction of nodes that are `:up`
+  (0.0..1.0). See `Cluster.State.health_ratio/1`.
+  """
+  @spec health_ratio() :: float()
+  def health_ratio, do: State.health_ratio(cluster_state())
+
+  @doc """
   Requests a node to join the cluster.
   """
   @spec join(Node.t()) :: :ok | {:error, atom()}
