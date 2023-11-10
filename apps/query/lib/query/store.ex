@@ -136,7 +136,8 @@ defmodule Query.Store do
   - `:limit` - return at most this many pairs (from the start of the sorted set)
   """
   @spec scan(binary(), keyword()) :: [{binary(), term()}]
-  def scan(prefix, opts \\ []) when is_binary(prefix), do: scan_table(@default_table, prefix, opts)
+  def scan(prefix, opts \\ []) when is_binary(prefix),
+    do: scan_table(@default_table, prefix, opts)
 
   # Prefix scan against a specific ETS table (the default store or a named
   # instance's table). Sorted by key; honors an optional `:limit`.

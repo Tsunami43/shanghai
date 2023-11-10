@@ -50,11 +50,15 @@ defmodule Observability.MetricsTest do
 
   test "compaction_completed emits a compaction event" do
     Metrics.compaction_completed(10, 100, 40, ["s"])
-    assert_receive {:telemetry, [:shanghai, :storage, :compaction, :complete], %{duration_ms: 10}, _}
+
+    assert_receive {:telemetry, [:shanghai, :storage, :compaction, :complete], %{duration_ms: 10},
+                    _}
   end
 
   test "query_operation_completed emits a query event" do
     Metrics.query_operation_completed(:read, 0.2, :ok)
-    assert_receive {:telemetry, [:shanghai, :query, :operation], _, %{operation: :read, result: :ok}}
+
+    assert_receive {:telemetry, [:shanghai, :query, :operation], _,
+                    %{operation: :read, result: :ok}}
   end
 end

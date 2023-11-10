@@ -85,6 +85,14 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   end
 
   @doc """
+  Returns `true` when the metadata has any of the given capabilities.
+  """
+  @spec has_any_capability?(t(), [atom()]) :: boolean()
+  def has_any_capability?(%__MODULE__{capabilities: caps}, candidates) when is_list(candidates) do
+    Enum.any?(candidates, &MapSet.member?(caps, &1))
+  end
+
+  @doc """
   Adds or updates a tag.
   """
   @spec put_tag(t(), atom() | String.t(), any()) :: t()

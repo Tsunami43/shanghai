@@ -33,7 +33,9 @@ defmodule Replication.SummaryTest do
 
   test "healthy?/0 is true with no lagging or stale replicas" do
     assert is_boolean(Replication.healthy?())
-    assert Replication.healthy?() == (Replication.summary().lagging == 0 and
-                                        Replication.summary().stale == 0)
+
+    assert Replication.healthy?() ==
+             (Replication.summary().lagging == 0 and
+                Replication.summary().stale == 0)
   end
 end
