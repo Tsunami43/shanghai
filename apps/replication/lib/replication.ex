@@ -71,4 +71,14 @@ defmodule Replication do
   def healthy? do
     get_lagging_replicas() == [] and get_stale_replicas() == []
   end
+
+  @doc """
+  Returns the total number of tracked replicas across all replication groups.
+  """
+  @spec replica_count() :: non_neg_integer()
+  def replica_count do
+    Enum.reduce(all_groups(), 0, fn group, acc ->
+      acc + map_size(Map.get(group, :replicas, %{}))
+    end)
+  end
 end

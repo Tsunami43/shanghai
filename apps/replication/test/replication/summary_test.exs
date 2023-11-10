@@ -31,6 +31,14 @@ defmodule Replication.SummaryTest do
     assert is_boolean(summary.healthy)
   end
 
+  test "replica_count/0 counts tracked replicas across groups" do
+    Monitor.record_leader_offset("rc1", ReplicationOffset.new(10))
+    Monitor.record_follower_offset("rc1", NodeId.new("rc-f1"), ReplicationOffset.new(9))
+    Monitor.record_follower_offset("rc1", NodeId.new("rc-f2"), ReplicationOffset.new(8))
+
+    assert Replication.replica_count() >= 2
+  end
+
   test "healthy?/0 is true with no lagging or stale replicas" do
     assert is_boolean(Replication.healthy?())
 
