@@ -206,6 +206,23 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "health_ratio/1" do
+    test "is 0.0 for an empty cluster and 1.0 when all up" do
+      assert State.health_ratio(State.new(NodeId.new("local"))) == 0.0
+
+      cluster =
+        Enum.reduce(1..2, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("h#{i}"), "localhost", 4000 + i))
+          next
+        end)
+
+      assert State.health_ratio(cluster) == 1.0
+
+      {:ok, one_down} = State.mark_node_down(cluster, NodeId.new("h1"), :timeout)
+      assert State.health_ratio(one_down) == 0.5
+    end
+  end
+
   describe "quorum_size/1" do
     test "is zero for an empty cluster and the majority otherwise" do
       assert State.quorum_size(State.new(NodeId.new("local"))) == 0

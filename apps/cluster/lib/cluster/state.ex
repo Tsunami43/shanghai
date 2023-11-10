@@ -221,6 +221,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the health ratio: the fraction of nodes that are `:up` (0.0..1.0).
+  Returns `0.0` for an empty cluster.
+  """
+  @spec health_ratio(t()) :: float()
+  def health_ratio(%__MODULE__{} = cluster) do
+    case node_count(cluster) do
+      0 -> 0.0
+      total -> status_count(cluster, :up) / total
+    end
+  end
+
+  @doc """
   Returns all pending events and clears the event list.
   """
   @spec take_events(t()) :: {[struct()], t()}
