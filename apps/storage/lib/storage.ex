@@ -153,6 +153,20 @@ defmodule Storage do
     end
   end
 
+  @doc """
+  Returns the average number of bytes per active WAL segment, or `0` when there
+  are no segments.
+  """
+  @spec avg_segment_bytes() :: non_neg_integer()
+  def avg_segment_bytes do
+    stats = wal_stats()
+
+    case stats.segments do
+      0 -> 0
+      n -> div(stats.bytes, n)
+    end
+  end
+
   # The next LSN the Writer will assign, or 0 when it is not running.
   defp current_lsn do
     case Process.whereis(Writer) && Writer.info() do

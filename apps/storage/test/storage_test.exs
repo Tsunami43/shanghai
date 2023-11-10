@@ -18,6 +18,11 @@ defmodule StorageTest do
     assert info.snapshots >= 0
   end
 
+  test "avg_segment_bytes/0 is a non-negative integer" do
+    assert is_integer(Storage.avg_segment_bytes())
+    assert Storage.avg_segment_bytes() >= 0
+  end
+
   test "list_snapshots/0 is [] when the snapshot manager is not running" do
     refute is_pid(Process.whereis(Storage.Snapshot.Manager))
     assert Storage.list_snapshots() == []
