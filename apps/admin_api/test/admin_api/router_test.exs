@@ -115,6 +115,7 @@ defmodule AdminApi.RouterTest do
     assert is_binary(body["local_node_id"])
     assert is_boolean(body["quorum_available"])
     assert is_integer(body["quorum_size"])
+    assert is_number(body["health_ratio"])
     assert is_integer(body["node_count"])
     assert is_integer(body["nodes_up"])
     assert is_integer(body["timestamp"])
