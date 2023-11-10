@@ -81,4 +81,10 @@ defmodule Replication do
       acc + map_size(Map.get(group, :replicas, %{}))
     end)
   end
+
+  @doc """
+  Returns the number of replication groups.
+  """
+  @spec group_count() :: non_neg_integer()
+  def group_count, do: length(all_groups())
 end
