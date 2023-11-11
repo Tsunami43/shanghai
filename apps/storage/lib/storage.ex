@@ -167,6 +167,13 @@ defmodule Storage do
     end
   end
 
+  @doc """
+  Returns `true` when the storage subsystem is durable (the WAL `Writer` is
+  running), i.e. mutations are persisted rather than in-memory only.
+  """
+  @spec durable?() :: boolean()
+  def durable?, do: is_pid(Process.whereis(Writer))
+
   # The next LSN the Writer will assign, or 0 when it is not running.
   defp current_lsn do
     case Process.whereis(Writer) && Writer.info() do

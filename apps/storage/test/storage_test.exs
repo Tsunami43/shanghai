@@ -18,6 +18,10 @@ defmodule StorageTest do
     assert info.snapshots >= 0
   end
 
+  test "durable?/0 reflects whether the WAL Writer is running" do
+    assert Storage.durable?() == is_pid(Process.whereis(Storage.WAL.Writer))
+  end
+
   test "avg_segment_bytes/0 is a non-negative integer" do
     assert is_integer(Storage.avg_segment_bytes())
     assert Storage.avg_segment_bytes() >= 0
