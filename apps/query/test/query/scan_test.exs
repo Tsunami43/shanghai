@@ -45,6 +45,14 @@ defmodule Query.ScanTest do
     assert Enum.sort(Query.keys()) == ["a", "b"]
   end
 
+  test "empty?/0 reflects whether the store has keys" do
+    assert Query.empty?()
+    {:ok, :written} = Query.write("k", 1)
+    refute Query.empty?()
+    {:ok, :deleted} = Query.delete("k")
+    assert Query.empty?()
+  end
+
   test "deleted keys drop out of scan/keys" do
     {:ok, :written} = Query.write("p:1", 1)
     {:ok, :written} = Query.write("p:2", 2)

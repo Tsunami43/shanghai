@@ -603,6 +603,12 @@ defmodule Query do
   @spec count() :: non_neg_integer()
   defdelegate count(), to: Query.Store
 
+  @doc """
+  Returns `true` when the store is empty (no keys).
+  """
+  @spec empty?() :: boolean()
+  def empty?, do: Query.Store.count() == 0
+
   # Validates the requested consistency level, if any was provided. Accepts both
   # atoms and strings (e.g. `"eventual"` from an HTTP query parameter) via a
   # safe parse that never creates new atoms.
