@@ -18,4 +18,8 @@ defmodule Admin do
   @doc "Returns `true` when every subsystem is healthy. See `Admin.Health.healthy?/0`."
   @spec healthy?() :: boolean()
   defdelegate healthy?(), to: Admin.Health
+
+  @doc "Returns the subsystems whose health check is failing. See `Admin.Health.unhealthy_subsystems/0`."
+  @spec unhealthy_subsystems() :: [atom()]
+  defdelegate unhealthy_subsystems(), to: Admin.Health
 end

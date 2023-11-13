@@ -44,6 +44,7 @@ defmodule AdminTest do
     test "reflect a fully healthy system" do
       assert Admin.healthy?()
       assert Admin.Health.unhealthy_subsystems() == []
+      assert Admin.unhealthy_subsystems() == []
     end
   end
 end
