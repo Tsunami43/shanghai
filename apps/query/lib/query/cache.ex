@@ -93,6 +93,14 @@ defmodule Query.Cache do
   @spec stats() :: {:ok, map()}
   def stats, do: GenServer.call(__MODULE__, :stats)
 
+  @doc "Returns the number of entries currently cached."
+  @spec size() :: non_neg_integer()
+  def size do
+    :ets.info(@table, :size) || 0
+  rescue
+    ArgumentError -> 0
+  end
+
   ## Server callbacks
 
   @impl true

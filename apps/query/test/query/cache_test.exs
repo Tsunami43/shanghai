@@ -19,6 +19,13 @@ defmodule Query.CacheTest do
       assert {:ok, "v"} = Query.Cache.get("c:1")
     end
 
+    test "size/0 reflects the number of cached entries" do
+      assert Query.Cache.size() == 0
+      :ok = Query.Cache.put("s:1", 1)
+      :ok = Query.Cache.put("s:2", 2)
+      assert Query.Cache.size() == 2
+    end
+
     test "invalidate removes an entry synchronously" do
       :ok = Query.Cache.put("c:2", "v")
       :ok = Query.Cache.invalidate("c:2")
