@@ -23,6 +23,10 @@ defmodule Observability do
   @spec new_correlation_id() :: String.t()
   defdelegate new_correlation_id(), to: StructuredLogger
 
+  @doc "Returns the current correlation id, or `nil` when none is set."
+  @spec correlation_id() :: String.t() | nil
+  defdelegate correlation_id(), to: StructuredLogger, as: :get_correlation_id
+
   @doc """
   Returns the current correlation id, creating and storing one if absent
   (get-or-create).

@@ -17,6 +17,13 @@ defmodule ObservabilityTest do
     assert id =~ ~r/^[0-9a-f]+$/
   end
 
+  test "correlation_id/0 reflects the current process correlation id" do
+    Process.delete(:correlation_id)
+    assert Observability.correlation_id() == nil
+    id = Observability.ensure_correlation_id()
+    assert Observability.correlation_id() == id
+  end
+
   test "ensure_correlation_id/0 returns a stable id within the process" do
     Process.delete(:correlation_id)
     id = Observability.ensure_correlation_id()
