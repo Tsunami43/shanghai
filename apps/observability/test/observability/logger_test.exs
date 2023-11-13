@@ -16,6 +16,12 @@ defmodule Observability.LoggerTest do
     assert Log.get_correlation_id() == "abc"
   end
 
+  test "clear_correlation_id removes it" do
+    Log.put_correlation_id("abc")
+    assert Log.clear_correlation_id() == :ok
+    assert Log.get_correlation_id() == nil
+  end
+
   test "with_correlation_id sets it during the function and clears it afterwards" do
     assert Log.get_correlation_id() == nil
 

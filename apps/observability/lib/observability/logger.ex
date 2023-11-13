@@ -51,6 +51,15 @@ defmodule Observability.Logger do
   end
 
   @doc """
+  Clears the correlation ID from the process dictionary.
+  """
+  @spec clear_correlation_id() :: :ok
+  def clear_correlation_id do
+    Process.delete(@correlation_id_key)
+    :ok
+  end
+
+  @doc """
   Sets the correlation ID in the process dictionary.
   """
   def put_correlation_id(correlation_id) do
