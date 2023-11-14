@@ -34,6 +34,18 @@ defmodule Admin.Health do
     if Enum.all?(Map.values(checks)), do: :healthy, else: :degraded
   end
 
+  @doc """
+  Returns the fraction of subsystem checks that pass (0.0..1.0). Returns `1.0`
+  for an empty checks map.
+  """
+  @spec health_ratio(checks()) :: float()
+  def health_ratio(checks) when map_size(checks) == 0, do: 1.0
+
+  def health_ratio(checks) do
+    up = checks |> Map.values() |> Enum.count(& &1)
+    up / map_size(checks)
+  end
+
   @doc "Returns `true` when every subsystem check passes."
   @spec healthy?() :: boolean()
   def healthy?, do: check().status == :healthy

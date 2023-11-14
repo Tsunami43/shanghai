@@ -27,6 +27,15 @@ defmodule AdminTest do
     end
   end
 
+  describe "health_ratio/1" do
+    test "is the fraction of passing checks" do
+      assert Admin.Health.health_ratio(%{}) == 1.0
+      assert Admin.Health.health_ratio(%{a: true, b: true}) == 1.0
+      assert Admin.Health.health_ratio(%{a: true, b: false}) == 0.5
+      assert Admin.Health.health_ratio(%{a: false, b: false}) == 0.0
+    end
+  end
+
   describe "health/0" do
     test "reports every subsystem and an overall status" do
       report = Admin.health()
