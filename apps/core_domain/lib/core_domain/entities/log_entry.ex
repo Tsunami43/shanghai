@@ -54,4 +54,12 @@ defmodule CoreDomain.Entities.LogEntry do
   @doc "Returns `true` when two entries share the same LSN."
   @spec same_lsn?(t(), t()) :: boolean()
   def same_lsn?(entry, other), do: compare(entry, other) == :eq
+
+  @doc """
+  Returns the entry with the higher LSN (the more recent of the two).
+  """
+  @spec latest(t(), t()) :: t()
+  def latest(entry, other) do
+    if compare(entry, other) == :lt, do: other, else: entry
+  end
 end

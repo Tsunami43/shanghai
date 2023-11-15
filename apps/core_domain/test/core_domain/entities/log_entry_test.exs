@@ -45,4 +45,11 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.same_lsn?(entry(4), entry(4))
     refute LogEntry.same_lsn?(entry(4), entry(5))
   end
+
+  test "latest/2 returns the entry with the higher LSN" do
+    a = entry(3)
+    b = entry(7)
+    assert LogEntry.latest(a, b) == b
+    assert LogEntry.latest(b, a) == b
+  end
 end
