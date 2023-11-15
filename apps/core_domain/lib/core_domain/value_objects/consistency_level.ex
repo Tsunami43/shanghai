@@ -73,4 +73,17 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   def stronger(a, b) do
     if stronger_than?(b, a), do: b, else: a
   end
+
+  @doc """
+  Returns the weaker of two consistency levels.
+
+  ## Examples
+
+      iex> CoreDomain.ValueObjects.ConsistencyLevel.weaker(:strong, :eventual)
+      :eventual
+  """
+  @spec weaker(t(), t()) :: t()
+  def weaker(a, b) do
+    if stronger_than?(a, b), do: b, else: a
+  end
 end

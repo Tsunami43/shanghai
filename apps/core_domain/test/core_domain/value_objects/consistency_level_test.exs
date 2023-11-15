@@ -57,4 +57,13 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       assert ConsistencyLevel.stronger(:strong, :strong) == :strong
     end
   end
+
+  describe "weaker/2" do
+    test "returns the weaker level regardless of argument order" do
+      assert ConsistencyLevel.weaker(:strong, :eventual) == :eventual
+      assert ConsistencyLevel.weaker(:eventual, :strong) == :eventual
+      assert ConsistencyLevel.weaker(:causal, :eventual) == :eventual
+      assert ConsistencyLevel.weaker(:strong, :strong) == :strong
+    end
+  end
 end
