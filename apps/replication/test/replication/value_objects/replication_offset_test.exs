@@ -102,4 +102,11 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
       assert ReplicationOffset.to_integer(ReplicationOffset.zero()) == 0
     end
   end
+
+  describe "equal?/2" do
+    test "compares offsets by value" do
+      assert ReplicationOffset.equal?(ReplicationOffset.new(5), ReplicationOffset.new(5))
+      refute ReplicationOffset.equal?(ReplicationOffset.new(5), ReplicationOffset.new(6))
+    end
+  end
 end

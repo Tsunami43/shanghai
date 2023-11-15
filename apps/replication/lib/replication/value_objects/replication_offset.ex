@@ -70,6 +70,10 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   @spec to_integer(t()) :: non_neg_integer()
   def to_integer(%__MODULE__{value: value}), do: value
 
+  @doc "Returns `true` when the two offsets are equal."
+  @spec equal?(t(), t()) :: boolean()
+  def equal?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a == b
+
   @doc "Returns the later (greater) of two offsets."
   @spec later(t(), t()) :: t()
   def later(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do
