@@ -62,4 +62,12 @@ defmodule CoreDomain.Entities.LogEntry do
   def latest(entry, other) do
     if compare(entry, other) == :lt, do: other, else: entry
   end
+
+  @doc """
+  Returns the entry with the lower LSN (the earlier of the two).
+  """
+  @spec earliest(t(), t()) :: t()
+  def earliest(entry, other) do
+    if compare(entry, other) == :gt, do: other, else: entry
+  end
 end

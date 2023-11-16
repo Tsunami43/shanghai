@@ -52,4 +52,11 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.latest(a, b) == b
     assert LogEntry.latest(b, a) == b
   end
+
+  test "earliest/2 returns the entry with the lower LSN" do
+    a = entry(3)
+    b = entry(7)
+    assert LogEntry.earliest(a, b) == a
+    assert LogEntry.earliest(b, a) == a
+  end
 end
