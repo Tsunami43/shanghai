@@ -122,6 +122,17 @@ defmodule Cluster.Entities.Node do
   def unavailable?(%__MODULE__{}), do: true
 
   @doc """
+  Returns the age of the node's last heartbeat in milliseconds, or `nil` when it
+  has never been seen.
+  """
+  @spec last_seen_age_ms(t()) :: non_neg_integer() | nil
+  def last_seen_age_ms(%__MODULE__{last_seen_at: nil}), do: nil
+
+  def last_seen_age_ms(%__MODULE__{last_seen_at: seen}) do
+    DateTime.diff(DateTime.utc_now(), seen, :millisecond)
+  end
+
+  @doc """
   Returns the Erlang node name for this node.
   """
   @spec erlang_node_name(t()) :: atom()

@@ -145,4 +145,15 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.unavailable?(Node.mark_suspect(node))
     end
   end
+
+  describe "last_seen_age_ms/1" do
+    test "is nil when never seen and a non-negative integer after touch" do
+      node = %{Node.new(NodeId.new("n"), "localhost", 4000) | last_seen_at: nil}
+      assert Node.last_seen_age_ms(node) == nil
+
+      touched = Node.touch(node)
+      age = Node.last_seen_age_ms(touched)
+      assert is_integer(age) and age >= 0
+    end
+  end
 end
