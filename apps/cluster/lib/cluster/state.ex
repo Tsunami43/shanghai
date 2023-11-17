@@ -161,6 +161,14 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the ids of all nodes in the cluster, sorted by their string value.
+  """
+  @spec node_ids(t()) :: [NodeId.t()]
+  def node_ids(%__MODULE__{nodes: nodes}) do
+    nodes |> Map.keys() |> Enum.sort_by(& &1.value)
+  end
+
+  @doc """
   Returns all nodes in the cluster.
   """
   @spec all_nodes(t()) :: [Node.t()]

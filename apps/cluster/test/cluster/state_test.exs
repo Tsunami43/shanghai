@@ -151,6 +151,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "node_ids/1" do
+    test "returns sorted node ids" do
+      cluster =
+        State.new(NodeId.new("local"))
+
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("nb"), "localhost", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("na"), "localhost", 4002))
+
+      assert State.node_ids(cluster) == [NodeId.new("na"), NodeId.new("nb")]
+    end
+  end
+
   describe "all_nodes/1" do
     test "returns all nodes in the cluster" do
       local_id = NodeId.new("local")
