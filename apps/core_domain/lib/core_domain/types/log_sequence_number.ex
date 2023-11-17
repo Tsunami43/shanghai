@@ -120,4 +120,19 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def advance(%__MODULE__{value: v}, n) when is_integer(n) and n >= 0 do
     new(v + n)
   end
+
+  @doc """
+  Returns the number of positions `b` is ahead of `a` (`b - a`), or `0` when `a`
+  is at or ahead of `b`.
+
+  ## Examples
+
+      iex> a = CoreDomain.Types.LogSequenceNumber.new(3)
+      iex> b = CoreDomain.Types.LogSequenceNumber.new(10)
+      iex> CoreDomain.Types.LogSequenceNumber.distance(a, b)
+      7
+  """
+  @spec distance(t(), t()) :: non_neg_integer()
+  def distance(%__MODULE__{value: a}, %__MODULE__{value: b}) when b >= a, do: b - a
+  def distance(%__MODULE__{}, %__MODULE__{}), do: 0
 end

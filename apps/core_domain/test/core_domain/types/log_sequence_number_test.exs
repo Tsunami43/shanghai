@@ -45,4 +45,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.to_integer(LSN.new(9)) == 9
     assert LSN.to_integer(LSN.zero()) == 0
   end
+
+  test "distance/2 measures how far b is ahead of a" do
+    assert LSN.distance(LSN.new(3), LSN.new(10)) == 7
+    assert LSN.distance(LSN.new(10), LSN.new(3)) == 0
+    assert LSN.distance(LSN.new(5), LSN.new(5)) == 0
+  end
 end
