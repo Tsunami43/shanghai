@@ -63,6 +63,14 @@ defmodule Cluster.ValueObjects.Heartbeat do
   def newer_than?(%__MODULE__{sequence: a}, %__MODULE__{sequence: b}), do: a > b
 
   @doc """
+  Returns `true` when the heartbeat is stale: its age exceeds `timeout_ms`.
+  """
+  @spec stale?(t(), non_neg_integer()) :: boolean()
+  def stale?(%__MODULE__{} = heartbeat, timeout_ms) do
+    not fresh?(heartbeat, timeout_ms)
+  end
+
+  @doc """
   Adds health metrics to the heartbeat.
   """
   @spec with_metrics(t(), map()) :: t()

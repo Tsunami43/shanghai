@@ -97,4 +97,14 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       refute Heartbeat.newer_than?(first, first)
     end
   end
+
+  describe "stale?/2" do
+    test "is the inverse of fresh?" do
+      hb = Heartbeat.new(NodeId.new("node1"), 1)
+      refute Heartbeat.stale?(hb, 60_000)
+
+      old = %{hb | timestamp: DateTime.add(DateTime.utc_now(), -100, :second)}
+      assert Heartbeat.stale?(old, 1_000)
+    end
+  end
 end
