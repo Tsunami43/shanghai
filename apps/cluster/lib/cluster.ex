@@ -40,6 +40,10 @@ defmodule Cluster do
   @spec nodes() :: [Node.t()]
   defdelegate nodes(), to: Membership, as: :all_nodes
 
+  @doc "Returns the ids of all nodes, sorted. See `Cluster.State.node_ids/1`."
+  @spec node_ids() :: [NodeId.t()]
+  def node_ids, do: State.node_ids(cluster_state())
+
   @doc """
   Gets a specific node by ID.
   """
