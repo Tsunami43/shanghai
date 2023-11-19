@@ -581,6 +581,10 @@ defmodule Query do
   @spec count_prefix(binary()) :: non_neg_integer()
   defdelegate count_prefix(prefix), to: Query.Store
 
+  @doc "Returns `true` when at least one key starts with `prefix`."
+  @spec any_prefix?(binary()) :: boolean()
+  defdelegate any_prefix?(prefix), to: Query.Store
+
   @doc """
   Durably removes every key from the store and flushes the cache. Returns
   `{:ok, :cleared}`. The empty state is persisted to the WAL, so it survives a

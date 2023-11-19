@@ -127,6 +127,24 @@ defmodule Query.Store do
     ArgumentError -> 0
   end
 
+  @doc "Returns `true` when at least one key starts with `prefix`."
+  @spec any_prefix?(binary()) :: boolean()
+  def any_prefix?(prefix) when is_binary(prefix) do
+    reducer = fn
+      {key, _value}, _acc when is_binary(key) ->
+        if String.starts_with?(key, prefix), do: throw(:found), else: false
+
+      _entry, acc ->
+        acc
+    end
+
+    :ets.foldl(reducer, false, @default_table)
+  rescue
+    ArgumentError -> false
+  catch
+    :found -> true
+  end
+
   @doc """
   Returns `{key, value}` pairs whose (binary) key starts with `prefix`.
 

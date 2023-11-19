@@ -20,6 +20,15 @@ defmodule Query.ExistsTest do
     end
   end
 
+  describe "any_prefix?/1" do
+    test "reflects whether any key matches the prefix" do
+      refute Query.any_prefix?("e:")
+      {:ok, :written} = Query.write("e:1", 1)
+      assert Query.any_prefix?("e:")
+      refute Query.any_prefix?("nope")
+    end
+  end
+
   describe "count_prefix/1" do
     test "counts only the matching keys" do
       {:ok, :committed} = Query.mset(%{"e:1" => 1, "e:2" => 2, "other" => 3})
