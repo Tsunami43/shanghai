@@ -103,6 +103,24 @@ defmodule Query.Store do
     ArgumentError -> 0
   end
 
+  @doc "Returns the smallest stored key by term order, or `nil` when empty."
+  @spec min_key() :: term() | nil
+  def min_key do
+    case keys() do
+      [] -> nil
+      ks -> Enum.min(ks)
+    end
+  end
+
+  @doc "Returns the largest stored key by term order, or `nil` when empty."
+  @spec max_key() :: term() | nil
+  def max_key do
+    case keys() do
+      [] -> nil
+      ks -> Enum.max(ks)
+    end
+  end
+
   @doc "Returns `true` when `key` is present. Reads the ETS index directly."
   @spec exists?(term()) :: boolean()
   def exists?(key) do

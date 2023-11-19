@@ -45,6 +45,15 @@ defmodule Query.ScanTest do
     assert Enum.sort(Query.keys()) == ["a", "b"]
   end
 
+  test "min_key/0 and max_key/0 return the key extremes" do
+    assert Query.min_key() == nil
+    assert Query.max_key() == nil
+
+    {:ok, :committed} = Query.mset(%{"b" => 1, "a" => 2, "c" => 3})
+    assert Query.min_key() == "a"
+    assert Query.max_key() == "c"
+  end
+
   test "empty?/0 reflects whether the store has keys" do
     assert Query.empty?()
     {:ok, :written} = Query.write("k", 1)

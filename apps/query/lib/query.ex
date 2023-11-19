@@ -607,6 +607,14 @@ defmodule Query do
   @spec count() :: non_neg_integer()
   defdelegate count(), to: Query.Store
 
+  @doc "Returns the smallest stored key, or `nil` when empty."
+  @spec min_key() :: term() | nil
+  defdelegate min_key(), to: Query.Store
+
+  @doc "Returns the largest stored key, or `nil` when empty."
+  @spec max_key() :: term() | nil
+  defdelegate max_key(), to: Query.Store
+
   @doc """
   Returns `true` when the store is empty (no keys).
   """
