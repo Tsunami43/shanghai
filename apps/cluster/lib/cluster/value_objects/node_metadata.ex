@@ -100,6 +100,10 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec has_tag?(t(), atom() | String.t()) :: boolean()
   def has_tag?(%__MODULE__{tags: tags}, key), do: Map.has_key?(tags, key)
 
+  @doc "Returns the tag keys, sorted."
+  @spec tag_keys(t()) :: [atom() | String.t()]
+  def tag_keys(%__MODULE__{tags: tags}), do: tags |> Map.keys() |> Enum.sort()
+
   @doc """
   Adds or updates a tag.
   """
