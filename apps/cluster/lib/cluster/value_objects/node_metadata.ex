@@ -135,6 +135,12 @@ defmodule Cluster.ValueObjects.NodeMetadata do
     %{metadata | resources: Map.merge(resources, new_resources)}
   end
 
+  @doc "Returns a resource value by key, or `default` when absent."
+  @spec get_resource(t(), atom() | String.t(), any()) :: any()
+  def get_resource(%__MODULE__{resources: resources}, key, default \\ nil) do
+    Map.get(resources, key, default)
+  end
+
   @doc """
   Converts metadata to a map for serialization.
   """

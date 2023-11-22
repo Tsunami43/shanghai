@@ -48,6 +48,12 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.has_all_capabilities?(md, [:storage, :replication])
   end
 
+  test "get_resource/3 reads a resource or the default" do
+    md = NodeMetadata.new() |> NodeMetadata.update_resources(%{cpu: 8})
+    assert NodeMetadata.get_resource(md, :cpu) == 8
+    assert NodeMetadata.get_resource(md, :mem, 0) == 0
+  end
+
   test "delete_tag/2 removes a tag (idempotent)" do
     md = NodeMetadata.new() |> NodeMetadata.put_tag(:region, "eu")
     md = NodeMetadata.delete_tag(md, :region)
