@@ -104,6 +104,12 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec tag_keys(t()) :: [atom() | String.t()]
   def tag_keys(%__MODULE__{tags: tags}), do: tags |> Map.keys() |> Enum.sort()
 
+  @doc "Removes a tag by key (idempotent)."
+  @spec delete_tag(t(), atom() | String.t()) :: t()
+  def delete_tag(%__MODULE__{tags: tags} = metadata, key) do
+    %{metadata | tags: Map.delete(tags, key)}
+  end
+
   @doc """
   Adds or updates a tag.
   """

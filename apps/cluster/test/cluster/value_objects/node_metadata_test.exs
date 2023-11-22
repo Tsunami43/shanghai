@@ -48,6 +48,13 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.has_all_capabilities?(md, [:storage, :replication])
   end
 
+  test "delete_tag/2 removes a tag (idempotent)" do
+    md = NodeMetadata.new() |> NodeMetadata.put_tag(:region, "eu")
+    md = NodeMetadata.delete_tag(md, :region)
+    refute NodeMetadata.has_tag?(md, :region)
+    assert NodeMetadata.delete_tag(md, :region) == md
+  end
+
   test "tag_keys/1 returns sorted tag keys" do
     md =
       NodeMetadata.new()
