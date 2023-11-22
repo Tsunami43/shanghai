@@ -48,6 +48,12 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.has_all_capabilities?(md, [:storage, :replication])
   end
 
+  test "has_tag?/2 reflects whether a tag is set" do
+    md = NodeMetadata.new() |> NodeMetadata.put_tag(:region, "eu")
+    assert NodeMetadata.has_tag?(md, :region)
+    refute NodeMetadata.has_tag?(md, :zone)
+  end
+
   test "tag_count/1 counts the tags" do
     md =
       NodeMetadata.new()

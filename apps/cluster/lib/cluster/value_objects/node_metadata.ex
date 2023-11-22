@@ -96,6 +96,10 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec tag_count(t()) :: non_neg_integer()
   def tag_count(%__MODULE__{tags: tags}), do: map_size(tags)
 
+  @doc "Returns `true` when a tag with `key` is set."
+  @spec has_tag?(t(), atom() | String.t()) :: boolean()
+  def has_tag?(%__MODULE__{tags: tags}, key), do: Map.has_key?(tags, key)
+
   @doc """
   Adds or updates a tag.
   """
