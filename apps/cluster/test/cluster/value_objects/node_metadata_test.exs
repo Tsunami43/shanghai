@@ -48,6 +48,16 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.has_all_capabilities?(md, [:storage, :replication])
   end
 
+  test "tag_count/1 counts the tags" do
+    md =
+      NodeMetadata.new()
+      |> NodeMetadata.put_tag(:region, "eu")
+      |> NodeMetadata.put_tag(:zone, "a")
+
+    assert NodeMetadata.tag_count(md) == 2
+    assert NodeMetadata.tag_count(NodeMetadata.new()) == 0
+  end
+
   test "has_any_capability?/2 checks for at least one capability" do
     md = NodeMetadata.new() |> NodeMetadata.add_capability(:storage)
 

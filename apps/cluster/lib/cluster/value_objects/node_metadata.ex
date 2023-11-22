@@ -92,6 +92,10 @@ defmodule Cluster.ValueObjects.NodeMetadata do
     Enum.any?(candidates, &MapSet.member?(caps, &1))
   end
 
+  @doc "Returns the number of tags set on the metadata."
+  @spec tag_count(t()) :: non_neg_integer()
+  def tag_count(%__MODULE__{tags: tags}), do: map_size(tags)
+
   @doc """
   Adds or updates a tag.
   """
