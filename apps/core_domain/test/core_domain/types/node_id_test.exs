@@ -27,6 +27,12 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert NodeId.to_string(NodeId.new("node-9")) == "node-9"
   end
 
+  test "compare/2 orders by string value" do
+    assert NodeId.compare(NodeId.new("a"), NodeId.new("b")) == :lt
+    assert NodeId.compare(NodeId.new("b"), NodeId.new("a")) == :gt
+    assert NodeId.compare(NodeId.new("a"), NodeId.new("a")) == :eq
+  end
+
   test "valid?/1 accepts non-empty binaries and rejects others" do
     assert NodeId.valid?("node-1")
     refute NodeId.valid?("")

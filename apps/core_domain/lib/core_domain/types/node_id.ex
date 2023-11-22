@@ -56,4 +56,16 @@ defmodule CoreDomain.Types.NodeId do
   """
   @spec to_string(t()) :: String.t()
   def to_string(%__MODULE__{value: value}), do: value
+
+  @doc """
+  Compares two NodeIds by their string value. Returns `:lt`, `:eq`, or `:gt`.
+  """
+  @spec compare(t(), t()) :: :lt | :eq | :gt
+  def compare(%__MODULE__{value: a}, %__MODULE__{value: b}) do
+    cond do
+      a < b -> :lt
+      a > b -> :gt
+      true -> :eq
+    end
+  end
 end
