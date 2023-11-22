@@ -235,6 +235,17 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "status_summary/1" do
+    test "counts nodes per status" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "localhost", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "localhost", 4002))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n2"), :timeout)
+
+      assert State.status_summary(cluster) == %{up: 1, suspect: 0, down: 1}
+    end
+  end
+
   describe "quorum_size/1" do
     test "is zero for an empty cluster and the majority otherwise" do
       assert State.quorum_size(State.new(NodeId.new("local"))) == 0

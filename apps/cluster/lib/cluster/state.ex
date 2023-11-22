@@ -217,6 +217,22 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns a map of node counts per status: `%{up: n, suspect: n, down: n}`.
+  """
+  @spec status_summary(t()) :: %{
+          up: non_neg_integer(),
+          suspect: non_neg_integer(),
+          down: non_neg_integer()
+        }
+  def status_summary(%__MODULE__{} = cluster) do
+    %{
+      up: status_count(cluster, :up),
+      suspect: status_count(cluster, :suspect),
+      down: status_count(cluster, :down)
+    }
+  end
+
+  @doc """
   Returns true when a strict majority of the cluster's nodes are `:up` — the
   condition for serving quorum reads and writes. Always false for an empty
   cluster.
