@@ -135,6 +135,10 @@ defmodule Cluster.ValueObjects.NodeMetadata do
     %{metadata | resources: Map.merge(resources, new_resources)}
   end
 
+  @doc "Returns the resource keys, sorted."
+  @spec resource_keys(t()) :: [atom() | String.t()]
+  def resource_keys(%__MODULE__{resources: resources}), do: resources |> Map.keys() |> Enum.sort()
+
   @doc "Returns a resource value by key, or `default` when absent."
   @spec get_resource(t(), atom() | String.t(), any()) :: any()
   def get_resource(%__MODULE__{resources: resources}, key, default \\ nil) do

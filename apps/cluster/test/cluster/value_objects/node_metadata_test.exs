@@ -48,6 +48,12 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.has_all_capabilities?(md, [:storage, :replication])
   end
 
+  test "resource_keys/1 returns sorted keys" do
+    md = NodeMetadata.new() |> NodeMetadata.update_resources(%{mem: 16, cpu: 8})
+    assert NodeMetadata.resource_keys(md) == [:cpu, :mem]
+    assert NodeMetadata.resource_keys(NodeMetadata.new()) == []
+  end
+
   test "get_resource/3 reads a resource or the default" do
     md = NodeMetadata.new() |> NodeMetadata.update_resources(%{cpu: 8})
     assert NodeMetadata.get_resource(md, :cpu) == 8
