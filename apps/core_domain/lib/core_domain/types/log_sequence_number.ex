@@ -135,4 +135,18 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec distance(t(), t()) :: non_neg_integer()
   def distance(%__MODULE__{value: a}, %__MODULE__{value: b}) when b >= a, do: b - a
   def distance(%__MODULE__{}, %__MODULE__{}), do: 0
+
+  @doc """
+  Returns `true` when `lsn` is within the inclusive range `[low, high]`.
+
+  ## Examples
+
+      iex> alias CoreDomain.Types.LogSequenceNumber, as: LSN
+      iex> LSN.between?(LSN.new(5), LSN.new(1), LSN.new(10))
+      true
+  """
+  @spec between?(t(), t(), t()) :: boolean()
+  def between?(%__MODULE__{value: v}, %__MODULE__{value: low}, %__MODULE__{value: high}) do
+    v >= low and v <= high
+  end
 end

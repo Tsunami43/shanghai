@@ -51,4 +51,11 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.distance(LSN.new(10), LSN.new(3)) == 0
     assert LSN.distance(LSN.new(5), LSN.new(5)) == 0
   end
+
+  test "between?/3 checks inclusive range membership" do
+    assert LSN.between?(LSN.new(5), LSN.new(1), LSN.new(10))
+    assert LSN.between?(LSN.new(1), LSN.new(1), LSN.new(10))
+    assert LSN.between?(LSN.new(10), LSN.new(1), LSN.new(10))
+    refute LSN.between?(LSN.new(11), LSN.new(1), LSN.new(10))
+  end
 end
