@@ -91,6 +91,13 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     end
   end
 
+  describe "min_of/1" do
+    test "returns the smallest offset in the list" do
+      offsets = [ReplicationOffset.new(3), ReplicationOffset.new(9), ReplicationOffset.new(5)]
+      assert ReplicationOffset.min_of(offsets) == ReplicationOffset.new(3)
+    end
+  end
+
   describe "later/2 and earlier/2" do
     test "pick the greater/lesser offset" do
       a = ReplicationOffset.new(5)

@@ -95,6 +95,15 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     Enum.reduce(rest, first, &later/2)
   end
 
+  @doc """
+  Returns the smallest offset in a non-empty list (the slowest replica).
+  Raises when the list is empty.
+  """
+  @spec min_of([t(), ...]) :: t()
+  def min_of([first | rest]) do
+    Enum.reduce(rest, first, &earlier/2)
+  end
+
   @doc "Returns the earlier (lesser) of two offsets."
   @spec earlier(t(), t()) :: t()
   def earlier(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do
