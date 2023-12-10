@@ -109,4 +109,20 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
       refute ReplicationOffset.equal?(ReplicationOffset.new(5), ReplicationOffset.new(6))
     end
   end
+
+  describe "between?/3" do
+    test "checks inclusive range membership" do
+      assert ReplicationOffset.between?(
+               ReplicationOffset.new(5),
+               ReplicationOffset.new(1),
+               ReplicationOffset.new(10)
+             )
+
+      refute ReplicationOffset.between?(
+               ReplicationOffset.new(11),
+               ReplicationOffset.new(1),
+               ReplicationOffset.new(10)
+             )
+    end
+  end
 end

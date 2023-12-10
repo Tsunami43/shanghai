@@ -74,6 +74,12 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   @spec equal?(t(), t()) :: boolean()
   def equal?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a == b
 
+  @doc "Returns `true` when the offset is within the inclusive range `[low, high]`."
+  @spec between?(t(), t(), t()) :: boolean()
+  def between?(%__MODULE__{value: v}, %__MODULE__{value: low}, %__MODULE__{value: high}) do
+    v >= low and v <= high
+  end
+
   @doc "Returns the later (greater) of two offsets."
   @spec later(t(), t()) :: t()
   def later(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do
