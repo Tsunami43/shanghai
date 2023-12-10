@@ -86,6 +86,15 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     if a >= b, do: off_a, else: off_b
   end
 
+  @doc """
+  Returns the greatest offset in a non-empty list (the replication watermark).
+  Raises when the list is empty.
+  """
+  @spec max_of([t(), ...]) :: t()
+  def max_of([first | rest]) do
+    Enum.reduce(rest, first, &later/2)
+  end
+
   @doc "Returns the earlier (lesser) of two offsets."
   @spec earlier(t(), t()) :: t()
   def earlier(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do
