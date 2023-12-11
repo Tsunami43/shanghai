@@ -30,6 +30,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.advance(LSN.new(10), 5) == LSN.new(15)
   end
 
+  test "max_of/1 returns the greatest LSN in the list" do
+    assert LSN.max_of([LSN.new(3), LSN.new(9), LSN.new(5)]) == LSN.new(9)
+  end
+
   test "later/2 and earlier/2 pick the greater/lesser LSN" do
     a = LSN.new(3)
     b = LSN.new(7)

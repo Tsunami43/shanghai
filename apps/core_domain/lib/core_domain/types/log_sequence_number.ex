@@ -92,6 +92,10 @@ defmodule CoreDomain.Types.LogSequenceNumber do
     if a >= b, do: lsn_a, else: lsn_b
   end
 
+  @doc "Returns the greatest LSN in a non-empty list. Raises on an empty list."
+  @spec max_of([t(), ...]) :: t()
+  def max_of([first | rest]), do: Enum.reduce(rest, first, &later/2)
+
   @doc """
   Returns the earlier (lesser) of two LSNs.
 
