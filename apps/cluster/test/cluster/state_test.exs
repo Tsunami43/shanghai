@@ -235,6 +235,15 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "empty?/1" do
+    test "reflects whether the cluster has nodes" do
+      cluster = State.new(NodeId.new("local"))
+      assert State.empty?(cluster)
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "localhost", 4001))
+      refute State.empty?(cluster)
+    end
+  end
+
   describe "status_summary/1" do
     test "counts nodes per status" do
       cluster = State.new(NodeId.new("local"))

@@ -187,6 +187,12 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when the cluster has no member nodes.
+  """
+  @spec empty?(t()) :: boolean()
+  def empty?(%__MODULE__{nodes: nodes}), do: map_size(nodes) == 0
+
+  @doc """
   Returns the number of nodes in the cluster.
   """
   @spec node_count(t()) :: non_neg_integer()
