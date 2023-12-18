@@ -146,6 +146,21 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   end
 
   @doc """
+  Merges two metadata values: the union of capabilities, and the right-hand
+  tags/resources taking precedence on key conflicts. The version comes from the
+  right-hand metadata.
+  """
+  @spec merge(t(), t()) :: t()
+  def merge(%__MODULE__{} = left, %__MODULE__{} = right) do
+    %__MODULE__{
+      capabilities: MapSet.union(left.capabilities, right.capabilities),
+      tags: Map.merge(left.tags, right.tags),
+      resources: Map.merge(left.resources, right.resources),
+      version: right.version
+    }
+  end
+
+  @doc """
   Converts metadata to a map for serialization.
   """
   @spec to_map(t()) :: map()

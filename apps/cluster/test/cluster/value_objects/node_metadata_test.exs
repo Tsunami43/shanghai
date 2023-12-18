@@ -48,6 +48,26 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.has_all_capabilities?(md, [:storage, :replication])
   end
 
+  test "merge/2 unions capabilities and merges tags/resources" do
+    left =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:storage)
+      |> NodeMetadata.put_tag(:region, "eu")
+
+    right =
+      NodeMetadata.new(version: "2.0.0")
+      |> NodeMetadata.add_capability(:query)
+      |> NodeMetadata.put_tag(:region, "us")
+      |> NodeMetadata.update_resources(%{cpu: 8})
+
+    merged = NodeMetadata.merge(left, right)
+
+    assert NodeMetadata.capabilities(merged) == [:query, :storage]
+    assert NodeMetadata.get_tag(merged, :region) == "us"
+    assert NodeMetadata.get_resource(merged, :cpu) == 8
+    assert merged.version == "2.0.0"
+  end
+
   test "resource_keys/1 returns sorted keys" do
     md = NodeMetadata.new() |> NodeMetadata.update_resources(%{mem: 16, cpu: 8})
     assert NodeMetadata.resource_keys(md) == [:cpu, :mem]
