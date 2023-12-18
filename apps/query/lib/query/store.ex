@@ -175,6 +175,12 @@ defmodule Query.Store do
   def scan(prefix, opts \\ []) when is_binary(prefix),
     do: scan_table(@default_table, prefix, opts)
 
+  @doc "Returns the (binary) keys that start with `prefix`, sorted by key."
+  @spec keys_prefix(binary()) :: [binary()]
+  def keys_prefix(prefix) when is_binary(prefix) do
+    for {key, _value} <- scan_table(@default_table, prefix, []), do: key
+  end
+
   # Prefix scan against a specific ETS table (the default store or a named
   # instance's table). Sorted by key; honors an optional `:limit`.
   defp scan_table(table, prefix, opts) do

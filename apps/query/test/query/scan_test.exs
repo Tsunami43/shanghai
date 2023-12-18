@@ -45,6 +45,12 @@ defmodule Query.ScanTest do
     assert Enum.sort(Query.keys()) == ["a", "b"]
   end
 
+  test "keys_prefix/1 returns sorted matching keys" do
+    {:ok, :committed} = Query.mset(%{"u:2" => 2, "u:1" => 1, "x" => 9})
+    assert Query.keys_prefix("u:") == ["u:1", "u:2"]
+    assert Query.keys_prefix("nope") == []
+  end
+
   test "min_key/0 and max_key/0 return the key extremes" do
     assert Query.min_key() == nil
     assert Query.max_key() == nil
