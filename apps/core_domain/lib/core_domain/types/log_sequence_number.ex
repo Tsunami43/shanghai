@@ -96,6 +96,10 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec max_of([t(), ...]) :: t()
   def max_of([first | rest]), do: Enum.reduce(rest, first, &later/2)
 
+  @doc "Returns the smallest LSN in a non-empty list. Raises on an empty list."
+  @spec min_of([t(), ...]) :: t()
+  def min_of([first | rest]), do: Enum.reduce(rest, first, &earlier/2)
+
   @doc """
   Returns the earlier (lesser) of two LSNs.
 

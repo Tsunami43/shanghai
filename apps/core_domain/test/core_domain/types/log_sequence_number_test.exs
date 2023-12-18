@@ -34,6 +34,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.max_of([LSN.new(3), LSN.new(9), LSN.new(5)]) == LSN.new(9)
   end
 
+  test "min_of/1 returns the smallest LSN in the list" do
+    assert LSN.min_of([LSN.new(3), LSN.new(9), LSN.new(5)]) == LSN.new(3)
+  end
+
   test "later/2 and earlier/2 pick the greater/lesser LSN" do
     a = LSN.new(3)
     b = LSN.new(7)
