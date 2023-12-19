@@ -58,6 +58,12 @@ defmodule Storage do
     }
   end
 
+  @doc "Returns the ids of all active WAL segments, sorted ascending."
+  @spec segment_ids() :: [non_neg_integer()]
+  def segment_ids do
+    SegmentManager.list_segments() |> Enum.map(&elem(&1, 0)) |> Enum.sort()
+  end
+
   @doc """
   Aggregates on-disk WAL statistics across all active segments: the segment
   count, the total number of entries, and the total file size in bytes.

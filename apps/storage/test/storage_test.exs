@@ -22,6 +22,12 @@ defmodule StorageTest do
     assert Storage.durable?() == is_pid(Process.whereis(Storage.WAL.Writer))
   end
 
+  test "segment_ids/0 returns a sorted list" do
+    ids = Storage.segment_ids()
+    assert is_list(ids)
+    assert ids == Enum.sort(ids)
+  end
+
   test "avg_segment_bytes/0 is a non-negative integer" do
     assert is_integer(Storage.avg_segment_bytes())
     assert Storage.avg_segment_bytes() >= 0
