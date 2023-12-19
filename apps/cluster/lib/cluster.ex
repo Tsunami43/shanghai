@@ -44,6 +44,10 @@ defmodule Cluster do
   @spec node_ids() :: [NodeId.t()]
   def node_ids, do: State.node_ids(cluster_state())
 
+  @doc "Returns the `host:port` addresses of all nodes, sorted."
+  @spec node_addresses() :: [String.t()]
+  def node_addresses, do: State.node_addresses(cluster_state())
+
   @doc """
   Gets a specific node by ID.
   """
