@@ -45,6 +45,12 @@ defmodule Query.ScanTest do
     assert Enum.sort(Query.keys()) == ["a", "b"]
   end
 
+  test "values_prefix/1 returns values in key order" do
+    {:ok, :committed} = Query.mset(%{"u:2" => "b", "u:1" => "a", "x" => "z"})
+    assert Query.values_prefix("u:") == ["a", "b"]
+    assert Query.values_prefix("nope") == []
+  end
+
   test "keys_prefix/1 returns sorted matching keys" do
     {:ok, :committed} = Query.mset(%{"u:2" => 2, "u:1" => 1, "x" => 9})
     assert Query.keys_prefix("u:") == ["u:1", "u:2"]

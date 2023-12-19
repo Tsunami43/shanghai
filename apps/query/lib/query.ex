@@ -607,6 +607,10 @@ defmodule Query do
   @spec keys_prefix(binary()) :: [binary()]
   defdelegate keys_prefix(prefix), to: Query.Store
 
+  @doc "Returns the values whose key starts with `prefix`, in key order."
+  @spec values_prefix(binary()) :: [term()]
+  defdelegate values_prefix(prefix), to: Query.Store
+
   @doc "Returns the number of stored keys."
   @spec count() :: non_neg_integer()
   defdelegate count(), to: Query.Store
