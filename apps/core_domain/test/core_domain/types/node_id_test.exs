@@ -27,6 +27,11 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert NodeId.to_string(NodeId.new("node-9")) == "node-9"
   end
 
+  test "starts_with?/2 checks the id prefix" do
+    assert NodeId.starts_with?(NodeId.new("node-1"), "node")
+    refute NodeId.starts_with?(NodeId.new("node-1"), "x")
+  end
+
   test "compare/2 orders by string value" do
     assert NodeId.compare(NodeId.new("a"), NodeId.new("b")) == :lt
     assert NodeId.compare(NodeId.new("b"), NodeId.new("a")) == :gt

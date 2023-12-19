@@ -68,4 +68,10 @@ defmodule CoreDomain.Types.NodeId do
       true -> :eq
     end
   end
+
+  @doc "Returns `true` when the NodeId's value starts with `prefix`."
+  @spec starts_with?(t(), String.t()) :: boolean()
+  def starts_with?(%__MODULE__{value: value}, prefix) when is_binary(prefix) do
+    String.starts_with?(value, prefix)
+  end
 end
