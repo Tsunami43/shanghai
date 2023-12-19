@@ -169,6 +169,14 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the `host:port` addresses of all nodes, sorted.
+  """
+  @spec node_addresses(t()) :: [String.t()]
+  def node_addresses(%__MODULE__{nodes: nodes}) do
+    nodes |> Map.values() |> Enum.map(&Node.address/1) |> Enum.sort()
+  end
+
+  @doc """
   Returns all nodes in the cluster.
   """
   @spec all_nodes(t()) :: [Node.t()]

@@ -151,6 +151,16 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "node_addresses/1" do
+    test "returns sorted host:port addresses" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("nb"), "h2", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("na"), "h1", 4002))
+
+      assert State.node_addresses(cluster) == ["h1:4002", "h2:4001"]
+    end
+  end
+
   describe "node_ids/1" do
     test "returns sorted node ids" do
       cluster =
