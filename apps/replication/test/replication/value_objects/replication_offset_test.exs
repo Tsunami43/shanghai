@@ -124,6 +124,13 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     end
   end
 
+  describe "initial?/1" do
+    test "is true only for the zero offset" do
+      assert ReplicationOffset.initial?(ReplicationOffset.zero())
+      refute ReplicationOffset.initial?(ReplicationOffset.new(1))
+    end
+  end
+
   describe "between?/3" do
     test "checks inclusive range membership" do
       assert ReplicationOffset.between?(

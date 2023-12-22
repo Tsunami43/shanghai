@@ -80,6 +80,11 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     v >= low and v <= high
   end
 
+  @doc "Returns `true` when the offset is at the start of the log (value 0)."
+  @spec initial?(t()) :: boolean()
+  def initial?(%__MODULE__{value: 0}), do: true
+  def initial?(%__MODULE__{}), do: false
+
   @doc "Returns the later (greater) of two offsets."
   @spec later(t(), t()) :: t()
   def later(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do
