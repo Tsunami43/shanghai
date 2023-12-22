@@ -70,4 +70,8 @@ defmodule CoreDomain.Entities.LogEntry do
   def earliest(entry, other) do
     if compare(entry, other) == :gt, do: other, else: entry
   end
+
+  @doc "Returns `true` when the entry has no metadata."
+  @spec metadata_empty?(t()) :: boolean()
+  def metadata_empty?(%__MODULE__{metadata: metadata}), do: map_size(metadata) == 0
 end

@@ -53,6 +53,12 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.latest(b, a) == b
   end
 
+  test "metadata_empty?/1 reflects whether metadata is set" do
+    id = %NodeId{value: "n"}
+    assert LogEntry.metadata_empty?(LogEntry.new(LogSequenceNumber.new(1), "d", id))
+    refute LogEntry.metadata_empty?(LogEntry.new(LogSequenceNumber.new(1), "d", id, %{a: 1}))
+  end
+
   test "earliest/2 returns the entry with the lower LSN" do
     a = entry(3)
     b = entry(7)
