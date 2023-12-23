@@ -38,6 +38,11 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.min_of([LSN.new(3), LSN.new(9), LSN.new(5)]) == LSN.new(3)
   end
 
+  test "initial?/1 is true only for the zero LSN" do
+    assert LSN.initial?(LSN.zero())
+    refute LSN.initial?(LSN.new(1))
+  end
+
   test "later/2 and earlier/2 pick the greater/lesser LSN" do
     a = LSN.new(3)
     b = LSN.new(7)

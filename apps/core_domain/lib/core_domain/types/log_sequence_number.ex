@@ -100,6 +100,11 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec min_of([t(), ...]) :: t()
   def min_of([first | rest]), do: Enum.reduce(rest, first, &earlier/2)
 
+  @doc "Returns `true` when the LSN is the zero (initial) LSN."
+  @spec initial?(t()) :: boolean()
+  def initial?(%__MODULE__{value: 0}), do: true
+  def initial?(%__MODULE__{}), do: false
+
   @doc """
   Returns the earlier (lesser) of two LSNs.
 
