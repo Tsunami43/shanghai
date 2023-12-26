@@ -75,6 +75,29 @@ follow semantic versioning.
   for `Observability.Metrics`.
 - **Storage**: `append!/1`, `wal_stats/0`, `list_snapshots/0`,
   `compaction_status/0`, `create_snapshot/0`, and `trigger_compaction/0`.
+- **Value-object algebra**: ordering/utility helpers across the domain —
+  `LogSequenceNumber` (`later/2`, `earlier/2`, `to_integer/1`, `distance/2`,
+  `between?/3`, `min_of/1`, `max_of/1`, `initial?/1`), `ReplicationOffset`
+  (`to_integer/1`, `equal?/2`, `later/2`, `earlier/2`, `between?/3`, `min_of/1`,
+  `max_of/1`, `initial?/1`), `LogEntry` (`same_lsn?/2`, `latest/2`, `earliest/2`,
+  `metadata_empty?/1`), `NodeId` (`valid?/1`, `compare/2`, `starts_with?/2`),
+  and `ConsistencyLevel` (`parse/1`, `stronger/2`, `weaker/2`).
+- **Cluster/query introspection**: `Cluster.State` (`quorum_size/1`,
+  `health_ratio/1`, `status_summary/1`, `empty?/1`, `node_ids/1`,
+  `node_addresses/1`), `Cluster` facades (`health_ratio/0`, `node_ids/0`,
+  `node_addresses/0`, `down_nodes/0`, `suspect_nodes/0`), `Node`
+  (`unavailable?/1`, `last_seen_age_ms/1`), `Heartbeat` (`newer_than?/2`,
+  `stale?/2`), `NodeMetadata` (`capabilities/1`, `has_all_capabilities?/2`,
+  `has_any_capability?/2`, `remove_capability/2`, tag/resource helpers,
+  `merge/2`), and `Storage` (`durable?/0`, `avg_segment_bytes/0`,
+  `segment_ids/0`).
+- **More Query operations**: `clear/0` (durable, WAL `:clear` record),
+  `empty?/0`, `min_key/0`, `max_key/0`, `any_prefix?/1`, `keys_prefix/1`,
+  `values_prefix/1`; `Query.Cache.size/0`/`invalidate_many/1`;
+  `Observability` (`clear_correlation_id/0`, `correlation_id/0`,
+  `MetricsReporter.reset/0`); `Admin` (`unhealthy_subsystems/0`,
+  `Health.health_ratio/1`); `Replication` (`replica_count/0`, `group_count/0`,
+  `healthy?/0`).
 
 ### Fixed (this cycle)
 - `Query.delete_prefix/1` scanned the default store table instead of the target
