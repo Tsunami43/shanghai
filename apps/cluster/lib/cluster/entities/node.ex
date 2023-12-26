@@ -121,6 +121,11 @@ defmodule Cluster.Entities.Node do
   def unavailable?(%__MODULE__{status: :up}), do: false
   def unavailable?(%__MODULE__{}), do: true
 
+  @doc "Returns `true` when the node has never reported a heartbeat."
+  @spec never_seen?(t()) :: boolean()
+  def never_seen?(%__MODULE__{last_seen_at: nil}), do: true
+  def never_seen?(%__MODULE__{}), do: false
+
   @doc """
   Returns the age of the node's last heartbeat in milliseconds, or `nil` when it
   has never been seen.

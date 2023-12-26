@@ -146,6 +146,14 @@ defmodule Cluster.Entities.NodeTest do
     end
   end
 
+  describe "never_seen?/1" do
+    test "is true until the node is touched" do
+      node = %{Node.new(NodeId.new("n"), "localhost", 4000) | last_seen_at: nil}
+      assert Node.never_seen?(node)
+      refute Node.never_seen?(Node.touch(node))
+    end
+  end
+
   describe "last_seen_age_ms/1" do
     test "is nil when never seen and a non-negative integer after touch" do
       node = %{Node.new(NodeId.new("n"), "localhost", 4000) | last_seen_at: nil}
