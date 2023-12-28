@@ -38,6 +38,12 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert NodeId.compare(NodeId.new("a"), NodeId.new("a")) == :eq
   end
 
+  test "short/2 truncates long ids and leaves short ones intact" do
+    assert NodeId.short(NodeId.new("abcdef0123456789"), 6) == "abcdef"
+    assert NodeId.short(NodeId.new("abc"), 6) == "abc"
+    assert String.length(NodeId.short(NodeId.generate())) == 8
+  end
+
   test "valid?/1 accepts non-empty binaries and rejects others" do
     assert NodeId.valid?("node-1")
     refute NodeId.valid?("")

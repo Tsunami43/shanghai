@@ -74,4 +74,20 @@ defmodule CoreDomain.Types.NodeId do
   def starts_with?(%__MODULE__{value: value}, prefix) when is_binary(prefix) do
     String.starts_with?(value, prefix)
   end
+
+  @doc """
+  Returns a shortened, display-friendly form of the id, keeping the first
+  `length` characters (default 8). Values already at or below `length` are
+  returned unchanged.
+
+  ## Examples
+
+      iex> CoreDomain.Types.NodeId.new("abcdef0123456789") |> CoreDomain.Types.NodeId.short(6)
+      "abcdef"
+  """
+  @spec short(t(), pos_integer()) :: String.t()
+  def short(%__MODULE__{value: value}, length \\ 8)
+      when is_integer(length) and length > 0 do
+    if String.length(value) <= length, do: value, else: String.slice(value, 0, length)
+  end
 end
