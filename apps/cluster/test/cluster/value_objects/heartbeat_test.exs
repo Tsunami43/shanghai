@@ -98,6 +98,29 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
     end
   end
 
+  describe "age_seconds/1" do
+    test "returns the age in whole seconds" do
+      hb = %{
+        Heartbeat.new(NodeId.new("node1"), 1)
+        | timestamp: DateTime.add(DateTime.utc_now(), -3, :second)
+      }
+
+      assert Heartbeat.age_seconds(hb) >= 3
+    end
+  end
+
+  describe "latest/2" do
+    test "returns the heartbeat with the higher sequence (ties to first)" do
+      node_id = NodeId.new("node1")
+      first = Heartbeat.new(node_id, 1)
+      second = Heartbeat.new(node_id, 2)
+
+      assert Heartbeat.latest(first, second) == second
+      assert Heartbeat.latest(second, first) == second
+      assert Heartbeat.latest(first, first) == first
+    end
+  end
+
   describe "stale?/2" do
     test "is the inverse of fresh?" do
       hb = Heartbeat.new(NodeId.new("node1"), 1)

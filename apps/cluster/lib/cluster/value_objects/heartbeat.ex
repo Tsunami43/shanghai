@@ -62,6 +62,20 @@ defmodule Cluster.ValueObjects.Heartbeat do
   @spec newer_than?(t(), t()) :: boolean()
   def newer_than?(%__MODULE__{sequence: a}, %__MODULE__{sequence: b}), do: a > b
 
+  @doc "Returns the age of the heartbeat in whole seconds."
+  @spec age_seconds(t()) :: non_neg_integer()
+  def age_seconds(%__MODULE__{timestamp: timestamp}) do
+    DateTime.diff(DateTime.utc_now(), timestamp, :second)
+  end
+
+  @doc """
+  Returns the heartbeat with the higher sequence number. Ties resolve to `a`.
+  """
+  @spec latest(t(), t()) :: t()
+  def latest(%__MODULE__{} = a, %__MODULE__{} = b) do
+    if b.sequence > a.sequence, do: b, else: a
+  end
+
   @doc """
   Returns `true` when the heartbeat is stale: its age exceeds `timeout_ms`.
   """
