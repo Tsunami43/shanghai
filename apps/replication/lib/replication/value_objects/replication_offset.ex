@@ -66,6 +66,18 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     compare(offset1, offset2) == :lt
   end
 
+  @doc "Returns `true` when this offset is ahead of (greater than) the other."
+  @spec ahead?(t(), t()) :: boolean()
+  def ahead?(%__MODULE__{} = offset1, %__MODULE__{} = offset2) do
+    compare(offset1, offset2) == :gt
+  end
+
+  @doc "Returns `true` when this offset has reached or passed `target`."
+  @spec caught_up?(t(), t()) :: boolean()
+  def caught_up?(%__MODULE__{value: current}, %__MODULE__{value: target}) do
+    current >= target
+  end
+
   @doc "Returns the raw integer value of an offset."
   @spec to_integer(t()) :: non_neg_integer()
   def to_integer(%__MODULE__{value: value}), do: value

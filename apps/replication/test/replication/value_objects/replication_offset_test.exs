@@ -146,4 +146,16 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
              )
     end
   end
+
+  test "ahead?/2 is true when strictly greater" do
+    assert ReplicationOffset.ahead?(ReplicationOffset.new(5), ReplicationOffset.new(3))
+    refute ReplicationOffset.ahead?(ReplicationOffset.new(3), ReplicationOffset.new(3))
+    refute ReplicationOffset.ahead?(ReplicationOffset.new(2), ReplicationOffset.new(3))
+  end
+
+  test "caught_up?/2 is true at or past the target" do
+    assert ReplicationOffset.caught_up?(ReplicationOffset.new(3), ReplicationOffset.new(3))
+    assert ReplicationOffset.caught_up?(ReplicationOffset.new(4), ReplicationOffset.new(3))
+    refute ReplicationOffset.caught_up?(ReplicationOffset.new(2), ReplicationOffset.new(3))
+  end
 end
