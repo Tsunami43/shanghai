@@ -81,4 +81,22 @@ defmodule QueryTest do
       assert {:error, :not_found} = Query.read("ok")
     end
   end
+
+  describe "to_map/0" do
+    test "returns the full key space as a map" do
+      assert Query.to_map() == %{}
+
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+
+      assert Query.to_map() == %{"a" => 1, "b" => 2}
+    end
+
+    test "reflects deletes" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.delete("a")
+
+      assert Query.to_map() == %{}
+    end
+  end
 end

@@ -103,6 +103,14 @@ defmodule Query.Store do
     ArgumentError -> 0
   end
 
+  @doc "Returns the entire store as a map of `key => value`."
+  @spec to_map() :: %{optional(term()) => term()}
+  def to_map do
+    @default_table |> :ets.tab2list() |> Map.new()
+  rescue
+    ArgumentError -> %{}
+  end
+
   @doc "Returns the smallest stored key by term order, or `nil` when empty."
   @spec min_key() :: term() | nil
   def min_key do
