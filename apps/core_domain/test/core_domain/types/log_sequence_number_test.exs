@@ -71,4 +71,15 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.between?(LSN.new(10), LSN.new(1), LSN.new(10))
     refute LSN.between?(LSN.new(11), LSN.new(1), LSN.new(10))
   end
+
+  test "predecessor/1 returns the prior LSN, nil at zero" do
+    assert LSN.predecessor(LSN.new(5)).value == 4
+    assert LSN.predecessor(LSN.zero()) == nil
+  end
+
+  test "contiguous?/2 detects an adjacent successor" do
+    assert LSN.contiguous?(LSN.new(4), LSN.new(5))
+    refute LSN.contiguous?(LSN.new(4), LSN.new(6))
+    refute LSN.contiguous?(LSN.new(4), LSN.new(4))
+  end
 end

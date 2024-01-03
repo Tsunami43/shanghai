@@ -67,6 +67,35 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def next(lsn), do: increment(lsn)
 
   @doc """
+  Returns the LSN immediately before this one, or `nil` for the zero LSN.
+
+  ## Examples
+
+      iex> CoreDomain.Types.LogSequenceNumber.predecessor(CoreDomain.Types.LogSequenceNumber.new(5)).value
+      4
+      iex> CoreDomain.Types.LogSequenceNumber.predecessor(CoreDomain.Types.LogSequenceNumber.zero())
+      nil
+  """
+  @spec predecessor(t()) :: t() | nil
+  def predecessor(%__MODULE__{value: 0}), do: nil
+  def predecessor(%__MODULE__{value: v}), do: new(v - 1)
+
+  @doc """
+  Returns `true` when `b` immediately follows `a` (`b == a + 1`), i.e. the two
+  LSNs are contiguous with no gap in the log.
+
+  ## Examples
+
+      iex> alias CoreDomain.Types.LogSequenceNumber, as: LSN
+      iex> LSN.contiguous?(LSN.new(4), LSN.new(5))
+      true
+      iex> LSN.contiguous?(LSN.new(4), LSN.new(6))
+      false
+  """
+  @spec contiguous?(t(), t()) :: boolean()
+  def contiguous?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: b == a + 1
+
+  @doc """
   Returns the raw integer value of an LSN.
 
   ## Examples
