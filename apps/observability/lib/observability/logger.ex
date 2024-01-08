@@ -101,6 +101,15 @@ defmodule Observability.Logger do
   end
 
   @doc """
+  Executes a function under a freshly generated correlation ID, restoring the
+  previous one afterwards. Returns `{correlation_id, result}`.
+  """
+  def with_new_correlation_id(fun) when is_function(fun, 0) do
+    id = new_correlation_id()
+    {id, with_correlation_id(id, fun)}
+  end
+
+  @doc """
   Logs a debug message with structured metadata.
   """
   def debug(message, metadata \\ []) do

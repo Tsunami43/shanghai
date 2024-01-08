@@ -73,4 +73,14 @@ defmodule Observability.LoggerTest do
     assert a =~ ~r/^[0-9a-f]{32}$/
     assert a != b
   end
+
+  test "with_new_correlation_id runs under a fresh id and restores after" do
+    Log.put_correlation_id("outer")
+
+    {id, inside} = Log.with_new_correlation_id(fn -> Log.get_correlation_id() end)
+
+    assert id =~ ~r/^[0-9a-f]{32}$/
+    assert inside == id
+    assert Log.get_correlation_id() == "outer"
+  end
 end
