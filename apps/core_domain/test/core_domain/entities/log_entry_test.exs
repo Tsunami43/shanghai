@@ -65,4 +65,25 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.earliest(a, b) == a
     assert LogEntry.earliest(b, a) == a
   end
+
+  test "lsn_value/1 returns the raw integer LSN" do
+    id = %NodeId{value: "n"}
+    assert LogEntry.lsn_value(LogEntry.new(LogSequenceNumber.new(42), "d", id)) == 42
+  end
+
+  test "get_metadata/3 reads a key or the default" do
+    id = %NodeId{value: "n"}
+    entry = LogEntry.new(LogSequenceNumber.new(1), "d", id, %{source: "leader"})
+    assert LogEntry.get_metadata(entry, :source) == "leader"
+    assert LogEntry.get_metadata(entry, :missing) == nil
+    assert LogEntry.get_metadata(entry, :missing, :fallback) == :fallback
+  end
+
+  test "put_metadata/3 sets a metadata key" do
+    id = %NodeId{value: "n"}
+    entry = LogEntry.new(LogSequenceNumber.new(1), "d", id)
+    updated = LogEntry.put_metadata(entry, :source, "follower")
+    assert LogEntry.get_metadata(updated, :source) == "follower"
+    refute LogEntry.metadata_empty?(updated)
+  end
 end

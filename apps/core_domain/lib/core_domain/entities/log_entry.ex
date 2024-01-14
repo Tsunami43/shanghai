@@ -74,4 +74,20 @@ defmodule CoreDomain.Entities.LogEntry do
   @doc "Returns `true` when the entry has no metadata."
   @spec metadata_empty?(t()) :: boolean()
   def metadata_empty?(%__MODULE__{metadata: metadata}), do: map_size(metadata) == 0
+
+  @doc "Returns the entry's LSN as a raw integer."
+  @spec lsn_value(t()) :: non_neg_integer()
+  def lsn_value(%__MODULE__{lsn: lsn}), do: LogSequenceNumber.to_integer(lsn)
+
+  @doc "Returns the metadata value for `key`, or `default` when absent."
+  @spec get_metadata(t(), term(), term()) :: term()
+  def get_metadata(%__MODULE__{metadata: metadata}, key, default \\ nil) do
+    Map.get(metadata, key, default)
+  end
+
+  @doc "Returns a copy of the entry with `key` set to `value` in its metadata."
+  @spec put_metadata(t(), term(), term()) :: t()
+  def put_metadata(%__MODULE__{metadata: metadata} = entry, key, value) do
+    %{entry | metadata: Map.put(metadata, key, value)}
+  end
 end
