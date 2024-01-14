@@ -128,6 +128,13 @@ defmodule Cluster do
   def quorum_available?, do: State.quorum_available?(cluster_state())
 
   @doc """
+  Returns the number of node failures the cluster can tolerate while retaining
+  quorum. See `Cluster.State.fault_tolerance/1`.
+  """
+  @spec fault_tolerance() :: non_neg_integer()
+  def fault_tolerance, do: State.fault_tolerance(cluster_state())
+
+  @doc """
   Returns `true` when the cluster is healthy: no `:down` and no `:suspect` nodes.
   """
   @spec healthy?() :: boolean()
@@ -148,6 +155,7 @@ defmodule Cluster do
           down: non_neg_integer(),
           quorum_available: boolean(),
           quorum_size: non_neg_integer(),
+          fault_tolerance: non_neg_integer(),
           health_ratio: float()
         }
   def status do
@@ -161,6 +169,7 @@ defmodule Cluster do
       down: State.status_count(cluster, :down),
       quorum_available: State.quorum_available?(cluster),
       quorum_size: State.quorum_size(cluster),
+      fault_tolerance: State.fault_tolerance(cluster),
       health_ratio: State.health_ratio(cluster)
     }
   end

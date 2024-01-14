@@ -25,6 +25,8 @@ defmodule Cluster.StatusTest do
     assert is_boolean(before.quorum_available)
     assert Cluster.quorum_available?() == before.quorum_available
     assert is_integer(before.quorum_size)
+    assert is_integer(before.fault_tolerance)
+    assert before.fault_tolerance == Cluster.fault_tolerance()
     assert is_float(before.health_ratio)
     assert is_boolean(Cluster.healthy?())
     assert is_float(Cluster.health_ratio())
