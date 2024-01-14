@@ -279,6 +279,30 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "fault_tolerance/1" do
+    test "is zero for empty and single-node clusters" do
+      assert State.fault_tolerance(State.new(NodeId.new("local"))) == 0
+
+      {:ok, one} =
+        State.add_node(
+          State.new(NodeId.new("local")),
+          Node.new(NodeId.new("n1"), "localhost", 4001)
+        )
+
+      assert State.fault_tolerance(one) == 0
+    end
+
+    test "is n - quorum_size for larger clusters" do
+      cluster =
+        Enum.reduce(1..5, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "localhost", 4000 + i))
+          next
+        end)
+
+      assert State.fault_tolerance(cluster) == 2
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))

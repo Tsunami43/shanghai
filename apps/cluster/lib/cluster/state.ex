@@ -231,6 +231,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the number of node failures the cluster can tolerate while still
+  retaining a majority quorum (`n - quorum_size`). Returns `0` for an empty
+  cluster.
+  """
+  @spec fault_tolerance(t()) :: non_neg_integer()
+  def fault_tolerance(%__MODULE__{} = cluster) do
+    node_count(cluster) - quorum_size(cluster)
+  end
+
+  @doc """
   Returns a map of node counts per status: `%{up: n, suspect: n, down: n}`.
   """
   @spec status_summary(t()) :: %{
