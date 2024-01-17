@@ -101,6 +101,20 @@ defmodule Query.Cache do
     ArgumentError -> 0
   end
 
+  @doc """
+  Returns `true` when `key` has a live (non-expired) cache entry. A read-only
+  probe: unlike `get/1`, it does not affect the hit/miss counters.
+  """
+  @spec cached?(term()) :: boolean()
+  def cached?(key) do
+    case :ets.lookup(@table, key) do
+      [{^key, _value, expires_at, _seq}] -> not expired?(expires_at)
+      [] -> false
+    end
+  rescue
+    ArgumentError -> false
+  end
+
   ## Server callbacks
 
   @impl true

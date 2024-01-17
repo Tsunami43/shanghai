@@ -26,6 +26,19 @@ defmodule Query.CacheTest do
       assert Query.Cache.size() == 2
     end
 
+    test "cached?/1 probes membership without touching hit/miss counters" do
+      Query.Cache.clear()
+      refute Query.Cache.cached?("p:1")
+      :ok = Query.Cache.put("p:1", "v")
+      assert Query.Cache.cached?("p:1")
+
+      {:ok, before} = Query.Cache.stats()
+      assert Query.Cache.cached?("p:1")
+      {:ok, later} = Query.Cache.stats()
+      assert later.hits == before.hits
+      assert later.misses == before.misses
+    end
+
     test "invalidate removes an entry synchronously" do
       :ok = Query.Cache.put("c:2", "v")
       :ok = Query.Cache.invalidate("c:2")
