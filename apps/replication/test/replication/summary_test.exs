@@ -53,4 +53,13 @@ defmodule Replication.SummaryTest do
              (Replication.summary().lagging == 0 and
                 Replication.summary().stale == 0)
   end
+
+  test "lagging_count/0 and stale_count/0 agree with the summary" do
+    Monitor.record_leader_offset("lc1", ReplicationOffset.new(100))
+    Monitor.record_follower_offset("lc1", NodeId.new("lc-f1"), ReplicationOffset.new(1))
+
+    summary = Replication.summary()
+    assert Replication.lagging_count() == summary.lagging
+    assert Replication.stale_count() == summary.stale
+  end
 end

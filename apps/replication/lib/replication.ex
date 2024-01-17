@@ -42,7 +42,8 @@ defmodule Replication do
           groups: non_neg_integer(),
           replicas: non_neg_integer(),
           lagging: non_neg_integer(),
-          stale: non_neg_integer()
+          stale: non_neg_integer(),
+          healthy: boolean()
         }
   def summary do
     groups = all_groups()
@@ -81,6 +82,14 @@ defmodule Replication do
       acc + map_size(Map.get(group, :replicas, %{}))
     end)
   end
+
+  @doc "Returns the number of lagging replicas across all groups."
+  @spec lagging_count() :: non_neg_integer()
+  def lagging_count, do: length(get_lagging_replicas())
+
+  @doc "Returns the number of stale replicas across all groups."
+  @spec stale_count() :: non_neg_integer()
+  def stale_count, do: length(get_stale_replicas())
 
   @doc """
   Returns the number of replication groups.
