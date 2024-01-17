@@ -174,6 +174,20 @@ defmodule Storage do
   end
 
   @doc """
+  Returns the average number of entries per active WAL segment, or `0` when
+  there are no segments.
+  """
+  @spec avg_segment_entries() :: non_neg_integer()
+  def avg_segment_entries do
+    stats = wal_stats()
+
+    case stats.segments do
+      0 -> 0
+      n -> div(stats.entries, n)
+    end
+  end
+
+  @doc """
   Returns `true` when the storage subsystem is durable (the WAL `Writer` is
   running), i.e. mutations are persisted rather than in-memory only.
   """
