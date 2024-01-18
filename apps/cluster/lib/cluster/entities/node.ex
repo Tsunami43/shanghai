@@ -138,6 +138,17 @@ defmodule Cluster.Entities.Node do
   end
 
   @doc """
+  Returns `true` when the node's last heartbeat is older than `threshold_ms`. A
+  node that has never been seen is considered stale.
+  """
+  @spec stale?(t(), non_neg_integer()) :: boolean()
+  def stale?(%__MODULE__{last_seen_at: nil}, _threshold_ms), do: true
+
+  def stale?(%__MODULE__{} = node, threshold_ms) when is_integer(threshold_ms) do
+    last_seen_age_ms(node) > threshold_ms
+  end
+
+  @doc """
   Returns the Erlang node name for this node.
   """
   @spec erlang_node_name(t()) :: atom()

@@ -164,4 +164,19 @@ defmodule Cluster.Entities.NodeTest do
       assert is_integer(age) and age >= 0
     end
   end
+
+  describe "stale?/2" do
+    test "a never-seen node is stale" do
+      node = %{Node.new(NodeId.new("n"), "localhost", 4000) | last_seen_at: nil}
+      assert Node.stale?(node, 1_000)
+    end
+
+    test "reflects the last-seen age against the threshold" do
+      fresh = Node.touch(Node.new(NodeId.new("n"), "localhost", 4000))
+      refute Node.stale?(fresh, 60_000)
+
+      old = %{fresh | last_seen_at: DateTime.add(DateTime.utc_now(), -100, :second)}
+      assert Node.stale?(old, 1_000)
+    end
+  end
 end
