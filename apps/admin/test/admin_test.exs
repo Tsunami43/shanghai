@@ -56,4 +56,13 @@ defmodule AdminTest do
       assert Admin.unhealthy_subsystems() == []
     end
   end
+
+  describe "healthy_subsystems/0" do
+    test "lists every passing subsystem and complements the unhealthy set" do
+      healthy = Admin.Health.healthy_subsystems()
+      assert healthy == [:cluster, :query, :replication, :storage]
+      assert Admin.healthy_subsystems() == healthy
+      assert healthy -- Admin.Health.unhealthy_subsystems() == healthy
+    end
+  end
 end

@@ -22,4 +22,8 @@ defmodule Admin do
   @doc "Returns the subsystems whose health check is failing. See `Admin.Health.unhealthy_subsystems/0`."
   @spec unhealthy_subsystems() :: [atom()]
   defdelegate unhealthy_subsystems(), to: Admin.Health
+
+  @doc "Returns the subsystems whose health check is passing. See `Admin.Health.healthy_subsystems/0`."
+  @spec healthy_subsystems() :: [atom()]
+  defdelegate healthy_subsystems(), to: Admin.Health
 end

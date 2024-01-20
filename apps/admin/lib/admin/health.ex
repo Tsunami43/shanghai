@@ -62,5 +62,17 @@ defmodule Admin.Health do
     |> Enum.sort()
   end
 
+  @doc """
+  Returns the names of the subsystems whose check is currently passing, sorted.
+  The complement of `unhealthy_subsystems/0`.
+  """
+  @spec healthy_subsystems() :: [atom()]
+  def healthy_subsystems do
+    check().checks
+    |> Enum.filter(fn {_name, up?} -> up? end)
+    |> Enum.map(fn {name, _up?} -> name end)
+    |> Enum.sort()
+  end
+
   defp alive?(name), do: is_pid(Process.whereis(name))
 end
