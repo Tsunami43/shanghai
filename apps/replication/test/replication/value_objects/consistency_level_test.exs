@@ -147,4 +147,16 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
       assert {:error, :invalid_consistency_level} = ConsistencyLevel.parse(123)
     end
   end
+
+  describe "all/0 and equal?/2" do
+    test "all/0 lists every level as a struct" do
+      levels = Enum.map(ConsistencyLevel.all(), & &1.level)
+      assert levels == [:local, :quorum, :leader]
+    end
+
+    test "equal?/2 compares by level" do
+      assert ConsistencyLevel.equal?(ConsistencyLevel.new(:quorum), ConsistencyLevel.new(:quorum))
+      refute ConsistencyLevel.equal?(ConsistencyLevel.new(:quorum), ConsistencyLevel.new(:leader))
+    end
+  end
 end

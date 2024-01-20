@@ -32,6 +32,17 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   end
 
   @doc """
+  Returns all valid consistency levels as structs, from weakest to strongest
+  durability guarantee: `:local`, `:quorum`, `:leader`.
+  """
+  @spec all() :: [t()]
+  def all, do: Enum.map([:local, :quorum, :leader], &new/1)
+
+  @doc "Returns `true` when two consistency levels are equal."
+  @spec equal?(t(), t()) :: boolean()
+  def equal?(%__MODULE__{level: a}, %__MODULE__{level: b}), do: a == b
+
+  @doc """
   Returns true if this level requires quorum.
   """
   @spec requires_quorum?(t()) :: boolean()
