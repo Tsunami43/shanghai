@@ -66,4 +66,17 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       assert ConsistencyLevel.weaker(:strong, :strong) == :strong
     end
   end
+
+  describe "rank/1 and compare/2" do
+    test "rank orders eventual < causal < strong" do
+      assert ConsistencyLevel.rank(:eventual) < ConsistencyLevel.rank(:causal)
+      assert ConsistencyLevel.rank(:causal) < ConsistencyLevel.rank(:strong)
+    end
+
+    test "compare returns :lt, :eq, :gt by strength" do
+      assert ConsistencyLevel.compare(:eventual, :strong) == :lt
+      assert ConsistencyLevel.compare(:strong, :eventual) == :gt
+      assert ConsistencyLevel.compare(:causal, :causal) == :eq
+    end
+  end
 end

@@ -62,6 +62,37 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   def stronger_than?(_, _), do: false
 
   @doc """
+  Returns the ordinal strength of a level: `:eventual` (0) < `:causal` (1) <
+  `:strong` (2). Useful for sorting or comparing levels numerically.
+
+  ## Examples
+
+      iex> CoreDomain.ValueObjects.ConsistencyLevel.rank(:causal)
+      1
+  """
+  @spec rank(t()) :: 0..2
+  def rank(:eventual), do: 0
+  def rank(:causal), do: 1
+  def rank(:strong), do: 2
+
+  @doc """
+  Compares two levels by strength. Returns `:lt`, `:eq`, or `:gt`.
+
+  ## Examples
+
+      iex> CoreDomain.ValueObjects.ConsistencyLevel.compare(:eventual, :strong)
+      :lt
+  """
+  @spec compare(t(), t()) :: :lt | :eq | :gt
+  def compare(a, b) do
+    cond do
+      rank(a) < rank(b) -> :lt
+      rank(a) > rank(b) -> :gt
+      true -> :eq
+    end
+  end
+
+  @doc """
   Returns the stronger of two consistency levels.
 
   ## Examples
