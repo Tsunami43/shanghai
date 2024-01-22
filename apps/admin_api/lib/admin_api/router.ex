@@ -81,7 +81,18 @@ defmodule AdminApi.Router do
     }
 
     healthy = Enum.all?(Map.values(checks))
-    send_json(conn, if(healthy, do: 200, else: 503), %{healthy: healthy, checks: checks})
+
+    degraded =
+      checks
+      |> Enum.filter(fn {_name, up?} -> not up? end)
+      |> Enum.map(fn {name, _up?} -> name end)
+      |> Enum.sort()
+
+    send_json(conn, if(healthy, do: 200, else: 503), %{
+      healthy: healthy,
+      checks: checks,
+      degraded: degraded
+    })
   end
 
   # Effective runtime configuration, useful for verifying a deployment.

@@ -82,6 +82,7 @@ defmodule AdminApi.RouterTest do
     assert is_boolean(body["checks"]["replication"])
     assert is_boolean(body["checks"]["query"])
     assert is_boolean(body["checks"]["storage"])
+    assert is_list(body["degraded"])
   end
 
   test "GET /api/v1/config reports effective runtime configuration" do
