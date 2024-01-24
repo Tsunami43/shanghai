@@ -61,4 +61,10 @@ defmodule Observability.MetricsTest do
     assert_receive {:telemetry, [:shanghai, :query, :operation], _,
                     %{operation: :read, result: :ok}}
   end
+
+  test "event_defined?/1 and event_count/0 describe the known events" do
+    assert Metrics.event_defined?([:shanghai, :query, :operation])
+    refute Metrics.event_defined?([:shanghai, :nope])
+    assert Metrics.event_count() == length(Metrics.event_names())
+  end
 end

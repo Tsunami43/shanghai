@@ -225,4 +225,22 @@ defmodule Observability.Metrics do
       [:shanghai, :query, :operation]
     ]
   end
+
+  @doc """
+  Returns `true` when `event` is one of the telemetry events Shanghai emits.
+
+  ## Examples
+
+      iex> Observability.Metrics.event_defined?([:shanghai, :query, :operation])
+      true
+
+      iex> Observability.Metrics.event_defined?([:shanghai, :unknown])
+      false
+  """
+  @spec event_defined?([atom()]) :: boolean()
+  def event_defined?(event) when is_list(event), do: event in event_names()
+
+  @doc "Returns the number of distinct telemetry events Shanghai emits."
+  @spec event_count() :: non_neg_integer()
+  def event_count, do: length(event_names())
 end
