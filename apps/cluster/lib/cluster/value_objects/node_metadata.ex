@@ -76,6 +76,10 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec capabilities(t()) :: [atom()]
   def capabilities(%__MODULE__{capabilities: caps}), do: caps |> MapSet.to_list() |> Enum.sort()
 
+  @doc "Returns the number of capabilities the node advertises."
+  @spec capability_count(t()) :: non_neg_integer()
+  def capability_count(%__MODULE__{capabilities: caps}), do: MapSet.size(caps)
+
   @doc """
   Returns `true` when the metadata has all the given capabilities.
   """
@@ -158,6 +162,15 @@ defmodule Cluster.ValueObjects.NodeMetadata do
       resources: Map.merge(left.resources, right.resources),
       version: right.version
     }
+  end
+
+  @doc """
+  Returns `true` when the metadata carries no capabilities, tags, or resources
+  (regardless of the version string).
+  """
+  @spec empty?(t()) :: boolean()
+  def empty?(%__MODULE__{capabilities: caps, tags: tags, resources: resources}) do
+    MapSet.size(caps) == 0 and map_size(tags) == 0 and map_size(resources) == 0
   end
 
   @doc """

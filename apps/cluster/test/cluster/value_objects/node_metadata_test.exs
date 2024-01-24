@@ -172,4 +172,23 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.has_capability?(md, :a)
     assert md.version == "2.0.0"
   end
+
+  test "capability_count/1 counts advertised capabilities" do
+    md =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:storage)
+      |> NodeMetadata.add_capability(:query)
+
+    assert NodeMetadata.capability_count(md) == 2
+    assert NodeMetadata.capability_count(NodeMetadata.new()) == 0
+  end
+
+  test "empty?/1 is true only with no capabilities, tags, or resources" do
+    assert NodeMetadata.empty?(NodeMetadata.new())
+    assert NodeMetadata.empty?(NodeMetadata.new(version: "9.9.9"))
+
+    refute NodeMetadata.empty?(NodeMetadata.new() |> NodeMetadata.add_capability(:storage))
+    refute NodeMetadata.empty?(NodeMetadata.new() |> NodeMetadata.put_tag(:region, "eu"))
+    refute NodeMetadata.empty?(NodeMetadata.new() |> NodeMetadata.update_resources(%{cpu: 1}))
+  end
 end
