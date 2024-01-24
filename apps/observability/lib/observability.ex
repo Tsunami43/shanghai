@@ -19,6 +19,14 @@ defmodule Observability do
   @spec event_names() :: [[atom()]]
   defdelegate event_names(), to: Metrics
 
+  @doc "Returns `true` when `event` is one of the emitted telemetry events."
+  @spec event_defined?([atom()]) :: boolean()
+  defdelegate event_defined?(event), to: Metrics
+
+  @doc "Returns the number of distinct telemetry events Shanghai emits."
+  @spec event_count() :: non_neg_integer()
+  defdelegate event_count(), to: Metrics
+
   @doc "Generates a new correlation id for request tracing."
   @spec new_correlation_id() :: String.t()
   defdelegate new_correlation_id(), to: StructuredLogger

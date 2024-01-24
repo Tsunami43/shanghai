@@ -10,6 +10,12 @@ defmodule ObservabilityTest do
     assert [:shanghai, :storage, :wal, :write] in names
   end
 
+  test "event_defined?/1 and event_count/0 mirror Metrics" do
+    assert Observability.event_defined?([:shanghai, :query, :operation])
+    refute Observability.event_defined?([:shanghai, :nope])
+    assert Observability.event_count() == length(Observability.event_names())
+  end
+
   test "new_correlation_id/0 returns a hex string" do
     id = Observability.new_correlation_id()
 
