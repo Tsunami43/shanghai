@@ -99,4 +99,15 @@ defmodule QueryTest do
       assert Query.to_map() == %{}
     end
   end
+
+  describe "missing/1" do
+    test "returns the keys not present, in input order" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.missing(["a", "b", "c", "d"]) == ["b", "d"]
+      assert Query.missing([]) == []
+      assert Query.missing(["a", "c"]) == []
+    end
+  end
 end

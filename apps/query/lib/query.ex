@@ -539,6 +539,21 @@ defmodule Query do
   end
 
   @doc """
+  Returns the subset of `keys` that are not present in the store, preserving the
+  input order. The complement of the keys returned by `mget/1`.
+
+  ## Examples
+
+      iex> Query.write("a", 1)
+      iex> Query.missing(["a", "b", "c"])
+      ["b", "c"]
+  """
+  @spec missing([String.t()]) :: [String.t()]
+  def missing(keys) when is_list(keys) do
+    Enum.reject(keys, &Query.Store.exists?/1)
+  end
+
+  @doc """
   Returns a runtime summary of the query layer: the store's durability mode,
   the number of records recovered on start, the live key count, and cache stats.
 
