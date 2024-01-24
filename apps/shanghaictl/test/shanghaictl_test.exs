@@ -199,6 +199,20 @@ defmodule ShanghaictlTest do
       assert Options.format(["--format", "text"]) == :text
     end
 
+    test "flag?/2 detects a boolean flag" do
+      assert Options.flag?(["--verbose"], "verbose")
+      refute Options.flag?(["--other"], "verbose")
+      refute Options.flag?([], "verbose")
+    end
+
+    test "option/3 reads both forms and falls back to the default" do
+      assert Options.option(["--limit", "10"], "limit") == "10"
+      assert Options.option(["--limit=5"], "limit") == "5"
+      assert Options.option(["x", "--limit", "7"], "limit") == "7"
+      assert Options.option([], "limit") == nil
+      assert Options.option([], "limit", "20") == "20"
+    end
+
     test "admin_url/1 reads both flag forms" do
       assert Options.admin_url(["--admin-url", "http://h:9090"]) == "http://h:9090"
       assert Options.admin_url(["k", "--admin-url", "http://h:1"]) == "http://h:1"

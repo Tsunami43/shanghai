@@ -51,19 +51,59 @@ defmodule Shanghaictl.Options do
     from_args(args) || from_env() || @default_admin_url
   end
 
-  defp from_args(args) do
+  @doc """
+  Returns `true` when the boolean flag `--name` is present in `args`.
+
+  ## Examples
+
+      iex> Shanghaictl.Options.flag?(["--verbose"], "verbose")
+      true
+
+      iex> Shanghaictl.Options.flag?([], "verbose")
+      false
+  """
+  @spec flag?([String.t()], String.t()) :: boolean()
+  def flag?(args, name) when is_binary(name) do
+    ("--" <> name) in args
+  end
+
+  @doc """
+  Returns the value of the `--name value` or `--name=value` option, or `default`
+  when the option is absent. The `--name=value` form takes precedence.
+
+  ## Examples
+
+      iex> Shanghaictl.Options.option(["--limit", "10"], "limit")
+      "10"
+
+      iex> Shanghaictl.Options.option(["--limit=5"], "limit")
+      "5"
+
+      iex> Shanghaictl.Options.option([], "limit", "20")
+      "20"
+  """
+  @spec option([String.t()], String.t(), String.t() | nil) :: String.t() | nil
+  def option(args, name, default \\ nil) when is_binary(name) do
+    prefix = "--" <> name <> "="
+    flag = "--" <> name
+
     equals =
       Enum.find_value(args, fn
-        "--admin-url=" <> url -> url
+        ^prefix <> value -> value
         _ -> nil
       end)
 
-    equals ||
-      case Enum.drop_while(args, &(&1 != "--admin-url")) do
-        ["--admin-url", url | _rest] -> url
-        _ -> nil
-      end
+    value =
+      equals ||
+        case Enum.drop_while(args, &(&1 != flag)) do
+          [^flag, value | _rest] -> value
+          _ -> nil
+        end
+
+    value || default
   end
+
+  defp from_args(args), do: option(args, "admin-url")
 
   defp from_env do
     case System.get_env("SHANGHAI_ADMIN_URL") do
