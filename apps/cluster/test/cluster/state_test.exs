@@ -210,6 +210,27 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "nodes_by_status/1" do
+    test "groups nodes by status with sorted lists" do
+      cluster = State.new(NodeId.new("local"))
+
+      n1 = Node.new(NodeId.new("n1"), "localhost", 4001)
+      n2 = Node.new(NodeId.new("n2"), "localhost", 4002)
+      n3 = Node.new(NodeId.new("n3"), "localhost", 4003)
+
+      {:ok, cluster} = State.add_node(cluster, n2)
+      {:ok, cluster} = State.add_node(cluster, n1)
+      {:ok, cluster} = State.add_node(cluster, n3)
+      {:ok, cluster} = State.mark_node_down(cluster, n3.id)
+
+      grouped = State.nodes_by_status(cluster)
+
+      assert Enum.map(grouped.up, & &1.id.value) == ["n1", "n2"]
+      assert Enum.map(grouped.down, & &1.id.value) == ["n3"]
+      assert grouped.suspect == []
+    end
+  end
+
   describe "take_events/1" do
     test "returns events and clears event list" do
       local_id = NodeId.new("local")

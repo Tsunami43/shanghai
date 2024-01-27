@@ -195,6 +195,30 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Groups the cluster's nodes by status into `%{up: [...], suspect: [...],
+  down: [...]}`. Each list is sorted by node id for deterministic output; a
+  status with no members maps to `[]`.
+  """
+  @spec nodes_by_status(t()) :: %{
+          up: [Node.t()],
+          suspect: [Node.t()],
+          down: [Node.t()]
+        }
+  def nodes_by_status(%__MODULE__{} = cluster) do
+    %{
+      up: sorted_with_status(cluster, :up),
+      suspect: sorted_with_status(cluster, :suspect),
+      down: sorted_with_status(cluster, :down)
+    }
+  end
+
+  defp sorted_with_status(cluster, status) do
+    cluster
+    |> nodes_with_status(status)
+    |> Enum.sort_by(& &1.id.value)
+  end
+
+  @doc """
   Returns `true` when the cluster has no member nodes.
   """
   @spec empty?(t()) :: boolean()
