@@ -136,4 +136,19 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   end
 
   def lag(_, _), do: 0
+
+  @doc """
+  Returns the signed difference `b - a` between two offsets. Positive when `b`
+  is ahead of `a`, negative when behind. Unlike `lag/2`, this never clamps.
+
+  ## Examples
+
+      iex> alias Replication.ValueObjects.ReplicationOffset, as: Offset
+      iex> Offset.delta(Offset.new(3), Offset.new(10))
+      7
+      iex> Offset.delta(Offset.new(10), Offset.new(3))
+      -7
+  """
+  @spec delta(t(), t()) :: integer()
+  def delta(%__MODULE__{value: a}, %__MODULE__{value: b}), do: b - a
 end

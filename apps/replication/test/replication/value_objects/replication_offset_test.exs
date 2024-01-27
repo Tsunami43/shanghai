@@ -158,4 +158,10 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.caught_up?(ReplicationOffset.new(4), ReplicationOffset.new(3))
     refute ReplicationOffset.caught_up?(ReplicationOffset.new(2), ReplicationOffset.new(3))
   end
+
+  test "delta/2 returns the signed difference b - a" do
+    assert ReplicationOffset.delta(ReplicationOffset.new(3), ReplicationOffset.new(10)) == 7
+    assert ReplicationOffset.delta(ReplicationOffset.new(10), ReplicationOffset.new(3)) == -7
+    assert ReplicationOffset.delta(ReplicationOffset.new(5), ReplicationOffset.new(5)) == 0
+  end
 end
