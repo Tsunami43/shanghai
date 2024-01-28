@@ -90,4 +90,25 @@ defmodule CoreDomain.Entities.LogEntry do
   def put_metadata(%__MODULE__{metadata: metadata} = entry, key, value) do
     %{entry | metadata: Map.put(metadata, key, value)}
   end
+
+  @doc """
+  Returns a plain-map view of the entry for serialization, with the LSN as a raw
+  integer and the node id as its string value.
+  """
+  @spec to_map(t()) :: %{
+          lsn: non_neg_integer(),
+          data: term(),
+          timestamp: DateTime.t(),
+          node_id: String.t(),
+          metadata: map()
+        }
+  def to_map(%__MODULE__{} = entry) do
+    %{
+      lsn: LogSequenceNumber.to_integer(entry.lsn),
+      data: entry.data,
+      timestamp: entry.timestamp,
+      node_id: NodeId.to_string(entry.node_id),
+      metadata: entry.metadata
+    }
+  end
 end

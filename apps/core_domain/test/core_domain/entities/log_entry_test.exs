@@ -86,4 +86,16 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.get_metadata(updated, :source) == "follower"
     refute LogEntry.metadata_empty?(updated)
   end
+
+  test "to_map/1 produces a serializable plain map" do
+    id = %NodeId{value: "node-7"}
+    entry = LogEntry.new(LogSequenceNumber.new(42), "payload", id, %{source: "leader"})
+
+    map = LogEntry.to_map(entry)
+    assert map.lsn == 42
+    assert map.data == "payload"
+    assert map.node_id == "node-7"
+    assert map.metadata == %{source: "leader"}
+    assert %DateTime{} = map.timestamp
+  end
 end
