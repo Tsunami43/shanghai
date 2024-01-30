@@ -142,4 +142,16 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.get_metric(hb, :memory, 0.0) == 0.0
     end
   end
+
+  describe "to_map/1" do
+    test "produces a serializable plain map" do
+      hb = Heartbeat.new(NodeId.new("node1"), 7, %{cpu: 0.5})
+
+      map = Heartbeat.to_map(hb)
+      assert map.node_id == "node1"
+      assert map.sequence == 7
+      assert map.metrics == %{cpu: 0.5}
+      assert %DateTime{} = map.timestamp
+    end
+  end
 end

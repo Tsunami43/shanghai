@@ -101,4 +101,23 @@ defmodule Cluster.ValueObjects.Heartbeat do
   def get_metric(%__MODULE__{metrics: metrics}, key, default \\ nil) do
     Map.get(metrics, key, default)
   end
+
+  @doc """
+  Returns a plain-map view of the heartbeat for serialization, with the source
+  node id rendered as its string value.
+  """
+  @spec to_map(t()) :: %{
+          node_id: String.t(),
+          sequence: non_neg_integer(),
+          timestamp: DateTime.t(),
+          metrics: map()
+        }
+  def to_map(%__MODULE__{node_id: %NodeId{value: value}} = heartbeat) do
+    %{
+      node_id: value,
+      sequence: heartbeat.sequence,
+      timestamp: heartbeat.timestamp,
+      metrics: heartbeat.metrics
+    }
+  end
 end
