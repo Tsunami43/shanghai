@@ -179,4 +179,19 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.stale?(old, 1_000)
     end
   end
+
+  describe "to_map/1" do
+    test "produces a serializable plain map" do
+      node = Node.new(NodeId.new("n7"), "localhost", 4007, %{role: "leader"})
+
+      map = Node.to_map(node)
+      assert map.id == "n7"
+      assert map.address == "localhost:4007"
+      assert map.host == "localhost"
+      assert map.port == 4007
+      assert map.status == :up
+      assert map.metadata == %{role: "leader"}
+      assert %DateTime{} = map.last_seen_at
+    end
+  end
 end

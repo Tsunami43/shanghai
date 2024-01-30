@@ -155,4 +155,29 @@ defmodule Cluster.Entities.Node do
   def erlang_node_name(%__MODULE__{id: %NodeId{value: value}, host: host}) do
     String.to_atom("#{value}@#{host}")
   end
+
+  @doc """
+  Returns a plain-map view of the node for serialization, with the id as its
+  string value and the address rendered as `host:port`.
+  """
+  @spec to_map(t()) :: %{
+          id: String.t(),
+          address: String.t(),
+          host: String.t(),
+          port: non_neg_integer(),
+          status: status(),
+          metadata: map(),
+          last_seen_at: DateTime.t() | nil
+        }
+  def to_map(%__MODULE__{id: %NodeId{value: value}} = node) do
+    %{
+      id: value,
+      address: address(node),
+      host: node.host,
+      port: node.port,
+      status: node.status,
+      metadata: node.metadata,
+      last_seen_at: node.last_seen_at
+    }
+  end
 end
