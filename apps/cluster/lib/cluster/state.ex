@@ -305,6 +305,36 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns a serializable topology snapshot of the cluster: the local node id (as
+  a string, or `nil`), the total node count, per-status counts, and every node
+  as a plain map (sorted by id).
+  """
+  @spec topology(t()) :: %{
+          local_node_id: String.t() | nil,
+          node_count: non_neg_integer(),
+          status_summary: %{
+            up: non_neg_integer(),
+            suspect: non_neg_integer(),
+            down: non_neg_integer()
+          },
+          nodes: [map()]
+        }
+  def topology(%__MODULE__{local_node_id: local} = cluster) do
+    nodes =
+      cluster
+      |> all_nodes()
+      |> Enum.sort_by(& &1.id.value)
+      |> Enum.map(&Node.to_map/1)
+
+    %{
+      local_node_id: local && local.value,
+      node_count: node_count(cluster),
+      status_summary: status_summary(cluster),
+      nodes: nodes
+    }
+  end
+
+  @doc """
   Returns all pending events and clears the event list.
   """
   @spec take_events(t()) :: {[struct()], t()}

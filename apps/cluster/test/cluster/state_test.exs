@@ -231,6 +231,29 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "topology/1" do
+    test "returns a serializable snapshot of the cluster" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "h", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n2"))
+
+      topo = State.topology(cluster)
+
+      assert topo.local_node_id == "local"
+      assert topo.node_count == 2
+      assert topo.status_summary == %{up: 1, suspect: 0, down: 1}
+      assert Enum.map(topo.nodes, & &1.id) == ["n1", "n2"]
+      assert Enum.all?(topo.nodes, &is_map/1)
+    end
+
+    test "handles an empty cluster" do
+      topo = State.topology(State.new(NodeId.new("solo")))
+      assert topo.node_count == 0
+      assert topo.nodes == []
+    end
+  end
+
   describe "take_events/1" do
     test "returns events and clears event list" do
       local_id = NodeId.new("local")
