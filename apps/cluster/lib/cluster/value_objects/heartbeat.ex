@@ -91,4 +91,14 @@ defmodule Cluster.ValueObjects.Heartbeat do
   def with_metrics(%__MODULE__{} = heartbeat, metrics) when is_map(metrics) do
     %{heartbeat | metrics: Map.merge(heartbeat.metrics, metrics)}
   end
+
+  @doc "Returns `true` when the heartbeat carries a metric under `key`."
+  @spec has_metric?(t(), term()) :: boolean()
+  def has_metric?(%__MODULE__{metrics: metrics}, key), do: Map.has_key?(metrics, key)
+
+  @doc "Returns the value of metric `key`, or `default` when absent."
+  @spec get_metric(t(), term(), term()) :: term()
+  def get_metric(%__MODULE__{metrics: metrics}, key, default \\ nil) do
+    Map.get(metrics, key, default)
+  end
 end

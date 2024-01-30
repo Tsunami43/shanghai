@@ -130,4 +130,16 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.stale?(old, 1_000)
     end
   end
+
+  describe "metric accessors" do
+    test "has_metric?/2 and get_metric/3 read health metrics" do
+      hb = Heartbeat.new(NodeId.new("node1"), 1, %{cpu: 0.5})
+
+      assert Heartbeat.has_metric?(hb, :cpu)
+      refute Heartbeat.has_metric?(hb, :memory)
+      assert Heartbeat.get_metric(hb, :cpu) == 0.5
+      assert Heartbeat.get_metric(hb, :memory) == nil
+      assert Heartbeat.get_metric(hb, :memory, 0.0) == 0.0
+    end
+  end
 end
