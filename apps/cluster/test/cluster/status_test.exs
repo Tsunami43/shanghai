@@ -45,6 +45,15 @@ defmodule Cluster.StatusTest do
     assert Cluster.status().node_count == before.node_count
   end
 
+  test "topology/0 returns a serializable snapshot" do
+    topo = Cluster.topology()
+
+    assert is_integer(topo.node_count)
+    assert is_list(topo.nodes)
+    assert Map.has_key?(topo.status_summary, :up)
+    assert Enum.all?(topo.nodes, &is_map/1)
+  end
+
   test "member?/1 and up_nodes/0 track membership" do
     id = NodeId.new("member-test-#{:rand.uniform(999_999)}")
     refute Cluster.member?(id)

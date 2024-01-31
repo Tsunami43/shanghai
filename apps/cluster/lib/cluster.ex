@@ -121,6 +121,13 @@ defmodule Cluster do
   defdelegate cluster_state(), to: Membership, as: :get_cluster
 
   @doc """
+  Returns a serializable topology snapshot of the live cluster. See
+  `Cluster.State.topology/1`.
+  """
+  @spec topology() :: map()
+  def topology, do: State.topology(cluster_state())
+
+  @doc """
   Returns `true` when a strict majority of cluster nodes are `:up` (quorum is
   available for reads and writes).
   """
