@@ -634,6 +634,10 @@ defmodule Query do
   @spec to_map() :: %{optional(term()) => term()}
   defdelegate to_map(), to: Query.Store
 
+  @doc "Returns the entire store as a list of `{key, value}` pairs, sorted by key."
+  @spec to_list() :: [{term(), term()}]
+  defdelegate to_list(), to: Query.Store
+
   @doc "Returns the smallest stored key, or `nil` when empty."
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store

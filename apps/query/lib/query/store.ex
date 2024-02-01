@@ -111,6 +111,14 @@ defmodule Query.Store do
     ArgumentError -> %{}
   end
 
+  @doc "Returns the entire store as a list of `{key, value}` pairs, sorted by key."
+  @spec to_list() :: [{term(), term()}]
+  def to_list do
+    @default_table |> :ets.tab2list() |> Enum.sort_by(&elem(&1, 0))
+  rescue
+    ArgumentError -> []
+  end
+
   @doc "Returns the smallest stored key by term order, or `nil` when empty."
   @spec min_key() :: term() | nil
   def min_key do

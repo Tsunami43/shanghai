@@ -110,4 +110,16 @@ defmodule QueryTest do
       assert Query.missing(["a", "c"]) == []
     end
   end
+
+  describe "to_list/0" do
+    test "returns sorted key/value pairs" do
+      assert Query.to_list() == []
+
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.to_list() == [{"a", 1}, {"b", 2}, {"c", 3}]
+    end
+  end
 end
