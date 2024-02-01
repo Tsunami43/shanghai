@@ -57,6 +57,7 @@ defmodule AdminApi.Router do
         "/api/v1/config",
         "/api/v1/health",
         "/api/v1/status",
+        "/api/v1/topology",
         "/api/v1/nodes",
         "/api/v1/nodes/:id",
         "/api/v1/replicas",
@@ -149,6 +150,11 @@ defmodule AdminApi.Router do
     }
 
     send_json(conn, 200, status)
+  end
+
+  # Serializable topology snapshot of the live cluster.
+  get "/api/v1/topology" do
+    send_json(conn, 200, Cluster.topology())
   end
 
   get "/api/v1/nodes" do

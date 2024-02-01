@@ -122,6 +122,17 @@ defmodule AdminApi.RouterTest do
     assert is_integer(body["timestamp"])
   end
 
+  test "GET /api/v1/topology returns a serializable snapshot" do
+    conn = get("/api/v1/topology")
+    assert conn.status == 200
+
+    body = json(conn)
+    assert is_integer(body["node_count"])
+    assert is_list(body["nodes"])
+    assert Map.has_key?(body, "status_summary")
+    assert Map.has_key?(body["status_summary"], "up")
+  end
+
   test "GET /api/v1/nodes returns a nodes list" do
     conn = get("/api/v1/nodes")
     assert conn.status == 200
