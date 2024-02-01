@@ -98,6 +98,27 @@ follow semantic versioning.
   `MetricsReporter.reset/0`); `Admin` (`unhealthy_subsystems/0`,
   `Health.health_ratio/1`); `Replication` (`replica_count/0`, `group_count/0`,
   `healthy?/0`).
+- **Serialization views**: `to_map/1` for `LogEntry`, `Node`, and `Heartbeat`
+  (plain-map forms with the LSN/node id rendered as integer/string), and
+  `Cluster.State.topology/1` / `Cluster.topology/0` for a full cluster snapshot,
+  surfaced over `GET /api/v1/topology`.
+- **More value-object algebra**: `LogSequenceNumber` (`predecessor/1`,
+  `contiguous?/2`), `ReplicationOffset` (`ahead?/2`, `caught_up?/2`, `delta/2`),
+  `ConsistencyLevel` (`rank/1`, `compare/2` for the core levels; `all/0`,
+  `equal?/2` for the replication levels), `NodeId.short/2`, and `LogEntry`
+  (`lsn_value/1`, `get_metadata/3`, `put_metadata/3`).
+- **Cluster/node introspection**: `Cluster.State` (`fault_tolerance/1`,
+  `nodes_by_status/1`), `Cluster` facades (`fault_tolerance/0`, surfaced in
+  `status/0`), `Node` (`never_seen?/1`, `stale?/2`), `Heartbeat`
+  (`age_seconds/1`, `latest/2`, `has_metric?/2`, `get_metric/3`), and
+  `NodeMetadata` (`capability_count/1`, `empty?/1`).
+- **More Query/Cache operations**: `Query.to_map/0`, `to_list/0`, `missing/1`;
+  `Query.Cache.cached?/1` (counter-free membership probe).
+- **Storage/observability/CLI helpers**: `Storage.avg_segment_entries/0`;
+  `Observability` (`Logger.with_new_correlation_id/1`,
+  `Metrics.event_defined?/1`, `event_count/0`); `Admin.Health.healthy_subsystems/0`
+  (with a `degraded` list in `GET /api/v1/health`); `Shanghaictl.Options`
+  (`flag?/2`, `option/3`); `Replication` (`lagging_count/0`, `stale_count/0`).
 
 ### Fixed (this cycle)
 - `Query.delete_prefix/1` scanned the default store table instead of the target
