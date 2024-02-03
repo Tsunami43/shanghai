@@ -194,6 +194,14 @@ defmodule Storage do
   @spec durable?() :: boolean()
   def durable?, do: is_pid(Process.whereis(Writer))
 
+  @doc "Returns the total number of entries across all active WAL segments."
+  @spec total_entries() :: non_neg_integer()
+  def total_entries, do: wal_stats().entries
+
+  @doc "Returns the total on-disk size in bytes across all active WAL segments."
+  @spec total_bytes() :: non_neg_integer()
+  def total_bytes, do: wal_stats().bytes
+
   # The next LSN the Writer will assign, or 0 when it is not running.
   defp current_lsn do
     case Process.whereis(Writer) && Writer.info() do

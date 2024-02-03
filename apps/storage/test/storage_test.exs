@@ -38,6 +38,12 @@ defmodule StorageTest do
     assert Storage.avg_segment_entries() >= 0
   end
 
+  test "total_entries/0 and total_bytes/0 match wal_stats/0" do
+    stats = Storage.wal_stats()
+    assert Storage.total_entries() == stats.entries
+    assert Storage.total_bytes() == stats.bytes
+  end
+
   test "list_snapshots/0 is [] when the snapshot manager is not running" do
     refute is_pid(Process.whereis(Storage.Snapshot.Manager))
     assert Storage.list_snapshots() == []
