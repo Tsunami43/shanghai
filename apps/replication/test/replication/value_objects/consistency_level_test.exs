@@ -159,4 +159,28 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
       refute ConsistencyLevel.equal?(ConsistencyLevel.new(:quorum), ConsistencyLevel.new(:leader))
     end
   end
+
+  describe "rank/1 and compare/2" do
+    test "rank orders local < quorum < leader" do
+      assert ConsistencyLevel.rank(ConsistencyLevel.new(:local)) <
+               ConsistencyLevel.rank(ConsistencyLevel.new(:quorum))
+
+      assert ConsistencyLevel.rank(ConsistencyLevel.new(:quorum)) <
+               ConsistencyLevel.rank(ConsistencyLevel.new(:leader))
+    end
+
+    test "compare returns :lt, :eq, :gt by strength" do
+      assert ConsistencyLevel.compare(ConsistencyLevel.new(:local), ConsistencyLevel.new(:leader)) ==
+               :lt
+
+      assert ConsistencyLevel.compare(ConsistencyLevel.new(:leader), ConsistencyLevel.new(:local)) ==
+               :gt
+
+      assert ConsistencyLevel.compare(
+               ConsistencyLevel.new(:quorum),
+               ConsistencyLevel.new(:quorum)
+             ) ==
+               :eq
+    end
+  end
 end

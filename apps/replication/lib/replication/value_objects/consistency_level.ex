@@ -43,6 +43,25 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   def equal?(%__MODULE__{level: a}, %__MODULE__{level: b}), do: a == b
 
   @doc """
+  Returns the ordinal strength of a level by durability guarantee: `:local` (0)
+  < `:quorum` (1) < `:leader` (2).
+  """
+  @spec rank(t()) :: 0..2
+  def rank(%__MODULE__{level: :local}), do: 0
+  def rank(%__MODULE__{level: :quorum}), do: 1
+  def rank(%__MODULE__{level: :leader}), do: 2
+
+  @doc "Compares two levels by strength. Returns `:lt`, `:eq`, or `:gt`."
+  @spec compare(t(), t()) :: :lt | :eq | :gt
+  def compare(%__MODULE__{} = a, %__MODULE__{} = b) do
+    cond do
+      rank(a) < rank(b) -> :lt
+      rank(a) > rank(b) -> :gt
+      true -> :eq
+    end
+  end
+
+  @doc """
   Returns true if this level requires quorum.
   """
   @spec requires_quorum?(t()) :: boolean()
