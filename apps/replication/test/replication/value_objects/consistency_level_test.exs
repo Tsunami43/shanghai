@@ -183,4 +183,22 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
                :eq
     end
   end
+
+  describe "stronger/2 and weaker/2" do
+    test "pick by durability strength regardless of order" do
+      local = ConsistencyLevel.new(:local)
+      leader = ConsistencyLevel.new(:leader)
+
+      assert ConsistencyLevel.stronger(local, leader) == leader
+      assert ConsistencyLevel.stronger(leader, local) == leader
+      assert ConsistencyLevel.weaker(local, leader) == local
+      assert ConsistencyLevel.weaker(leader, local) == local
+    end
+
+    test "ties return the first argument" do
+      quorum = ConsistencyLevel.new(:quorum)
+      assert ConsistencyLevel.stronger(quorum, quorum) == quorum
+      assert ConsistencyLevel.weaker(quorum, quorum) == quorum
+    end
+  end
 end

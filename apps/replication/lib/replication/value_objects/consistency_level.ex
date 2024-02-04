@@ -61,6 +61,18 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
     end
   end
 
+  @doc "Returns the stronger (higher-durability) of two levels; ties return `a`."
+  @spec stronger(t(), t()) :: t()
+  def stronger(%__MODULE__{} = a, %__MODULE__{} = b) do
+    if rank(b) > rank(a), do: b, else: a
+  end
+
+  @doc "Returns the weaker (lower-durability) of two levels; ties return `a`."
+  @spec weaker(t(), t()) :: t()
+  def weaker(%__MODULE__{} = a, %__MODULE__{} = b) do
+    if rank(b) < rank(a), do: b, else: a
+  end
+
   @doc """
   Returns true if this level requires quorum.
   """
