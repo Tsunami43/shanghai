@@ -50,4 +50,18 @@ defmodule CoreDomain.Types.NodeIdTest do
     refute NodeId.valid?(nil)
     refute NodeId.valid?(123)
   end
+
+  test "hash/1 is deterministic and non-negative" do
+    assert NodeId.hash(NodeId.new("n1")) == NodeId.hash(NodeId.new("n1"))
+    assert NodeId.hash(NodeId.new("n1")) >= 0
+  end
+
+  test "slot/2 maps into the requested range" do
+    for i <- 1..50 do
+      slot = NodeId.slot(NodeId.new("node-#{i}"), 16)
+      assert slot >= 0 and slot < 16
+    end
+
+    assert NodeId.slot(NodeId.new("n1"), 8) == NodeId.slot(NodeId.new("n1"), 8)
+  end
 end

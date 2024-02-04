@@ -90,4 +90,26 @@ defmodule CoreDomain.Types.NodeId do
       when is_integer(length) and length > 0 do
     if String.length(value) <= length, do: value, else: String.slice(value, 0, length)
   end
+
+  @doc """
+  Returns a deterministic, non-negative hash of the node id. Stable across
+  processes and nodes for a given id — suitable for consistent placement.
+  """
+  @spec hash(t()) :: non_neg_integer()
+  def hash(%__MODULE__{value: value}), do: :erlang.phash2(value)
+
+  @doc """
+  Maps the node id deterministically onto one of `slots` buckets (`0..slots-1`).
+  Useful for sharding or ring placement.
+
+  ## Examples
+
+      iex> slot = CoreDomain.Types.NodeId.slot(CoreDomain.Types.NodeId.new("n1"), 16)
+      iex> slot >= 0 and slot < 16
+      true
+  """
+  @spec slot(t(), pos_integer()) :: non_neg_integer()
+  def slot(%__MODULE__{value: value}, slots) when is_integer(slots) and slots > 0 do
+    :erlang.phash2(value, slots)
+  end
 end
