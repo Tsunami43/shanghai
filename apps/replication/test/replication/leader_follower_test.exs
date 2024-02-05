@@ -6,8 +6,12 @@ defmodule Replication.LeaderFollowerTest do
   alias CoreDomain.Types.NodeId
 
   setup do
-    # Start registry
-    start_supervised!({Registry, keys: :unique, name: Replication.Registry})
+    # Start registry if not already running
+    case Process.whereis(Replication.Registry) do
+      nil -> start_supervised!({Registry, keys: :unique, name: Replication.Registry})
+      _pid -> :ok
+    end
+
     :ok
   end
 

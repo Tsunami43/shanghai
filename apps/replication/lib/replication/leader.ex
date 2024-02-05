@@ -152,10 +152,15 @@ defmodule Replication.Leader do
   end
 
   defp broadcast_to_followers(group_id, offset, data) do
-    # This will be implemented when Stream is added
-    # For now, just log
-    Logger.debug("Broadcasting offset #{offset.value} to followers of #{group_id}")
-    :ok
+    # Send to Stream for batched replication
+    try do
+      Replication.Stream.append_entry(group_id, offset, data)
+    catch
+      :exit, _ ->
+        # Stream not available, log warning
+        Logger.warning("Stream not available for group #{group_id}")
+        :ok
+    end
   end
 
   defp update_pending_acks(state, follower_id, follower_offset) do
