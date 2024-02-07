@@ -164,4 +164,9 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.delta(ReplicationOffset.new(10), ReplicationOffset.new(3)) == -7
     assert ReplicationOffset.delta(ReplicationOffset.new(5), ReplicationOffset.new(5)) == 0
   end
+
+  test "to_string/1 renders a display form" do
+    assert ReplicationOffset.to_string(ReplicationOffset.new(9)) == "Offset(9)"
+    assert ReplicationOffset.to_string(ReplicationOffset.zero()) == "Offset(0)"
+  end
 end

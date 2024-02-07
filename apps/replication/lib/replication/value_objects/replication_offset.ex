@@ -82,6 +82,12 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   @spec to_integer(t()) :: non_neg_integer()
   def to_integer(%__MODULE__{value: value}), do: value
 
+  @doc """
+  Returns a display string for the offset in the form `Offset(n)`.
+  """
+  @spec to_string(t()) :: String.t()
+  def to_string(%__MODULE__{value: value}), do: "Offset(#{value})"
+
   @doc "Returns `true` when the two offsets are equal."
   @spec equal?(t(), t()) :: boolean()
   def equal?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a == b
