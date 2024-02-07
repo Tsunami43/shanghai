@@ -107,6 +107,17 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def to_integer(%__MODULE__{value: value}), do: value
 
   @doc """
+  Returns a display string for the LSN in the form `"LSN(n)"`.
+
+  ## Examples
+
+      iex> CoreDomain.Types.LogSequenceNumber.to_string(CoreDomain.Types.LogSequenceNumber.new(7))
+      "LSN(7)"
+  """
+  @spec to_string(t()) :: String.t()
+  def to_string(%__MODULE__{value: value}), do: "LSN(#{value})"
+
+  @doc """
   Returns the later (greater) of two LSNs.
 
   ## Examples

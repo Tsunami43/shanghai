@@ -82,4 +82,9 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     refute LSN.contiguous?(LSN.new(4), LSN.new(6))
     refute LSN.contiguous?(LSN.new(4), LSN.new(4))
   end
+
+  test "to_string/1 renders a display form" do
+    assert LSN.to_string(LSN.new(7)) == "LSN(7)"
+    assert LSN.to_string(LSN.zero()) == "LSN(0)"
+  end
 end
