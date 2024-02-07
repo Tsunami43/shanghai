@@ -151,6 +151,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "get_node_by_address/2" do
+    test "finds a node by its host:port address" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostB", 4002))
+
+      assert {:ok, node} = State.get_node_by_address(cluster, "hostB:4002")
+      assert node.id.value == "n2"
+      assert {:error, :not_found} = State.get_node_by_address(cluster, "nope:1")
+    end
+  end
+
   describe "node_addresses/1" do
     test "returns sorted host:port addresses" do
       cluster = State.new(NodeId.new("local"))

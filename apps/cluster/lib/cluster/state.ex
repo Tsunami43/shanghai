@@ -161,6 +161,23 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Finds a node by its `host:port` address. Returns `{:ok, node}` or
+  `{:error, :not_found}`. When several nodes share an address, the first match
+  (by sorted id) is returned.
+  """
+  @spec get_node_by_address(t(), String.t()) :: {:ok, Node.t()} | {:error, :not_found}
+  def get_node_by_address(%__MODULE__{} = cluster, address) when is_binary(address) do
+    cluster
+    |> all_nodes()
+    |> Enum.sort_by(& &1.id.value)
+    |> Enum.find(&(Node.address(&1) == address))
+    |> case do
+      nil -> {:error, :not_found}
+      node -> {:ok, node}
+    end
+  end
+
+  @doc """
   Returns the ids of all nodes in the cluster, sorted by their string value.
   """
   @spec node_ids(t()) :: [NodeId.t()]
