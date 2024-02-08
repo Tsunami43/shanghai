@@ -132,4 +132,13 @@ defmodule QueryTest do
       assert Query.get("g:missing", :none) == :none
     end
   end
+
+  describe "fetch!/1" do
+    test "returns the value or raises for a missing key" do
+      {:ok, _} = Query.write("f:1", 7)
+      assert Query.fetch!("f:1") == 7
+
+      assert_raise KeyError, fn -> Query.fetch!("f:missing") end
+    end
+  end
 end

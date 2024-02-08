@@ -72,6 +72,18 @@ defmodule Query do
   end
 
   @doc """
+  Reads `key`, returning the bare value or raising `KeyError` when it is absent.
+  The strict counterpart to `get/2`.
+  """
+  @spec fetch!(String.t()) :: term()
+  def fetch!(key) do
+    case read(key) do
+      {:ok, value} -> value
+      {:error, _reason} -> raise KeyError, key: key, term: __MODULE__
+    end
+  end
+
+  @doc """
   Writes a key-value pair.
 
   ## Options
