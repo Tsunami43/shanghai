@@ -50,6 +50,28 @@ defmodule Query do
   end
 
   @doc """
+  Reads `key`, returning the bare value when present or `default` otherwise —
+  an ergonomic wrapper over `read/2` for when the `{:ok, _}`/`{:error, _}` shape
+  is not needed.
+
+  ## Examples
+
+      iex> Query.write("k", 1)
+      iex> Query.get("k")
+      1
+
+      iex> Query.get("missing", :none)
+      :none
+  """
+  @spec get(String.t(), term()) :: term()
+  def get(key, default \\ nil) do
+    case read(key) do
+      {:ok, value} -> value
+      {:error, _reason} -> default
+    end
+  end
+
+  @doc """
   Writes a key-value pair.
 
   ## Options

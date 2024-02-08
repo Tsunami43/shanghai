@@ -122,4 +122,14 @@ defmodule QueryTest do
       assert Query.to_list() == [{"a", 1}, {"b", 2}, {"c", 3}]
     end
   end
+
+  describe "get/2" do
+    test "returns the bare value or the default" do
+      {:ok, _} = Query.write("g:1", 42)
+
+      assert Query.get("g:1") == 42
+      assert Query.get("g:missing") == nil
+      assert Query.get("g:missing", :none) == :none
+    end
+  end
 end
