@@ -193,4 +193,70 @@ defmodule Replication.StreamTest do
       assert follower_offset.value == 1
     end
   end
+
+  describe "Catch-up mechanism" do
+    test "follower requests catch-up on gap detection" do
+      group_id = "test-group-#{:rand.uniform(10000)}"
+      leader_id = NodeId.new("leader")
+      follower_id = NodeId.new("follower")
+
+      start_supervised!(
+        {Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 10]}
+      )
+
+      start_supervised!({Follower, [group_id: group_id, node_id: follower_id]})
+
+      Stream.add_follower(group_id, follower_id)
+
+      # Simulate gap by sending offset 3 when follower is at 0
+      Follower.apply_entry(group_id, ReplicationOffset.new(3), "data3")
+
+      # Give time for catch-up request
+      Process.sleep(100)
+
+      # Follower should remain at 0 (didn't apply the gapped entry)
+      offset = Follower.current_offset(group_id)
+      assert offset.value == 0
+    end
+
+    test "stream handles catch-up request" do
+      group_id = "test-group-#{:rand.uniform(10000)}"
+      leader_id = NodeId.new("leader")
+      follower_id = NodeId.new("follower")
+
+      start_supervised!(
+        {Stream, [group_id: group_id, leader_node_id: leader_id]}
+      )
+
+      Stream.add_follower(group_id, follower_id)
+
+      # Request catch-up
+      Stream.request_catch_up(group_id, follower_id, ReplicationOffset.new(5))
+
+      Process.sleep(50)
+
+      # Stream should have updated follower state
+      states = Stream.get_follower_states(group_id)
+      assert states[follower_id].last_ack_offset.value == 5
+    end
+
+    test "stream ignores catch-up for unknown follower" do
+      group_id = "test-group-#{:rand.uniform(10000)}"
+      leader_id = NodeId.new("leader")
+      unknown_follower_id = NodeId.new("unknown")
+
+      start_supervised!(
+        {Stream, [group_id: group_id, leader_node_id: leader_id]}
+      )
+
+      # Request catch-up for follower that doesn't exist
+      Stream.request_catch_up(group_id, unknown_follower_id, ReplicationOffset.new(5))
+
+      Process.sleep(50)
+
+      # Should not crash, just log warning
+      states = Stream.get_follower_states(group_id)
+      assert states == %{}
+    end
+  end
 end

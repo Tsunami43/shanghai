@@ -89,25 +89,34 @@ defmodule Replication.Follower do
     # Verify offset is the next expected one
     expected_offset = ReplicationOffset.increment(state.current_offset)
 
-    if ReplicationOffset.compare(offset, expected_offset) == :eq do
-      # Apply entry to local storage (in real implementation)
-      Logger.debug("Follower applying entry at offset #{offset.value}")
+    cond do
+      ReplicationOffset.compare(offset, expected_offset) == :eq ->
+        # Apply entry to local storage (in real implementation)
+        Logger.debug("Follower applying entry at offset #{offset.value}")
 
-      # Update current offset
-      updated_state = %{state | current_offset: offset}
+        # Update current offset
+        updated_state = %{state | current_offset: offset}
 
-      # Immediately report to leader if this is a new offset
-      report_to_leader(updated_state)
+        # Immediately report to leader if this is a new offset
+        report_to_leader(updated_state)
 
-      {:noreply, updated_state}
-    else
-      # Out of order or gap detected
-      Logger.warning(
-        "Offset mismatch: expected #{expected_offset.value}, got #{offset.value}"
-      )
+        {:noreply, updated_state}
 
-      # In real implementation, would trigger catch-up
-      {:noreply, state}
+      ReplicationOffset.compare(offset, expected_offset) == :gt ->
+        # Gap detected - entries were skipped
+        Logger.warning(
+          "Gap detected: expected #{expected_offset.value}, got #{offset.value}. Requesting catch-up."
+        )
+
+        # Request catch-up from current offset
+        request_catch_up(state)
+
+        {:noreply, state}
+
+      true ->
+        # Received old entry, ignore
+        Logger.debug("Ignoring old entry at offset #{offset.value}, current is #{state.current_offset.value}")
+        {:noreply, state}
     end
   end
 
@@ -171,6 +180,28 @@ defmodule Replication.Follower do
       )
     catch
       :exit, _ -> :ok
+    end
+
+    :ok
+  end
+
+  defp request_catch_up(state) do
+    # Request catch-up from stream
+    # In real implementation, this would be an RPC call to leader/stream on leader node
+    Logger.info(
+      "Follower #{state.node_id.value} requesting catch-up from offset #{state.current_offset.value}"
+    )
+
+    try do
+      Replication.Stream.request_catch_up(
+        state.group_id,
+        state.node_id,
+        state.current_offset
+      )
+    catch
+      :exit, reason ->
+        Logger.warning("Failed to request catch-up: #{inspect(reason)}")
+        :ok
     end
 
     :ok
