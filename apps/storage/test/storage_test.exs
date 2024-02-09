@@ -44,6 +44,18 @@ defmodule StorageTest do
     assert Storage.total_bytes() == stats.bytes
   end
 
+  test "summary/0 gives a compact overview consistent with wal_stats/0" do
+    summary = Storage.summary()
+    stats = Storage.wal_stats()
+
+    assert is_boolean(summary.durable)
+    assert summary.active_segments == stats.segments
+    assert summary.entries == stats.entries
+    assert summary.bytes == stats.bytes
+    assert is_integer(summary.snapshots)
+    assert is_boolean(summary.compaction_running)
+  end
+
   test "list_snapshots/0 is [] when the snapshot manager is not running" do
     refute is_pid(Process.whereis(Storage.Snapshot.Manager))
     assert Storage.list_snapshots() == []

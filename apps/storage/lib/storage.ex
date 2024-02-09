@@ -202,6 +202,32 @@ defmodule Storage do
   @spec total_bytes() :: non_neg_integer()
   def total_bytes, do: wal_stats().bytes
 
+  @doc """
+  Returns a compact one-call overview of the storage subsystem: durability, the
+  active-segment count, total entries and bytes, snapshot count, and whether
+  compaction is running.
+  """
+  @spec summary() :: %{
+          durable: boolean(),
+          active_segments: non_neg_integer(),
+          entries: non_neg_integer(),
+          bytes: non_neg_integer(),
+          snapshots: non_neg_integer(),
+          compaction_running: boolean()
+        }
+  def summary do
+    stats = wal_stats()
+
+    %{
+      durable: durable?(),
+      active_segments: stats.segments,
+      entries: stats.entries,
+      bytes: stats.bytes,
+      snapshots: length(list_snapshots()),
+      compaction_running: Map.get(compaction_status(), :running, false)
+    }
+  end
+
   # The next LSN the Writer will assign, or 0 when it is not running.
   defp current_lsn do
     case Process.whereis(Writer) && Writer.info() do
