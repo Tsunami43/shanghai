@@ -141,4 +141,25 @@ defmodule QueryTest do
       assert_raise KeyError, fn -> Query.fetch!("f:missing") end
     end
   end
+
+  describe "get_lazy/2" do
+    test "returns the value or the lazily-computed fallback" do
+      {:ok, _} = Query.write("l:1", 5)
+
+      assert Query.get_lazy("l:1", fn -> :computed end) == 5
+      assert Query.get_lazy("l:missing", fn -> :computed end) == :computed
+    end
+
+    test "does not call the fallback on a hit" do
+      {:ok, _} = Query.write("l:2", 9)
+      test_pid = self()
+
+      assert Query.get_lazy("l:2", fn ->
+               send(test_pid, :called)
+               :fallback
+             end) == 9
+
+      refute_received :called
+    end
+  end
 end

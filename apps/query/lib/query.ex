@@ -84,6 +84,18 @@ defmodule Query do
   end
 
   @doc """
+  Reads `key`, returning its value when present or the result of calling `fun`
+  otherwise. Unlike `get/2`, the fallback is computed lazily — only on a miss.
+  """
+  @spec get_lazy(String.t(), (-> term())) :: term()
+  def get_lazy(key, fun) when is_function(fun, 0) do
+    case read(key) do
+      {:ok, value} -> value
+      {:error, _reason} -> fun.()
+    end
+  end
+
+  @doc """
   Writes a key-value pair.
 
   ## Options
