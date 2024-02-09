@@ -67,7 +67,8 @@ defmodule AdminApi.Router do
         "/api/v1/metrics",
         "/api/v1/kv",
         "/api/v1/kv/:key",
-        "/api/v1/keys"
+        "/api/v1/keys",
+        "/api/v1/storage"
       ]
     })
   end
@@ -233,6 +234,11 @@ defmodule AdminApi.Router do
 
     keys = for {key, _value} <- Query.Store.scan(prefix, limit: limit), do: key
     send_json(conn, 200, %{keys: keys, count: length(keys), limit: limit})
+  end
+
+  # Compact overview of the storage subsystem (WAL segments, entries, snapshots).
+  get "/api/v1/storage" do
+    send_json(conn, 200, Storage.summary())
   end
 
   # Read a single key from the materialized store. Read-only and safe to expose

@@ -133,6 +133,17 @@ defmodule AdminApi.RouterTest do
     assert Map.has_key?(body["status_summary"], "up")
   end
 
+  test "GET /api/v1/storage returns a storage overview" do
+    conn = get("/api/v1/storage")
+    assert conn.status == 200
+
+    body = json(conn)
+    assert is_boolean(body["durable"])
+    assert is_integer(body["active_segments"])
+    assert is_integer(body["entries"])
+    assert is_integer(body["bytes"])
+  end
+
   test "GET /api/v1/nodes returns a nodes list" do
     conn = get("/api/v1/nodes")
     assert conn.status == 200
