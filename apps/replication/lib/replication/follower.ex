@@ -97,8 +97,9 @@ defmodule Replication.Follower do
         # Update current offset
         updated_state = %{state | current_offset: offset}
 
-        # Immediately report to leader if this is a new offset
+        # Report to leader and monitor
         report_to_leader(updated_state)
+        report_to_monitor(updated_state)
 
         {:noreply, updated_state}
 
@@ -202,6 +203,20 @@ defmodule Replication.Follower do
       :exit, reason ->
         Logger.warning("Failed to request catch-up: #{inspect(reason)}")
         :ok
+    end
+
+    :ok
+  end
+
+  defp report_to_monitor(state) do
+    try do
+      Replication.Monitor.record_follower_offset(
+        state.group_id,
+        state.node_id,
+        state.current_offset
+      )
+    catch
+      :exit, _ -> :ok
     end
 
     :ok

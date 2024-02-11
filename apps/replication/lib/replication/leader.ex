@@ -110,6 +110,9 @@ defmodule Replication.Leader do
     # Broadcast to followers (will be implemented with Stream)
     broadcast_to_followers(state.group_id, new_offset, data)
 
+    # Report leader offset to monitor
+    report_to_monitor(state.group_id, new_offset)
+
     # Check if we already have quorum (single node case)
     updated_state = %{
       state
@@ -160,6 +163,14 @@ defmodule Replication.Leader do
         # Stream not available, log warning
         Logger.warning("Stream not available for group #{group_id}")
         :ok
+    end
+  end
+
+  defp report_to_monitor(group_id, offset) do
+    try do
+      Replication.Monitor.record_leader_offset(group_id, offset)
+    catch
+      :exit, _ -> :ok
     end
   end
 
