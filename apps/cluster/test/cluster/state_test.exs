@@ -266,6 +266,17 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "local_node/1" do
+    test "returns nil until the local node joins, then the entity" do
+      local_id = NodeId.new("local")
+      cluster = State.new(local_id)
+      assert State.local_node(cluster) == nil
+
+      {:ok, cluster} = State.add_node(cluster, Node.new(local_id, "localhost", 4000))
+      assert %Node{id: ^local_id} = State.local_node(cluster)
+    end
+  end
+
   describe "take_events/1" do
     test "returns events and clears event list" do
       local_id = NodeId.new("local")

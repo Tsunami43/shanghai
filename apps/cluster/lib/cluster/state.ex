@@ -368,6 +368,17 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the local node's entity when it is a member of the cluster, or `nil`
+  when the local id is unset or not yet joined.
+  """
+  @spec local_node(t()) :: Node.t() | nil
+  def local_node(%__MODULE__{local_node_id: nil}), do: nil
+
+  def local_node(%__MODULE__{local_node_id: id, nodes: nodes}) do
+    Map.get(nodes, id)
+  end
+
+  @doc """
   Updates node metadata.
   """
   @spec update_node_metadata(t(), NodeId.t(), map()) :: {:ok, t()} | {:error, atom()}
