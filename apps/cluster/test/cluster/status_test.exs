@@ -45,6 +45,13 @@ defmodule Cluster.StatusTest do
     assert Cluster.status().node_count == before.node_count
   end
 
+  test "local_node/0 returns the local entity or nil" do
+    local = Cluster.local_node()
+    assert local == nil or match?(%Node{}, local)
+
+    if local, do: assert(local.id == Cluster.local_node_id())
+  end
+
   test "topology/0 returns a serializable snapshot" do
     topo = Cluster.topology()
 

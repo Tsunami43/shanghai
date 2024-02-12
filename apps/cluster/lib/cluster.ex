@@ -101,6 +101,13 @@ defmodule Cluster do
   defdelegate local_node_id(), to: Membership
 
   @doc """
+  Returns the local node's entity when it has joined the cluster, or `nil`. See
+  `Cluster.State.local_node/1`.
+  """
+  @spec local_node() :: Node.t() | nil
+  def local_node, do: State.local_node(cluster_state())
+
+  @doc """
   Subscribes the calling process to cluster membership events.
 
   Events are sent as `{:cluster_event, event}` messages.
