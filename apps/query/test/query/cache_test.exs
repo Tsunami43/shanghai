@@ -57,6 +57,18 @@ defmodule Query.CacheTest do
       assert :miss = Query.Cache.get("m:3")
     end
 
+    test "hit_ratio/0 returns the ratio directly" do
+      Query.Cache.clear()
+      assert Query.Cache.hit_ratio() == 0.0
+
+      assert :miss = Query.Cache.get("hr:1")
+      :ok = Query.Cache.put("hr:1", "v")
+      assert {:ok, "v"} = Query.Cache.get("hr:1")
+
+      {:ok, stats} = Query.Cache.stats()
+      assert Query.Cache.hit_ratio() == stats.hit_ratio
+    end
+
     test "stats track hits, misses and hit ratio" do
       assert :miss = Query.Cache.get("c:stat")
       :ok = Query.Cache.put("c:stat", "v")

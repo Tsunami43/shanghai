@@ -93,6 +93,16 @@ defmodule Query.Cache do
   @spec stats() :: {:ok, map()}
   def stats, do: GenServer.call(__MODULE__, :stats)
 
+  @doc """
+  Returns the cache hit ratio (0.0..1.0) directly, or `0.0` when there have been
+  no lookups yet. A convenience over reading it out of `stats/0`.
+  """
+  @spec hit_ratio() :: float()
+  def hit_ratio do
+    {:ok, stats} = stats()
+    stats.hit_ratio
+  end
+
   @doc "Returns the number of entries currently cached."
   @spec size() :: non_neg_integer()
   def size do
