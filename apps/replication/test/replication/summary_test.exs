@@ -72,4 +72,11 @@ defmodule Replication.SummaryTest do
     assert "gid-b" in ids
     assert ids == Enum.sort(ids)
   end
+
+  test "has_group?/1 reflects whether a group is tracked" do
+    refute Replication.has_group?("hg-missing")
+
+    Monitor.record_leader_offset("hg-1", ReplicationOffset.new(1))
+    assert Replication.has_group?("hg-1")
+  end
 end

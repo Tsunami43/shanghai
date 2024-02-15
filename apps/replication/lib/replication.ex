@@ -102,6 +102,14 @@ defmodule Replication do
   end
 
   @doc """
+  Returns `true` when a replication group with `group_id` is being tracked.
+  """
+  @spec has_group?(String.t()) :: boolean()
+  def has_group?(group_id) do
+    match?({:ok, _metrics}, get_group_metrics(group_id))
+  end
+
+  @doc """
   Returns the number of replication groups.
   """
   @spec group_count() :: non_neg_integer()
