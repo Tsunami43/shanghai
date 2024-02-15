@@ -62,4 +62,14 @@ defmodule Replication.SummaryTest do
     assert Replication.lagging_count() == summary.lagging
     assert Replication.stale_count() == summary.stale
   end
+
+  test "group_ids/0 lists group ids sorted" do
+    Monitor.record_leader_offset("gid-b", ReplicationOffset.new(1))
+    Monitor.record_leader_offset("gid-a", ReplicationOffset.new(1))
+
+    ids = Replication.group_ids()
+    assert "gid-a" in ids
+    assert "gid-b" in ids
+    assert ids == Enum.sort(ids)
+  end
 end

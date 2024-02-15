@@ -92,6 +92,16 @@ defmodule Replication do
   def stale_count, do: length(get_stale_replicas())
 
   @doc """
+  Returns the ids of all replication groups, sorted.
+  """
+  @spec group_ids() :: [String.t()]
+  def group_ids do
+    all_groups()
+    |> Enum.map(& &1.group_id)
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns the number of replication groups.
   """
   @spec group_count() :: non_neg_integer()
