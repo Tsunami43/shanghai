@@ -138,6 +138,17 @@ defmodule Cluster.Entities.Node do
   end
 
   @doc """
+  Returns the age of the node's last heartbeat in whole seconds, or `nil` when
+  it has never been seen.
+  """
+  @spec last_seen_age_seconds(t()) :: non_neg_integer() | nil
+  def last_seen_age_seconds(%__MODULE__{last_seen_at: nil}), do: nil
+
+  def last_seen_age_seconds(%__MODULE__{last_seen_at: seen}) do
+    DateTime.diff(DateTime.utc_now(), seen, :second)
+  end
+
+  @doc """
   Returns `true` when the node's last heartbeat is older than `threshold_ms`. A
   node that has never been seen is considered stale.
   """

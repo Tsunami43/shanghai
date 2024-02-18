@@ -165,6 +165,16 @@ defmodule Cluster.Entities.NodeTest do
     end
   end
 
+  describe "last_seen_age_seconds/1" do
+    test "is nil when never seen and non-negative after a heartbeat" do
+      node = %{Node.new(NodeId.new("n"), "localhost", 4000) | last_seen_at: nil}
+      assert Node.last_seen_age_seconds(node) == nil
+
+      old = %{node | last_seen_at: DateTime.add(DateTime.utc_now(), -3, :second)}
+      assert Node.last_seen_age_seconds(old) >= 3
+    end
+  end
+
   describe "stale?/2" do
     test "a never-seen node is stale" do
       node = %{Node.new(NodeId.new("n"), "localhost", 4000) | last_seen_at: nil}
