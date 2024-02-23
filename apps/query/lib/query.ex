@@ -393,6 +393,31 @@ defmodule Query do
   end
 
   @doc """
+  Atomically appends `element` to the list stored at `key`, creating an empty
+  list first when the key is absent. Returns `{:ok, new_list}`.
+
+  ## Examples
+
+      iex> Query.append("items", :a)
+      {:ok, [:a]}
+      iex> Query.append("items", :b)
+      {:ok, [:a, :b]}
+  """
+  @spec append(String.t(), term()) :: {:ok, [term()]} | {:error, term()}
+  def append(key, element) do
+    update(key, [], fn list -> list ++ [element] end)
+  end
+
+  @doc """
+  Atomically prepends `element` to the list stored at `key`, creating an empty
+  list first when the key is absent. Returns `{:ok, new_list}`.
+  """
+  @spec prepend(String.t(), term()) :: {:ok, [term()]} | {:error, term()}
+  def prepend(key, element) do
+    update(key, [], fn list -> [element | list] end)
+  end
+
+  @doc """
   Atomic get-and-update in the `Access` style.
 
   `fun` receives the current value (or `nil` when absent) and returns

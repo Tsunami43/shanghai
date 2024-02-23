@@ -162,4 +162,17 @@ defmodule QueryTest do
       refute_received :called
     end
   end
+
+  describe "append/2 and prepend/2" do
+    test "append builds a list in order, creating it when absent" do
+      assert {:ok, [:a]} = Query.append("ap:1", :a)
+      assert {:ok, [:a, :b]} = Query.append("ap:1", :b)
+      assert Query.get("ap:1") == [:a, :b]
+    end
+
+    test "prepend adds to the front" do
+      assert {:ok, [:a]} = Query.prepend("pp:1", :a)
+      assert {:ok, [:b, :a]} = Query.prepend("pp:1", :b)
+    end
+  end
 end
