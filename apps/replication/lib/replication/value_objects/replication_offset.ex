@@ -46,6 +46,17 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   end
 
   @doc """
+  Returns the inclusive list of offsets from `first` to `last`. Empty when
+  `last` precedes `first`. Useful for enumerating a replica catch-up window.
+  """
+  @spec range(t(), t()) :: [t()]
+  def range(%__MODULE__{value: first}, %__MODULE__{value: last}) when last >= first do
+    Enum.map(first..last, &new/1)
+  end
+
+  def range(%__MODULE__{}, %__MODULE__{}), do: []
+
+  @doc """
   Compares two offsets.
   Returns :lt, :eq, or :gt.
   """

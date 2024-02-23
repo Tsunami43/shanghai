@@ -169,4 +169,11 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.to_string(ReplicationOffset.new(9)) == "Offset(9)"
     assert ReplicationOffset.to_string(ReplicationOffset.zero()) == "Offset(0)"
   end
+
+  test "range/2 builds an inclusive list, empty when reversed" do
+    assert ReplicationOffset.range(ReplicationOffset.new(2), ReplicationOffset.new(4))
+           |> Enum.map(& &1.value) == [2, 3, 4]
+
+    assert ReplicationOffset.range(ReplicationOffset.new(4), ReplicationOffset.new(2)) == []
+  end
 end
