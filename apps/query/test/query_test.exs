@@ -175,4 +175,18 @@ defmodule QueryTest do
       assert {:ok, [:b, :a]} = Query.prepend("pp:1", :b)
     end
   end
+
+  describe "add_to_set/2 and remove_from_list/2" do
+    test "add_to_set keeps unique elements in insertion order" do
+      assert {:ok, [:a]} = Query.add_to_set("set:1", :a)
+      assert {:ok, [:a, :b]} = Query.add_to_set("set:1", :b)
+      assert {:ok, [:a, :b]} = Query.add_to_set("set:1", :a)
+    end
+
+    test "remove_from_list drops every occurrence" do
+      {:ok, _} = Query.write("rl:1", [:a, :b, :a, :c])
+      assert {:ok, [:b, :c]} = Query.remove_from_list("rl:1", :a)
+      assert {:ok, []} = Query.remove_from_list("rl:missing", :x)
+    end
+  end
 end

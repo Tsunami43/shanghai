@@ -418,6 +418,27 @@ defmodule Query do
   end
 
   @doc """
+  Atomically adds `element` to the list stored at `key` only when it is not
+  already present (set semantics, preserving insertion order). Creates an empty
+  list when the key is absent. Returns `{:ok, new_list}`.
+  """
+  @spec add_to_set(String.t(), term()) :: {:ok, [term()]} | {:error, term()}
+  def add_to_set(key, element) do
+    update(key, [], fn list ->
+      if element in list, do: list, else: list ++ [element]
+    end)
+  end
+
+  @doc """
+  Atomically removes every occurrence of `element` from the list stored at
+  `key`. A no-op when the key is absent. Returns `{:ok, new_list}`.
+  """
+  @spec remove_from_list(String.t(), term()) :: {:ok, [term()]} | {:error, term()}
+  def remove_from_list(key, element) do
+    update(key, [], fn list -> Enum.reject(list, &(&1 == element)) end)
+  end
+
+  @doc """
   Atomic get-and-update in the `Access` style.
 
   `fun` receives the current value (or `nil` when absent) and returns
