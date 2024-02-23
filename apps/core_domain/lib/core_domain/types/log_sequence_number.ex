@@ -175,6 +175,23 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   end
 
   @doc """
+  Returns the inclusive list of LSNs from `first` to `last`. Empty when `last`
+  precedes `first`.
+
+  ## Examples
+
+      iex> alias CoreDomain.Types.LogSequenceNumber, as: LSN
+      iex> LSN.range(LSN.new(2), LSN.new(4)) |> Enum.map(& &1.value)
+      [2, 3, 4]
+  """
+  @spec range(t(), t()) :: [t()]
+  def range(%__MODULE__{value: first}, %__MODULE__{value: last}) when last >= first do
+    Enum.map(first..last, &new/1)
+  end
+
+  def range(%__MODULE__{}, %__MODULE__{}), do: []
+
+  @doc """
   Returns the number of positions `b` is ahead of `a` (`b - a`), or `0` when `a`
   is at or ahead of `b`.
 

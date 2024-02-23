@@ -87,4 +87,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.to_string(LSN.new(7)) == "LSN(7)"
     assert LSN.to_string(LSN.zero()) == "LSN(0)"
   end
+
+  test "range/2 builds an inclusive list, empty when reversed" do
+    assert LSN.range(LSN.new(2), LSN.new(4)) |> Enum.map(& &1.value) == [2, 3, 4]
+    assert LSN.range(LSN.new(5), LSN.new(5)) |> Enum.map(& &1.value) == [5]
+    assert LSN.range(LSN.new(5), LSN.new(2)) == []
+  end
 end
