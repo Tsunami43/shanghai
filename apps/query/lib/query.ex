@@ -439,6 +439,24 @@ defmodule Query do
   end
 
   @doc """
+  Atomically sets `field` to `value` in the map stored at `key`, creating an
+  empty map when the key is absent. Returns `{:ok, new_map}`.
+  """
+  @spec put_field(String.t(), term(), term()) :: {:ok, map()} | {:error, term()}
+  def put_field(key, field, value) do
+    update(key, %{}, fn map -> Map.put(map, field, value) end)
+  end
+
+  @doc """
+  Atomically removes `field` from the map stored at `key`. A no-op when the key
+  or field is absent. Returns `{:ok, new_map}`.
+  """
+  @spec delete_field(String.t(), term()) :: {:ok, map()} | {:error, term()}
+  def delete_field(key, field) do
+    update(key, %{}, fn map -> Map.delete(map, field) end)
+  end
+
+  @doc """
   Atomic get-and-update in the `Access` style.
 
   `fun` receives the current value (or `nil` when absent) and returns

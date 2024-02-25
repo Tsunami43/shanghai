@@ -189,4 +189,17 @@ defmodule QueryTest do
       assert {:ok, []} = Query.remove_from_list("rl:missing", :x)
     end
   end
+
+  describe "put_field/3 and delete_field/2" do
+    test "put_field sets a field, creating the map when absent" do
+      assert {:ok, %{name: "a"}} = Query.put_field("h:1", :name, "a")
+      assert {:ok, %{name: "a", age: 1}} = Query.put_field("h:1", :age, 1)
+    end
+
+    test "delete_field removes a field and is a no-op when absent" do
+      {:ok, _} = Query.write("h:2", %{a: 1, b: 2})
+      assert {:ok, %{b: 2}} = Query.delete_field("h:2", :a)
+      assert {:ok, %{}} = Query.delete_field("h:missing", :x)
+    end
+  end
 end
