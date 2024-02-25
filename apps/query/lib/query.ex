@@ -457,6 +457,18 @@ defmodule Query do
   end
 
   @doc """
+  Reads `field` from the map stored at `key`, returning `default` when the key
+  is absent, holds a non-map, or lacks the field. A read-only accessor.
+  """
+  @spec get_field(String.t(), term(), term()) :: term()
+  def get_field(key, field, default \\ nil) do
+    case read(key) do
+      {:ok, map} when is_map(map) -> Map.get(map, field, default)
+      _ -> default
+    end
+  end
+
+  @doc """
   Atomic get-and-update in the `Access` style.
 
   `fun` receives the current value (or `nil` when absent) and returns

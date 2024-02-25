@@ -202,4 +202,20 @@ defmodule QueryTest do
       assert {:ok, %{}} = Query.delete_field("h:missing", :x)
     end
   end
+
+  describe "get_field/3" do
+    test "reads a field or the default" do
+      {:ok, _} = Query.put_field("gf:1", :name, "a")
+
+      assert Query.get_field("gf:1", :name) == "a"
+      assert Query.get_field("gf:1", :missing) == nil
+      assert Query.get_field("gf:1", :missing, :none) == :none
+      assert Query.get_field("gf:absent", :any, :none) == :none
+    end
+
+    test "returns the default for non-map values" do
+      {:ok, _} = Query.write("gf:2", 123)
+      assert Query.get_field("gf:2", :x, :none) == :none
+    end
+  end
 end
