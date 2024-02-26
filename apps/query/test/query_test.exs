@@ -218,4 +218,23 @@ defmodule QueryTest do
       assert Query.get_field("gf:2", :x, :none) == :none
     end
   end
+
+  describe "list_member?/2 and list_length/1" do
+    test "reflect the contents of a list value" do
+      {:ok, _} = Query.write("lm:1", [:a, :b, :c])
+
+      assert Query.list_member?("lm:1", :b)
+      refute Query.list_member?("lm:1", :z)
+      assert Query.list_length("lm:1") == 3
+    end
+
+    test "are safe for absent or non-list values" do
+      {:ok, _} = Query.write("lm:2", 5)
+
+      refute Query.list_member?("lm:2", :a)
+      refute Query.list_member?("lm:absent", :a)
+      assert Query.list_length("lm:2") == 0
+      assert Query.list_length("lm:absent") == 0
+    end
+  end
 end

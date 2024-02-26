@@ -469,6 +469,30 @@ defmodule Query do
   end
 
   @doc """
+  Returns `true` when the list stored at `key` contains `element`. `false` when
+  the key is absent or does not hold a list. A read-only accessor.
+  """
+  @spec list_member?(String.t(), term()) :: boolean()
+  def list_member?(key, element) do
+    case read(key) do
+      {:ok, list} when is_list(list) -> element in list
+      _ -> false
+    end
+  end
+
+  @doc """
+  Returns the length of the list stored at `key`, or `0` when the key is absent
+  or does not hold a list. A read-only accessor.
+  """
+  @spec list_length(String.t()) :: non_neg_integer()
+  def list_length(key) do
+    case read(key) do
+      {:ok, list} when is_list(list) -> length(list)
+      _ -> 0
+    end
+  end
+
+  @doc """
   Atomic get-and-update in the `Access` style.
 
   `fun` receives the current value (or `nil` when absent) and returns
