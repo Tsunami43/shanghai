@@ -278,6 +278,16 @@ defmodule AdminApi.Prometheus do
         "shanghai_cluster_health_ratio",
         "Fraction of cluster nodes that are up (0.0..1.0).",
         health_ratio
+      ),
+      gauge(
+        "shanghai_cluster_node_count",
+        "Total number of nodes known to the cluster.",
+        safe(fn -> Cluster.State.node_count(Cluster.cluster_state()) end, 0)
+      ),
+      gauge(
+        "shanghai_cluster_fault_tolerance",
+        "Number of node failures tolerable while retaining quorum.",
+        safe(fn -> Cluster.fault_tolerance() end, 0)
       )
     ]
 

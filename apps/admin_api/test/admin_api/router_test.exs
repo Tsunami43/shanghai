@@ -331,5 +331,7 @@ defmodule AdminApi.RouterTest do
     assert body =~ ~s(shanghai_cluster_nodes{status="up"})
     assert body =~ "# TYPE shanghai_cluster_quorum_available gauge"
     assert body =~ "# TYPE shanghai_cluster_health_ratio gauge"
+    assert body =~ "# TYPE shanghai_cluster_node_count gauge"
+    assert body =~ "# TYPE shanghai_cluster_fault_tolerance gauge"
   end
 end
