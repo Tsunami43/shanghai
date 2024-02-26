@@ -263,7 +263,25 @@ defmodule AdminApi.Prometheus do
         ["shanghai_cluster_nodes{status=\"", status, "\"} ", Integer.to_string(count), "\n"]
       end)
 
-    [header | rows]
+    quorum =
+      safe(fn -> if Cluster.quorum_available?(), do: 1, else: 0 end, 0)
+
+    health_ratio = safe(fn -> Cluster.health_ratio() end, 0.0)
+
+    extra = [
+      gauge(
+        "shanghai_cluster_quorum_available",
+        "Whether a majority of cluster nodes are up (1) or not (0).",
+        quorum
+      ),
+      gauge(
+        "shanghai_cluster_health_ratio",
+        "Fraction of cluster nodes that are up (0.0..1.0).",
+        health_ratio
+      )
+    ]
+
+    [header, rows | extra]
   end
 
   # --- Prometheus line helpers ---
