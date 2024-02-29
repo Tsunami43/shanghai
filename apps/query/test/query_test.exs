@@ -237,4 +237,12 @@ defmodule QueryTest do
       assert Query.list_length("lm:absent") == 0
     end
   end
+
+  describe "increment_field/3" do
+    test "adds to a numeric field, starting from zero" do
+      assert {:ok, %{hits: 1}} = Query.increment_field("if:1", :hits)
+      assert {:ok, %{hits: 3}} = Query.increment_field("if:1", :hits, 2)
+      assert {:ok, %{hits: 3, misses: 5}} = Query.increment_field("if:1", :misses, 5)
+    end
+  end
 end

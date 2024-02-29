@@ -457,6 +457,18 @@ defmodule Query do
   end
 
   @doc """
+  Atomically adds `amount` (default `1`) to the numeric `field` in the map
+  stored at `key`, treating a missing field or key as `0`. Returns
+  `{:ok, new_map}`.
+  """
+  @spec increment_field(String.t(), term(), number()) :: {:ok, map()} | {:error, term()}
+  def increment_field(key, field, amount \\ 1) when is_number(amount) do
+    update(key, %{}, fn map ->
+      Map.update(map, field, amount, &(&1 + amount))
+    end)
+  end
+
+  @doc """
   Reads `field` from the map stored at `key`, returning `default` when the key
   is absent, holds a non-map, or lacks the field. A read-only accessor.
   """
