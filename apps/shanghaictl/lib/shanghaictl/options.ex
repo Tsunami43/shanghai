@@ -103,6 +103,35 @@ defmodule Shanghaictl.Options do
     value || default
   end
 
+  @doc """
+  Returns the integer value of the `--name` option, or `default` when the option
+  is absent or is not a valid integer.
+
+  ## Examples
+
+      iex> Shanghaictl.Options.int_option(["--limit", "10"], "limit", 100)
+      10
+
+      iex> Shanghaictl.Options.int_option(["--limit=x"], "limit", 100)
+      100
+
+      iex> Shanghaictl.Options.int_option([], "limit", 100)
+      100
+  """
+  @spec int_option([String.t()], String.t(), integer()) :: integer()
+  def int_option(args, name, default) when is_integer(default) do
+    case option(args, name) do
+      nil ->
+        default
+
+      raw ->
+        case Integer.parse(raw) do
+          {int, ""} -> int
+          _ -> default
+        end
+    end
+  end
+
   defp from_args(args), do: option(args, "admin-url")
 
   defp from_env do

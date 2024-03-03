@@ -213,6 +213,13 @@ defmodule ShanghaictlTest do
       assert Options.option([], "limit", "20") == "20"
     end
 
+    test "int_option/3 parses integers with a fallback" do
+      assert Options.int_option(["--limit", "10"], "limit", 100) == 10
+      assert Options.int_option(["--limit=5"], "limit", 100) == 5
+      assert Options.int_option(["--limit", "x"], "limit", 100) == 100
+      assert Options.int_option([], "limit", 100) == 100
+    end
+
     test "admin_url/1 reads both flag forms" do
       assert Options.admin_url(["--admin-url", "http://h:9090"]) == "http://h:9090"
       assert Options.admin_url(["k", "--admin-url", "http://h:1"]) == "http://h:1"
