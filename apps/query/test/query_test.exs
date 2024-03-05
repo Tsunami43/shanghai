@@ -245,4 +245,14 @@ defmodule QueryTest do
       assert {:ok, %{hits: 3, misses: 5}} = Query.increment_field("if:1", :misses, 5)
     end
   end
+
+  describe "decrement_field/3" do
+    test "subtracts from a numeric field, starting from zero" do
+      {:ok, _} = Query.write("df:1", %{stock: 10})
+
+      assert {:ok, %{stock: 9}} = Query.decrement_field("df:1", :stock)
+      assert {:ok, %{stock: 6}} = Query.decrement_field("df:1", :stock, 3)
+      assert {:ok, %{stock: 6, missing: -1}} = Query.decrement_field("df:1", :missing)
+    end
+  end
 end

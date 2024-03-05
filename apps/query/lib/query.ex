@@ -469,6 +469,16 @@ defmodule Query do
   end
 
   @doc """
+  Atomically subtracts `amount` (default `1`) from the numeric `field` in the
+  map stored at `key`, treating a missing field or key as `0`. Returns
+  `{:ok, new_map}`.
+  """
+  @spec decrement_field(String.t(), term(), number()) :: {:ok, map()} | {:error, term()}
+  def decrement_field(key, field, amount \\ 1) when is_number(amount) do
+    increment_field(key, field, -amount)
+  end
+
+  @doc """
   Reads `field` from the map stored at `key`, returning `default` when the key
   is absent, holds a non-map, or lacks the field. A read-only accessor.
   """
