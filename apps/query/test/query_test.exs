@@ -255,4 +255,19 @@ defmodule QueryTest do
       assert {:ok, %{stock: 6, missing: -1}} = Query.decrement_field("df:1", :missing)
     end
   end
+
+  describe "has_field?/2" do
+    test "reflects whether a map value has a field" do
+      {:ok, _} = Query.put_field("hf:1", :name, "a")
+
+      assert Query.has_field?("hf:1", :name)
+      refute Query.has_field?("hf:1", :missing)
+      refute Query.has_field?("hf:absent", :name)
+    end
+
+    test "is false for non-map values" do
+      {:ok, _} = Query.write("hf:2", 5)
+      refute Query.has_field?("hf:2", :x)
+    end
+  end
 end

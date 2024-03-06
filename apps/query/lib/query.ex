@@ -491,6 +491,18 @@ defmodule Query do
   end
 
   @doc """
+  Returns `true` when the map stored at `key` contains `field`. `false` when the
+  key is absent or does not hold a map. A read-only accessor.
+  """
+  @spec has_field?(String.t(), term()) :: boolean()
+  def has_field?(key, field) do
+    case read(key) do
+      {:ok, map} when is_map(map) -> Map.has_key?(map, field)
+      _ -> false
+    end
+  end
+
+  @doc """
   Returns `true` when the list stored at `key` contains `element`. `false` when
   the key is absent or does not hold a list. A read-only accessor.
   """
