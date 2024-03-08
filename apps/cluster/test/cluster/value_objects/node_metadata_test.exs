@@ -191,4 +191,16 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.empty?(NodeMetadata.new() |> NodeMetadata.put_tag(:region, "eu"))
     refute NodeMetadata.empty?(NodeMetadata.new() |> NodeMetadata.update_resources(%{cpu: 1}))
   end
+
+  test "tags/1 and resources/1 return the full maps" do
+    md =
+      NodeMetadata.new()
+      |> NodeMetadata.put_tag(:region, "eu")
+      |> NodeMetadata.update_resources(%{cpu: 8})
+
+    assert NodeMetadata.tags(md) == %{region: "eu"}
+    assert NodeMetadata.resources(md) == %{cpu: 8}
+    assert NodeMetadata.tags(NodeMetadata.new()) == %{}
+    assert NodeMetadata.resources(NodeMetadata.new()) == %{}
+  end
 end

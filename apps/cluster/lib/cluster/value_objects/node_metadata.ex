@@ -104,6 +104,10 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec has_tag?(t(), atom() | String.t()) :: boolean()
   def has_tag?(%__MODULE__{tags: tags}, key), do: Map.has_key?(tags, key)
 
+  @doc "Returns the full tags map."
+  @spec tags(t()) :: map()
+  def tags(%__MODULE__{tags: tags}), do: tags
+
   @doc "Returns the tag keys, sorted."
   @spec tag_keys(t()) :: [atom() | String.t()]
   def tag_keys(%__MODULE__{tags: tags}), do: tags |> Map.keys() |> Enum.sort()
@@ -138,6 +142,10 @@ defmodule Cluster.ValueObjects.NodeMetadata do
       when is_map(new_resources) do
     %{metadata | resources: Map.merge(resources, new_resources)}
   end
+
+  @doc "Returns the full resources map."
+  @spec resources(t()) :: map()
+  def resources(%__MODULE__{resources: resources}), do: resources
 
   @doc "Returns the resource keys, sorted."
   @spec resource_keys(t()) :: [atom() | String.t()]
