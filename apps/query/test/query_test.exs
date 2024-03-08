@@ -270,4 +270,22 @@ defmodule QueryTest do
       refute Query.has_field?("hf:2", :x)
     end
   end
+
+  describe "pop_field/3" do
+    test "removes and returns a field value" do
+      {:ok, _} = Query.write("pf:1", %{a: 1, b: 2})
+
+      assert {:ok, 1} = Query.pop_field("pf:1", :a)
+      assert Query.get("pf:1") == %{b: 2}
+    end
+
+    test "returns the default without writing when absent" do
+      assert {:ok, :none} = Query.pop_field("pf:missing", :a, :none)
+      refute Query.exists?("pf:missing")
+
+      {:ok, _} = Query.write("pf:2", %{a: 1})
+      assert {:ok, :none} = Query.pop_field("pf:2", :missing, :none)
+      assert Query.get("pf:2") == %{a: 1}
+    end
+  end
 end

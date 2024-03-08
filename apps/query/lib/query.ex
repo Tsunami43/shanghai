@@ -503,6 +503,20 @@ defmodule Query do
   end
 
   @doc """
+  Atomically removes `field` from the map stored at `key`, returning
+  `{:ok, removed_value}`. When the key is absent, holds a non-map, or lacks the
+  field, nothing is written and `{:ok, default}` is returned.
+  """
+  @spec pop_field(String.t(), term(), term()) :: {:ok, term()} | {:error, term()}
+  def pop_field(key, field, default \\ nil) do
+    if has_field?(key, field) do
+      get_and_update(key, fn map -> {Map.get(map, field), Map.delete(map, field)} end)
+    else
+      {:ok, default}
+    end
+  end
+
+  @doc """
   Returns `true` when the list stored at `key` contains `element`. `false` when
   the key is absent or does not hold a list. A read-only accessor.
   """
