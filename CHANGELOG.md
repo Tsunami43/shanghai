@@ -114,6 +114,20 @@ follow semantic versioning.
   `NodeMetadata` (`capability_count/1`, `empty?/1`).
 - **More Query/Cache operations**: `Query.to_map/0`, `to_list/0`, `missing/1`;
   `Query.Cache.cached?/1` (counter-free membership probe).
+- **Query read ergonomics and collection operations**: `get/2`, `get_lazy/2`,
+  `fetch!/1`; list ops `append/2`, `prepend/2`, `add_to_set/2`,
+  `remove_from_list/2`, `list_member?/2`, `list_length/1`; map/hash ops
+  `put_field/3`, `get_field/3`, `has_field?/2`, `delete_field/2`,
+  `increment_field/3`, `decrement_field/3`.
+- **Placement & ranges**: `NodeId.hash/1` / `slot/2` (consistent placement),
+  `LogSequenceNumber.range/2`, `ReplicationOffset.range/2`, and `to_string/1`
+  display forms for `LogSequenceNumber` and `ReplicationOffset`.
+- **More cluster/storage/replication introspection**: `Cluster.State`
+  (`get_node_by_address/2`, `local_node/1`, `nodes_by_status/1`),
+  `Cluster.local_node/0`, `Node.last_seen_age_seconds/1`, `Storage.summary/0` /
+  `total_entries/0` / `total_bytes/0` (over `GET /api/v1/storage`), and
+  `Replication.group_ids/0` / `has_group?/1`. Prometheus now also exports
+  cluster quorum, health-ratio, node-count, and fault-tolerance gauges.
 - **Storage/observability/CLI helpers**: `Storage.avg_segment_entries/0`;
   `Observability` (`Logger.with_new_correlation_id/1`,
   `Metrics.event_defined?/1`, `event_count/0`); `Admin.Health.healthy_subsystems/0`
