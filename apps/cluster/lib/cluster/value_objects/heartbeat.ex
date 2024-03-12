@@ -102,6 +102,14 @@ defmodule Cluster.ValueObjects.Heartbeat do
     Map.get(metrics, key, default)
   end
 
+  @doc "Returns the metric keys carried by the heartbeat, sorted."
+  @spec metric_names(t()) :: [term()]
+  def metric_names(%__MODULE__{metrics: metrics}), do: metrics |> Map.keys() |> Enum.sort()
+
+  @doc "Returns the number of metrics carried by the heartbeat."
+  @spec metric_count(t()) :: non_neg_integer()
+  def metric_count(%__MODULE__{metrics: metrics}), do: map_size(metrics)
+
   @doc """
   Returns a plain-map view of the heartbeat for serialization, with the source
   node id rendered as its string value.

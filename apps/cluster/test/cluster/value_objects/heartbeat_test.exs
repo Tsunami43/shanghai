@@ -154,4 +154,17 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert %DateTime{} = map.timestamp
     end
   end
+
+  describe "metric_names/1 and metric_count/1" do
+    test "list and count the carried metrics" do
+      hb = Heartbeat.new(NodeId.new("node1"), 1, %{cpu: 0.5, memory: 0.7})
+
+      assert Heartbeat.metric_names(hb) == [:cpu, :memory]
+      assert Heartbeat.metric_count(hb) == 2
+
+      empty = Heartbeat.new(NodeId.new("node2"), 1)
+      assert Heartbeat.metric_names(empty) == []
+      assert Heartbeat.metric_count(empty) == 0
+    end
+  end
 end
