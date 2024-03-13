@@ -288,4 +288,14 @@ defmodule QueryTest do
       assert Query.get("pf:2") == %{a: 1}
     end
   end
+
+  describe "keys_between/2" do
+    test "returns sorted keys within the inclusive range" do
+      for k <- ["a", "b", "c", "d", "e"], do: {:ok, _} = Query.write(k, k)
+
+      assert Query.keys_between("b", "d") == ["b", "c", "d"]
+      assert Query.keys_between("c", "c") == ["c"]
+      assert Query.keys_between("d", "b") == []
+    end
+  end
 end

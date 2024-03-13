@@ -820,6 +820,10 @@ defmodule Query do
   @spec values_prefix(binary()) :: [term()]
   defdelegate values_prefix(prefix), to: Query.Store
 
+  @doc "Returns the keys within the inclusive range `[low, high]`, sorted."
+  @spec keys_between(term(), term()) :: [term()]
+  defdelegate keys_between(low, high), to: Query.Store
+
   @doc "Returns the number of stored keys."
   @spec count() :: non_neg_integer()
   defdelegate count(), to: Query.Store

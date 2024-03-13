@@ -203,6 +203,17 @@ defmodule Query.Store do
     for {_key, value} <- scan_table(@default_table, prefix, []), do: value
   end
 
+  @doc """
+  Returns the keys within the inclusive range `[low, high]` by term order,
+  sorted. Empty when `high` precedes `low`.
+  """
+  @spec keys_between(term(), term()) :: [term()]
+  def keys_between(low, high) do
+    keys()
+    |> Enum.filter(&(&1 >= low and &1 <= high))
+    |> Enum.sort()
+  end
+
   # Prefix scan against a specific ETS table (the default store or a named
   # instance's table). Sorted by key; honors an optional `:limit`.
   defp scan_table(table, prefix, opts) do
