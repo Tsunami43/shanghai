@@ -98,4 +98,16 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert map.metadata == %{source: "leader"}
     assert %DateTime{} = map.timestamp
   end
+
+  test "age_ms/1 and age_seconds/1 measure elapsed time since the timestamp" do
+    id = %NodeId{value: "n"}
+
+    entry = %{
+      LogEntry.new(LogSequenceNumber.new(1), "d", id)
+      | timestamp: DateTime.add(DateTime.utc_now(), -3, :second)
+    }
+
+    assert LogEntry.age_ms(entry) >= 3_000
+    assert LogEntry.age_seconds(entry) >= 3
+  end
 end

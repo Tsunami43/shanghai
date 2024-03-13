@@ -79,6 +79,18 @@ defmodule CoreDomain.Entities.LogEntry do
   @spec lsn_value(t()) :: non_neg_integer()
   def lsn_value(%__MODULE__{lsn: lsn}), do: LogSequenceNumber.to_integer(lsn)
 
+  @doc "Returns the age of the entry in milliseconds since its timestamp."
+  @spec age_ms(t()) :: non_neg_integer()
+  def age_ms(%__MODULE__{timestamp: timestamp}) do
+    DateTime.diff(DateTime.utc_now(), timestamp, :millisecond)
+  end
+
+  @doc "Returns the age of the entry in whole seconds since its timestamp."
+  @spec age_seconds(t()) :: non_neg_integer()
+  def age_seconds(%__MODULE__{timestamp: timestamp}) do
+    DateTime.diff(DateTime.utc_now(), timestamp, :second)
+  end
+
   @doc "Returns the metadata value for `key`, or `default` when absent."
   @spec get_metadata(t(), term(), term()) :: term()
   def get_metadata(%__MODULE__{metadata: metadata}, key, default \\ nil) do
