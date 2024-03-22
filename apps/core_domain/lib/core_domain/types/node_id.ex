@@ -75,6 +75,10 @@ defmodule CoreDomain.Types.NodeId do
     String.starts_with?(value, prefix)
   end
 
+  @doc "Sorts a list of NodeIds by their string value, ascending."
+  @spec sort([t()]) :: [t()]
+  def sort(node_ids) when is_list(node_ids), do: Enum.sort_by(node_ids, & &1.value)
+
   @doc """
   Returns a shortened, display-friendly form of the id, keeping the first
   `length` characters (default 8). Values already at or below `length` are

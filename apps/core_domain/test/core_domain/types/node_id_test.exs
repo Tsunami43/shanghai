@@ -64,4 +64,10 @@ defmodule CoreDomain.Types.NodeIdTest do
 
     assert NodeId.slot(NodeId.new("n1"), 8) == NodeId.slot(NodeId.new("n1"), 8)
   end
+
+  test "sort/1 orders node ids by value" do
+    ids = [NodeId.new("c"), NodeId.new("a"), NodeId.new("b")]
+    assert Enum.map(NodeId.sort(ids), & &1.value) == ["a", "b", "c"]
+    assert NodeId.sort([]) == []
+  end
 end
