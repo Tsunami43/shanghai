@@ -93,4 +93,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.range(LSN.new(5), LSN.new(5)) |> Enum.map(& &1.value) == [5]
     assert LSN.range(LSN.new(5), LSN.new(2)) == []
   end
+
+  test "diff/2 returns the signed difference b - a" do
+    assert LSN.diff(LSN.new(3), LSN.new(10)) == 7
+    assert LSN.diff(LSN.new(10), LSN.new(3)) == -7
+    assert LSN.diff(LSN.new(4), LSN.new(4)) == 0
+  end
 end

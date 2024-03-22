@@ -207,6 +207,21 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def distance(%__MODULE__{}, %__MODULE__{}), do: 0
 
   @doc """
+  Returns the signed difference `b - a` between two LSNs. Positive when `b` is
+  ahead of `a`, negative when behind. Unlike `distance/2`, this never clamps.
+
+  ## Examples
+
+      iex> alias CoreDomain.Types.LogSequenceNumber, as: LSN
+      iex> LSN.diff(LSN.new(3), LSN.new(10))
+      7
+      iex> LSN.diff(LSN.new(10), LSN.new(3))
+      -7
+  """
+  @spec diff(t(), t()) :: integer()
+  def diff(%__MODULE__{value: a}, %__MODULE__{value: b}), do: b - a
+
+  @doc """
   Returns `true` when `lsn` is within the inclusive range `[low, high]`.
 
   ## Examples
