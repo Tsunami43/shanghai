@@ -222,6 +222,19 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the node whose last heartbeat is most recent, or `nil` for an empty
+  cluster. Never-seen nodes rank as least fresh; ties break by node id.
+  """
+  @spec freshest_node(t()) :: Node.t() | nil
+  def freshest_node(%__MODULE__{nodes: nodes}) when map_size(nodes) == 0, do: nil
+
+  def freshest_node(%__MODULE__{} = cluster) do
+    cluster
+    |> all_nodes()
+    |> Enum.max_by(&staleness_key/1)
+  end
+
+  @doc """
   Returns all nodes with the specified status.
   """
   @spec nodes_with_status(t(), atom()) :: [Node.t()]
