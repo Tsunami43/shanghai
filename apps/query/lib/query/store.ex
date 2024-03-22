@@ -214,6 +214,20 @@ defmodule Query.Store do
     |> Enum.sort()
   end
 
+  @doc """
+  Returns the `{key, value}` pairs whose key falls within the inclusive range
+  `[low, high]`, sorted by key. Empty when `high` precedes `low`.
+  """
+  @spec pairs_between(term(), term()) :: [{term(), term()}]
+  def pairs_between(low, high) do
+    @default_table
+    |> :ets.tab2list()
+    |> Enum.filter(fn {key, _value} -> key >= low and key <= high end)
+    |> Enum.sort_by(&elem(&1, 0))
+  rescue
+    ArgumentError -> []
+  end
+
   # Prefix scan against a specific ETS table (the default store or a named
   # instance's table). Sorted by key; honors an optional `:limit`.
   defp scan_table(table, prefix, opts) do

@@ -298,4 +298,13 @@ defmodule QueryTest do
       assert Query.keys_between("d", "b") == []
     end
   end
+
+  describe "pairs_between/2" do
+    test "returns sorted key/value pairs within the range" do
+      for k <- ["a", "b", "c", "d"], do: {:ok, _} = Query.write(k, String.upcase(k))
+
+      assert Query.pairs_between("b", "c") == [{"b", "B"}, {"c", "C"}]
+      assert Query.pairs_between("d", "a") == []
+    end
+  end
 end
