@@ -202,6 +202,26 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the node whose last heartbeat is oldest (the most likely failed), or
+  `nil` for an empty cluster. Never-seen nodes rank as stalest; ties break by
+  node id for determinism.
+  """
+  @spec stalest_node(t()) :: Node.t() | nil
+  def stalest_node(%__MODULE__{nodes: nodes}) when map_size(nodes) == 0, do: nil
+
+  def stalest_node(%__MODULE__{} = cluster) do
+    cluster
+    |> all_nodes()
+    |> Enum.min_by(&staleness_key/1)
+  end
+
+  defp staleness_key(%Node{last_seen_at: nil, id: id}), do: {0, 0, id.value}
+
+  defp staleness_key(%Node{last_seen_at: ts, id: id}) do
+    {1, DateTime.to_unix(ts, :millisecond), id.value}
+  end
+
+  @doc """
   Returns all nodes with the specified status.
   """
   @spec nodes_with_status(t(), atom()) :: [Node.t()]

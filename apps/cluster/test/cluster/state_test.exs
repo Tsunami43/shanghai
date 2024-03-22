@@ -202,6 +202,39 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "stalest_node/1" do
+    test "returns nil for an empty cluster" do
+      assert State.stalest_node(State.new(NodeId.new("local"))) == nil
+    end
+
+    test "returns the node with the oldest heartbeat" do
+      cluster = State.new(NodeId.new("local"))
+
+      fresh = Node.new(NodeId.new("fresh"), "h", 4001)
+
+      old = %{
+        Node.new(NodeId.new("old"), "h", 4002)
+        | last_seen_at: DateTime.add(DateTime.utc_now(), -100, :second)
+      }
+
+      {:ok, cluster} = State.add_node(cluster, fresh)
+      {:ok, cluster} = State.add_node(cluster, old)
+
+      assert State.stalest_node(cluster).id.value == "old"
+    end
+
+    test "ranks a never-seen node as stalest" do
+      cluster = State.new(NodeId.new("local"))
+      seen = Node.new(NodeId.new("seen"), "h", 4001)
+      never = %{Node.new(NodeId.new("never"), "h", 4002) | last_seen_at: nil}
+
+      {:ok, cluster} = State.add_node(cluster, seen)
+      {:ok, cluster} = State.add_node(cluster, never)
+
+      assert State.stalest_node(cluster).id.value == "never"
+    end
+  end
+
   describe "nodes_with_status/2" do
     test "returns only nodes with specified status" do
       local_id = NodeId.new("local")
