@@ -824,6 +824,10 @@ defmodule Query do
   @spec keys_between(term(), term()) :: [term()]
   defdelegate keys_between(low, high), to: Query.Store
 
+  @doc "Returns the number of keys within the inclusive range `[low, high]`."
+  @spec count_between(term(), term()) :: non_neg_integer()
+  defdelegate count_between(low, high), to: Query.Store
+
   @doc "Returns the `{key, value}` pairs within the inclusive range `[low, high]`, sorted."
   @spec pairs_between(term(), term()) :: [{term(), term()}]
   defdelegate pairs_between(low, high), to: Query.Store

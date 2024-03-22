@@ -215,6 +215,15 @@ defmodule Query.Store do
   end
 
   @doc """
+  Returns the number of keys within the inclusive range `[low, high]` without
+  materializing them. `0` when `high` precedes `low`.
+  """
+  @spec count_between(term(), term()) :: non_neg_integer()
+  def count_between(low, high) do
+    Enum.count(keys(), &(&1 >= low and &1 <= high))
+  end
+
+  @doc """
   Returns the `{key, value}` pairs whose key falls within the inclusive range
   `[low, high]`, sorted by key. Empty when `high` precedes `low`.
   """

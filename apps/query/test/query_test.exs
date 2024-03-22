@@ -307,4 +307,14 @@ defmodule QueryTest do
       assert Query.pairs_between("d", "a") == []
     end
   end
+
+  describe "count_between/2" do
+    test "counts keys within the inclusive range" do
+      for k <- ["a", "b", "c", "d", "e"], do: {:ok, _} = Query.write(k, k)
+
+      assert Query.count_between("b", "d") == 3
+      assert Query.count_between("c", "c") == 1
+      assert Query.count_between("e", "a") == 0
+    end
+  end
 end
