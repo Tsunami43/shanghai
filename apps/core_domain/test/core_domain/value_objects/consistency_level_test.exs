@@ -79,4 +79,17 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       assert ConsistencyLevel.compare(:causal, :causal) == :eq
     end
   end
+
+  describe "strongest/0 and weakest/0" do
+    test "return the extremes of the ordering" do
+      assert ConsistencyLevel.strongest() == :strong
+      assert ConsistencyLevel.weakest() == :eventual
+
+      assert ConsistencyLevel.rank(ConsistencyLevel.strongest()) ==
+               Enum.max(Enum.map(ConsistencyLevel.all(), &ConsistencyLevel.rank/1))
+
+      assert ConsistencyLevel.rank(ConsistencyLevel.weakest()) ==
+               Enum.min(Enum.map(ConsistencyLevel.all(), &ConsistencyLevel.rank/1))
+    end
+  end
 end

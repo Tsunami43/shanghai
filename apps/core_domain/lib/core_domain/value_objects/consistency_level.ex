@@ -52,6 +52,14 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   @spec default() :: t()
   def default, do: :strong
 
+  @doc "Returns the strongest consistency level (`:strong`)."
+  @spec strongest() :: t()
+  def strongest, do: :strong
+
+  @doc "Returns the weakest consistency level (`:eventual`)."
+  @spec weakest() :: t()
+  def weakest, do: :eventual
+
   @doc """
   Checks if a level is stronger than another.
   """
