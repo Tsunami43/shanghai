@@ -317,4 +317,18 @@ defmodule QueryTest do
       assert Query.count_between("e", "a") == 0
     end
   end
+
+  describe "first/0 and last/0" do
+    test "return the min and max key pairs, nil when empty" do
+      assert Query.first() == nil
+      assert Query.last() == nil
+
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.first() == {"a", 1}
+      assert Query.last() == {"c", 3}
+    end
+  end
 end

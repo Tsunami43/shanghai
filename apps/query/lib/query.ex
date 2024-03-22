@@ -853,6 +853,30 @@ defmodule Query do
   defdelegate max_key(), to: Query.Store
 
   @doc """
+  Returns the `{key, value}` pair at the smallest key, or `nil` when the store
+  is empty.
+  """
+  @spec first() :: {term(), term()} | nil
+  def first do
+    case min_key() do
+      nil -> nil
+      key -> {key, get(key)}
+    end
+  end
+
+  @doc """
+  Returns the `{key, value}` pair at the largest key, or `nil` when the store is
+  empty.
+  """
+  @spec last() :: {term(), term()} | nil
+  def last do
+    case max_key() do
+      nil -> nil
+      key -> {key, get(key)}
+    end
+  end
+
+  @doc """
   Returns `true` when the store is empty (no keys).
   """
   @spec empty?() :: boolean()
