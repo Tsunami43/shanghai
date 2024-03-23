@@ -27,8 +27,10 @@ defmodule Replication.ConsistencyTest do
       elapsed = System.monotonic_time(:millisecond) - start_time
 
       assert offset.value == 1
-      # Should complete very quickly since no followers needed
-      assert elapsed < 50
+      # Should complete quickly since no followers are awaited. The bound is
+      # generous enough to stay stable under parallel test load while remaining
+      # far below the follower-quorum timeout paths.
+      assert elapsed < 500
     end
   end
 

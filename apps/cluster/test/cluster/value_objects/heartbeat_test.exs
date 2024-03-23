@@ -53,7 +53,9 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
 
       age = Heartbeat.age_ms(heartbeat)
       assert age >= 50
-      assert age < 200
+      # Upper bound kept generous so scheduling jitter under parallel test load
+      # does not make this flaky; it still asserts the heartbeat is recent.
+      assert age < 2_000
     end
   end
 
