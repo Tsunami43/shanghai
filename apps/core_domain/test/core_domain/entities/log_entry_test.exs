@@ -110,4 +110,22 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.age_ms(entry) >= 3_000
     assert LogEntry.age_seconds(entry) >= 3
   end
+
+  test "from_map/1 inverts to_map/1 (round-trip)" do
+    id = NodeId.new("node-7")
+    entry = LogEntry.new(LogSequenceNumber.new(42), "payload", id, %{source: "leader"})
+
+    restored = entry |> LogEntry.to_map() |> LogEntry.from_map()
+
+    assert restored.lsn == entry.lsn
+    assert restored.data == entry.data
+    assert restored.node_id == entry.node_id
+    assert restored.metadata == entry.metadata
+    assert restored.timestamp == entry.timestamp
+  end
+
+  test "from_map/1 defaults metadata to an empty map" do
+    map = %{lsn: 1, data: "d", timestamp: DateTime.utc_now(), node_id: "n"}
+    assert LogEntry.from_map(map).metadata == %{}
+  end
 end

@@ -123,4 +123,20 @@ defmodule CoreDomain.Entities.LogEntry do
       metadata: entry.metadata
     }
   end
+
+  @doc """
+  Rebuilds a log entry from a plain map produced by `to_map/1` (or an equivalent
+  with atom keys), wrapping the LSN integer and node-id string back into their
+  value objects. `metadata` defaults to `%{}` when absent.
+  """
+  @spec from_map(map()) :: t()
+  def from_map(%{lsn: lsn, data: data, timestamp: timestamp, node_id: node_id} = map) do
+    %__MODULE__{
+      lsn: LogSequenceNumber.new(lsn),
+      data: data,
+      timestamp: timestamp,
+      node_id: NodeId.new(node_id),
+      metadata: Map.get(map, :metadata, %{})
+    }
+  end
 end
