@@ -44,6 +44,10 @@ defmodule StorageTest do
     assert Storage.total_bytes() == stats.bytes
   end
 
+  test "empty?/0 reflects whether the WAL has entries" do
+    assert Storage.empty?() == (Storage.wal_stats().entries == 0)
+  end
+
   test "summary/0 gives a compact overview consistent with wal_stats/0" do
     summary = Storage.summary()
     stats = Storage.wal_stats()

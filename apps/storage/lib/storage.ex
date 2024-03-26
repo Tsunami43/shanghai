@@ -203,6 +203,13 @@ defmodule Storage do
   def total_bytes, do: wal_stats().bytes
 
   @doc """
+  Returns `true` when the WAL holds no entries across all active segments (a
+  fresh or fully-compacted log).
+  """
+  @spec empty?() :: boolean()
+  def empty?, do: wal_stats().entries == 0
+
+  @doc """
   Returns a compact one-call overview of the storage subsystem: durability, the
   active-segment count, total entries and bytes, snapshot count, and whether
   compaction is running.
