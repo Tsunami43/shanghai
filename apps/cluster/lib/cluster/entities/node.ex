@@ -191,4 +191,21 @@ defmodule Cluster.Entities.Node do
       last_seen_at: node.last_seen_at
     }
   end
+
+  @doc """
+  Rebuilds a node from a plain map produced by `to_map/1`, wrapping the id
+  string back into a `NodeId`. `metadata` defaults to `%{}`, `status` to `:up`,
+  and `last_seen_at` to `nil` when absent.
+  """
+  @spec from_map(map()) :: t()
+  def from_map(%{id: id, host: host, port: port} = map) do
+    %__MODULE__{
+      id: NodeId.new(id),
+      host: host,
+      port: port,
+      status: Map.get(map, :status, :up),
+      metadata: Map.get(map, :metadata, %{}),
+      last_seen_at: Map.get(map, :last_seen_at)
+    }
+  end
 end

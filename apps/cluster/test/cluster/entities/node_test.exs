@@ -204,4 +204,25 @@ defmodule Cluster.Entities.NodeTest do
       assert %DateTime{} = map.last_seen_at
     end
   end
+
+  describe "from_map/1" do
+    test "inverts to_map/1 (round-trip)" do
+      node = Node.new(NodeId.new("n7"), "localhost", 4007, %{role: "leader"})
+      restored = node |> Node.to_map() |> Node.from_map()
+
+      assert restored.id == node.id
+      assert restored.host == node.host
+      assert restored.port == node.port
+      assert restored.status == node.status
+      assert restored.metadata == node.metadata
+      assert restored.last_seen_at == node.last_seen_at
+    end
+
+    test "applies defaults for absent optional fields" do
+      node = Node.from_map(%{id: "n1", host: "h", port: 4000})
+      assert node.status == :up
+      assert node.metadata == %{}
+      assert node.last_seen_at == nil
+    end
+  end
 end
