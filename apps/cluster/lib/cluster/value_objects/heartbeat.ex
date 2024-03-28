@@ -128,4 +128,18 @@ defmodule Cluster.ValueObjects.Heartbeat do
       metrics: heartbeat.metrics
     }
   end
+
+  @doc """
+  Rebuilds a heartbeat from a plain map produced by `to_map/1`, wrapping the
+  node-id string back into a `NodeId`. `metrics` defaults to `%{}` when absent.
+  """
+  @spec from_map(map()) :: t()
+  def from_map(%{node_id: node_id, sequence: sequence, timestamp: timestamp} = map) do
+    %__MODULE__{
+      node_id: NodeId.new(node_id),
+      sequence: sequence,
+      timestamp: timestamp,
+      metrics: Map.get(map, :metrics, %{})
+    }
+  end
 end

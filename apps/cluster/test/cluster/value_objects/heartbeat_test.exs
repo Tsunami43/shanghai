@@ -169,4 +169,21 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.metric_count(empty) == 0
     end
   end
+
+  describe "from_map/1" do
+    test "inverts to_map/1 (round-trip)" do
+      hb = Heartbeat.new(NodeId.new("node1"), 7, %{cpu: 0.5})
+      restored = hb |> Heartbeat.to_map() |> Heartbeat.from_map()
+
+      assert restored.node_id == hb.node_id
+      assert restored.sequence == hb.sequence
+      assert restored.timestamp == hb.timestamp
+      assert restored.metrics == hb.metrics
+    end
+
+    test "defaults metrics to an empty map" do
+      map = %{node_id: "n", sequence: 1, timestamp: DateTime.utc_now()}
+      assert Heartbeat.from_map(map).metrics == %{}
+    end
+  end
 end
