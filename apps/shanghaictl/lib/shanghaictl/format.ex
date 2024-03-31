@@ -62,4 +62,47 @@ defmodule Shanghaictl.Format do
     |> Enum.map_join(",", &Enum.join/1)
     |> String.reverse()
   end
+
+  @doc """
+  Formats a ratio in `0.0..1.0` as a percentage string with one decimal place.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.percent(0.42)
+      "42.0%"
+
+      iex> Shanghaictl.Format.percent(1.0)
+      "100.0%"
+  """
+  @spec percent(number()) :: String.t()
+  def percent(ratio) when is_number(ratio) do
+    rounded = Float.round(ratio * 100, 1)
+    "#{:erlang.float_to_binary(rounded, decimals: 1)}%"
+  end
+
+  @doc """
+  Formats a millisecond duration in a human-readable form: `ms` below a second,
+  `s` below a minute, otherwise `m`.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.duration_ms(500)
+      "500ms"
+
+      iex> Shanghaictl.Format.duration_ms(1_500)
+      "1.5s"
+
+      iex> Shanghaictl.Format.duration_ms(90_000)
+      "1.5m"
+  """
+  @spec duration_ms(non_neg_integer()) :: String.t()
+  def duration_ms(ms) when is_integer(ms) and ms >= 0 and ms < 1_000, do: "#{ms}ms"
+
+  def duration_ms(ms) when is_integer(ms) and ms < 60_000 do
+    "#{:erlang.float_to_binary(Float.round(ms / 1_000, 1), decimals: 1)}s"
+  end
+
+  def duration_ms(ms) when is_integer(ms) do
+    "#{:erlang.float_to_binary(Float.round(ms / 60_000, 1), decimals: 1)}m"
+  end
 end

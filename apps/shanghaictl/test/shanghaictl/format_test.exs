@@ -29,4 +29,23 @@ defmodule Shanghaictl.FormatTest do
       assert Format.count(-1_234) == "-1,234"
     end
   end
+
+  describe "percent/1" do
+    test "formats ratios as percentages" do
+      assert Format.percent(0.0) == "0.0%"
+      assert Format.percent(0.42) == "42.0%"
+      assert Format.percent(1.0) == "100.0%"
+      assert Format.percent(2 / 3) == "66.7%"
+    end
+  end
+
+  describe "duration_ms/1" do
+    test "formats durations across units" do
+      assert Format.duration_ms(0) == "0ms"
+      assert Format.duration_ms(500) == "500ms"
+      assert Format.duration_ms(1_500) == "1.5s"
+      assert Format.duration_ms(59_000) == "59.0s"
+      assert Format.duration_ms(90_000) == "1.5m"
+    end
+  end
 end
