@@ -86,7 +86,7 @@ defmodule ShanghaictlTest do
       joined = Enum.join(lines, "\n")
 
       assert joined =~ "Keys: 3"
-      assert joined =~ "Memory: 512 bytes"
+      assert joined =~ "Memory: 512 B"
       assert joined =~ "TTL: 60000ms"
       assert joined =~ "Hits: 8"
       assert joined =~ "Hit Ratio: 0.8"
@@ -155,7 +155,7 @@ defmodule ShanghaictlTest do
 
       assert joined =~ "Segments: 2"
       assert joined =~ "Entries: 100"
-      assert joined =~ "Size: 4096 bytes"
+      assert joined =~ "Size: 4.0 KB"
       assert joined =~ "Snapshots: 3"
     end
 

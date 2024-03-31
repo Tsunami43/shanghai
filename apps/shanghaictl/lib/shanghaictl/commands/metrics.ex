@@ -3,6 +3,8 @@ defmodule Shanghaictl.Commands.Metrics do
   Metrics command for viewing performance and operational metrics.
   """
 
+  alias Shanghaictl.Format
+
   @doc """
   Shows operational metrics including WAL, replication, and heartbeat stats.
   """
@@ -117,7 +119,7 @@ defmodule Shanghaictl.Commands.Metrics do
       "  Segments: #{Map.get(storage, "segments", Map.get(storage, "active_segments"))}",
       "  Current LSN: #{Map.get(storage, "current_lsn")}",
       "  Entries: #{Map.get(storage, "entries")}",
-      "  Size: #{Map.get(storage, "bytes")} bytes",
+      "  Size: #{format_bytes(Map.get(storage, "bytes"))}",
       "  Snapshots: #{Map.get(storage, "snapshots")}"
     ]
   end
@@ -141,7 +143,7 @@ defmodule Shanghaictl.Commands.Metrics do
       "  Durable: #{Map.get(store, "durable")}",
       "  Recovered: #{Map.get(store, "recovered")}",
       "  Keys: #{Map.get(store, "size")}",
-      "  Memory: #{Map.get(store, "memory_bytes")} bytes",
+      "  Memory: #{format_bytes(Map.get(store, "memory_bytes"))}",
       "  Cache:",
       "    Size: #{Map.get(cache, "size")}/#{Map.get(cache, "max_size")}",
       "    TTL: #{format_ttl(Map.get(cache, "ttl_ms"))}",
@@ -152,6 +154,10 @@ defmodule Shanghaictl.Commands.Metrics do
   end
 
   def store_lines(_), do: ["Store Metrics: No data"]
+
+  # Human-readable byte size; passes through non-integers unchanged.
+  defp format_bytes(bytes) when is_integer(bytes) and bytes >= 0, do: Format.bytes(bytes)
+  defp format_bytes(other), do: "#{other}"
 
   defp display_wal_metrics(%{"writes" => writes, "syncs" => syncs}) do
     IO.puts("WAL Metrics:")
