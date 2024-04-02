@@ -78,7 +78,7 @@ defmodule Shanghaictl.Commands.Metrics do
       "Compaction:",
       "  Runs: #{count}",
       "  Last Duration: #{format_float(Map.get(stats, "last_duration_ms", 0))}ms",
-      "  Bytes Reclaimed: #{Map.get(stats, "bytes_reclaimed", 0)}"
+      "  Bytes Reclaimed: #{format_bytes(Map.get(stats, "bytes_reclaimed", 0))}"
     ]
   end
 

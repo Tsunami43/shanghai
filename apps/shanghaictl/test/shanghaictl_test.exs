@@ -131,7 +131,7 @@ defmodule ShanghaictlTest do
 
       assert joined =~ "Runs: 3"
       assert joined =~ "Last Duration: 12.0ms"
-      assert joined =~ "Bytes Reclaimed: 4096"
+      assert joined =~ "Bytes Reclaimed: 4.0 KB"
     end
 
     test "falls back to a no-data line" do
