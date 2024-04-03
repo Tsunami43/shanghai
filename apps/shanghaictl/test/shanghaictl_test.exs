@@ -89,7 +89,7 @@ defmodule ShanghaictlTest do
       assert joined =~ "Memory: 512 B"
       assert joined =~ "TTL: 60000ms"
       assert joined =~ "Hits: 8"
-      assert joined =~ "Hit Ratio: 0.8"
+      assert joined =~ "Hit Ratio: 80.0%"
     end
 
     test "renders TTL as none when unset" do

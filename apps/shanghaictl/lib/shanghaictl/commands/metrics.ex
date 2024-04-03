@@ -149,7 +149,7 @@ defmodule Shanghaictl.Commands.Metrics do
       "    TTL: #{format_ttl(Map.get(cache, "ttl_ms"))}",
       "    Hits: #{Map.get(cache, "hits")}",
       "    Misses: #{Map.get(cache, "misses")}",
-      "    Hit Ratio: #{format_float(Map.get(cache, "hit_ratio"))}"
+      "    Hit Ratio: #{format_percent(Map.get(cache, "hit_ratio"))}"
     ]
   end
 
@@ -158,6 +158,10 @@ defmodule Shanghaictl.Commands.Metrics do
   # Human-readable byte size; passes through non-integers unchanged.
   defp format_bytes(bytes) when is_integer(bytes) and bytes >= 0, do: Format.bytes(bytes)
   defp format_bytes(other), do: "#{other}"
+
+  # Human-readable percentage; passes through non-numbers unchanged.
+  defp format_percent(ratio) when is_number(ratio), do: Format.percent(ratio)
+  defp format_percent(other), do: "#{other}"
 
   defp display_wal_metrics(%{"writes" => writes, "syncs" => syncs}) do
     IO.puts("WAL Metrics:")
