@@ -448,6 +448,16 @@ defmodule Query do
   end
 
   @doc """
+  Atomically merges `fields` into the map stored at `key`, creating an empty map
+  when the key is absent. Keys in `fields` take precedence. Returns
+  `{:ok, new_map}`.
+  """
+  @spec merge_fields(String.t(), map()) :: {:ok, map()} | {:error, term()}
+  def merge_fields(key, fields) when is_map(fields) do
+    update(key, %{}, fn map -> Map.merge(map, fields) end)
+  end
+
+  @doc """
   Atomically removes `field` from the map stored at `key`. A no-op when the key
   or field is absent. Returns `{:ok, new_map}`.
   """

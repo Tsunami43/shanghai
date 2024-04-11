@@ -331,4 +331,11 @@ defmodule QueryTest do
       assert Query.last() == {"c", 3}
     end
   end
+
+  describe "merge_fields/2" do
+    test "merges a map of fields, creating the map when absent" do
+      assert {:ok, %{a: 1, b: 2}} = Query.merge_fields("mf:1", %{a: 1, b: 2})
+      assert {:ok, %{a: 1, b: 3, c: 4}} = Query.merge_fields("mf:1", %{b: 3, c: 4})
+    end
+  end
 end
