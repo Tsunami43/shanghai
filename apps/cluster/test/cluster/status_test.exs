@@ -69,6 +69,8 @@ defmodule Cluster.StatusTest do
 
     assert Cluster.member?(id)
     assert Enum.any?(Cluster.up_nodes(), &(&1.id == id))
+    assert id in Cluster.up_node_ids()
+    assert Cluster.up_node_ids() == Enum.sort_by(Cluster.up_node_ids(), & &1.value)
     assert is_list(Cluster.down_nodes())
     assert is_list(Cluster.suspect_nodes())
     refute Enum.any?(Cluster.down_nodes(), &(&1.id == id))

@@ -71,6 +71,13 @@ defmodule Cluster do
   @spec down_nodes() :: [Node.t()]
   def down_nodes, do: Enum.filter(nodes(), &Node.down?/1)
 
+  @doc """
+  Returns the ids of the nodes currently marked `:up`, sorted by value. Useful
+  for routing reads and writes to live peers.
+  """
+  @spec up_node_ids() :: [NodeId.t()]
+  def up_node_ids, do: up_nodes() |> Enum.map(& &1.id) |> NodeId.sort()
+
   @doc "Returns the nodes currently marked `:suspect`."
   @spec suspect_nodes() :: [Node.t()]
   def suspect_nodes, do: Enum.filter(nodes(), &Node.suspect?/1)
