@@ -352,4 +352,17 @@ defmodule QueryTest do
       assert {:ok, %{}} = Query.rename_field("rf:absent", :a, :b)
     end
   end
+
+  describe "field_count/1" do
+    test "counts the fields of a map value" do
+      {:ok, _} = Query.write("fc:1", %{a: 1, b: 2, c: 3})
+      assert Query.field_count("fc:1") == 3
+    end
+
+    test "is zero for absent or non-map values" do
+      {:ok, _} = Query.write("fc:2", 5)
+      assert Query.field_count("fc:2") == 0
+      assert Query.field_count("fc:absent") == 0
+    end
+  end
 end

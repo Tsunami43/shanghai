@@ -566,6 +566,18 @@ defmodule Query do
   end
 
   @doc """
+  Returns the number of fields in the map stored at `key`, or `0` when the key
+  is absent or does not hold a map. A read-only accessor.
+  """
+  @spec field_count(String.t()) :: non_neg_integer()
+  def field_count(key) do
+    case read(key) do
+      {:ok, map} when is_map(map) -> map_size(map)
+      _ -> 0
+    end
+  end
+
+  @doc """
   Atomic get-and-update in the `Access` style.
 
   `fun` receives the current value (or `nil` when absent) and returns
