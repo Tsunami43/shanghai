@@ -458,6 +458,21 @@ defmodule Query do
   end
 
   @doc """
+  Atomically renames `from` to `to` within the map stored at `key`, preserving
+  the value. A no-op when the key is absent, holds a non-map, or lacks `from`.
+  Returns `{:ok, new_map}`.
+  """
+  @spec rename_field(String.t(), term(), term()) :: {:ok, map()} | {:error, term()}
+  def rename_field(key, from, to) do
+    update(key, %{}, fn map ->
+      case map do
+        %{^from => value} -> map |> Map.delete(from) |> Map.put(to, value)
+        _ -> map
+      end
+    end)
+  end
+
+  @doc """
   Atomically removes `field` from the map stored at `key`. A no-op when the key
   or field is absent. Returns `{:ok, new_map}`.
   """

@@ -338,4 +338,18 @@ defmodule QueryTest do
       assert {:ok, %{a: 1, b: 3, c: 4}} = Query.merge_fields("mf:1", %{b: 3, c: 4})
     end
   end
+
+  describe "rename_field/3" do
+    test "renames a field, preserving its value" do
+      {:ok, _} = Query.write("rf:1", %{old: 1, keep: 2})
+
+      assert {:ok, %{new: 1, keep: 2}} = Query.rename_field("rf:1", :old, :new)
+    end
+
+    test "is a no-op when the field or key is absent" do
+      {:ok, _} = Query.write("rf:2", %{a: 1})
+      assert {:ok, %{a: 1}} = Query.rename_field("rf:2", :missing, :x)
+      assert {:ok, %{}} = Query.rename_field("rf:absent", :a, :b)
+    end
+  end
 end
