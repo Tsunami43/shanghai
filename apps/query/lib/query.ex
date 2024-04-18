@@ -578,6 +578,18 @@ defmodule Query do
   end
 
   @doc """
+  Returns the sorted field keys of the map stored at `key`, or `[]` when the key
+  is absent or does not hold a map. A read-only accessor.
+  """
+  @spec fields(String.t()) :: [term()]
+  def fields(key) do
+    case read(key) do
+      {:ok, map} when is_map(map) -> map |> Map.keys() |> Enum.sort()
+      _ -> []
+    end
+  end
+
+  @doc """
   Atomic get-and-update in the `Access` style.
 
   `fun` receives the current value (or `nil` when absent) and returns

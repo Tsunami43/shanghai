@@ -365,4 +365,17 @@ defmodule QueryTest do
       assert Query.field_count("fc:absent") == 0
     end
   end
+
+  describe "fields/1" do
+    test "returns sorted field keys of a map value" do
+      {:ok, _} = Query.write("fl:1", %{c: 3, a: 1, b: 2})
+      assert Query.fields("fl:1") == [:a, :b, :c]
+    end
+
+    test "is empty for absent or non-map values" do
+      {:ok, _} = Query.write("fl:2", 5)
+      assert Query.fields("fl:2") == []
+      assert Query.fields("fl:absent") == []
+    end
+  end
 end
