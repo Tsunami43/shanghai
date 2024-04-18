@@ -439,6 +439,37 @@ defmodule Query do
   end
 
   @doc """
+  Atomically removes and returns the first element of the list stored at `key`
+  (a queue dequeue). Returns `{:ok, element}`, or `{:ok, nil}` when the key is
+  absent, empty, or does not hold a list.
+  """
+  @spec pop_first(String.t()) :: {:ok, term()} | {:error, term()}
+  def pop_first(key) do
+    case read(key) do
+      {:ok, [_head | _tail]} -> get_and_update(key, fn [head | tail] -> {head, tail} end)
+      _ -> {:ok, nil}
+    end
+  end
+
+  @doc """
+  Atomically removes and returns the last element of the list stored at `key`
+  (a stack pop). Returns `{:ok, element}`, or `{:ok, nil}` when the key is
+  absent, empty, or does not hold a list.
+  """
+  @spec pop_last(String.t()) :: {:ok, term()} | {:error, term()}
+  def pop_last(key) do
+    case read(key) do
+      {:ok, list} when is_list(list) and list != [] ->
+        get_and_update(key, fn current ->
+          {List.last(current), Enum.drop(current, -1)}
+        end)
+
+      _ ->
+        {:ok, nil}
+    end
+  end
+
+  @doc """
   Atomically sets `field` to `value` in the map stored at `key`, creating an
   empty map when the key is absent. Returns `{:ok, new_map}`.
   """

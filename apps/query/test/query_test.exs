@@ -378,4 +378,29 @@ defmodule QueryTest do
       assert Query.fields("fl:absent") == []
     end
   end
+
+  describe "pop_first/1 and pop_last/1" do
+    test "pop_first dequeues from the front" do
+      {:ok, _} = Query.write("q:1", [:a, :b, :c])
+
+      assert {:ok, :a} = Query.pop_first("q:1")
+      assert Query.get("q:1") == [:b, :c]
+    end
+
+    test "pop_last pops from the back" do
+      {:ok, _} = Query.write("q:2", [:a, :b, :c])
+
+      assert {:ok, :c} = Query.pop_last("q:2")
+      assert Query.get("q:2") == [:a, :b]
+    end
+
+    test "return nil for empty, absent, or non-list values" do
+      {:ok, _} = Query.write("q:3", [])
+      assert {:ok, nil} = Query.pop_first("q:3")
+      assert {:ok, nil} = Query.pop_last("q:absent")
+
+      {:ok, _} = Query.write("q:4", 5)
+      assert {:ok, nil} = Query.pop_first("q:4")
+    end
+  end
 end
