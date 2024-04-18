@@ -69,6 +69,44 @@ Query.keys()                                    #=> ["user:1", ...]
 Query.count()                                   #=> 42
 Query.clear()                                   #=> {:ok, :cleared}  (durable, survives restart)
 Query.info()                                    #=> {:ok, %{store: %{durable:, recovered:, size:}, cache: %{...}}}
+
+# Ergonomic reads (bare values instead of {:ok, _})
+Query.get("user:1")                             #=> %{name: "Alice"} | nil
+Query.get("user:1", :none)                      #=> value | :none
+Query.get_lazy("cfg", fn -> load() end)         #=> value (fallback computed only on a miss)
+Query.fetch!("user:1")                          #=> value | (raises KeyError)
+Query.missing(["a", "b", "c"])                  #=> ["b", "c"]  (the absent keys)
+
+# Ordered access
+Query.first()                                   #=> {"a", 1} | nil   (smallest key)
+Query.last()                                    #=> {"z", 9} | nil   (largest key)
+Query.keys_between("b", "d")                    #=> ["b", "c", "d"]
+Query.pairs_between("b", "c")                   #=> [{"b", ...}, {"c", ...}]
+Query.count_between("b", "d")                   #=> 3
+Query.to_map()                                  #=> %{"a" => 1, ...}
+Query.to_list()                                 #=> [{"a", 1}, ...]  (sorted by key)
+
+# List values (atomic read-modify-write)
+Query.append("items", :a)                       #=> {:ok, [:a]}
+Query.prepend("items", :z)                      #=> {:ok, [:z, :a]}
+Query.add_to_set("tags", :a)                    #=> {:ok, [:a]}  (no duplicates)
+Query.remove_from_list("items", :a)             #=> {:ok, [...]}
+Query.pop_first("queue")                        #=> {:ok, elem} | {:ok, nil}
+Query.pop_last("stack")                         #=> {:ok, elem} | {:ok, nil}
+Query.list_member?("tags", :a)                  #=> true
+Query.list_length("items")                      #=> 3
+
+# Map / hash values (atomic read-modify-write)
+Query.put_field("user:1", :name, "Alice")       #=> {:ok, %{name: "Alice"}}
+Query.merge_fields("user:1", %{age: 30})        #=> {:ok, %{name: "Alice", age: 30}}
+Query.increment_field("stats", :hits)           #=> {:ok, %{hits: 1}}
+Query.decrement_field("stats", :stock, 2)       #=> {:ok, %{stock: -2}}
+Query.rename_field("user:1", :name, :full_name) #=> {:ok, %{full_name: "Alice"}}
+Query.pop_field("user:1", :name)                #=> {:ok, "Alice"}
+Query.get_field("user:1", :name, "?")           #=> "Alice" | "?"
+Query.has_field?("user:1", :name)               #=> true
+Query.fields("user:1")                           #=> [:age, :name]  (sorted)
+Query.field_count("user:1")                      #=> 2
 ```
 
 `read/2` and `write/3` accept a `:consistency` option (`:strong` | `:eventual`
