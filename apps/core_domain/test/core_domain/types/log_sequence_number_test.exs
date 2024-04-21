@@ -99,4 +99,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.diff(LSN.new(10), LSN.new(3)) == -7
     assert LSN.diff(LSN.new(4), LSN.new(4)) == 0
   end
+
+  test "clamp/3 constrains an LSN to the range" do
+    assert LSN.clamp(LSN.new(15), LSN.new(0), LSN.new(10)).value == 10
+    assert LSN.clamp(LSN.new(0), LSN.new(3), LSN.new(10)).value == 3
+    assert LSN.clamp(LSN.new(5), LSN.new(0), LSN.new(10)).value == 5
+  end
 end

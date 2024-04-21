@@ -234,4 +234,26 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def between?(%__MODULE__{value: v}, %__MODULE__{value: low}, %__MODULE__{value: high}) do
     v >= low and v <= high
   end
+
+  @doc """
+  Clamps an LSN to the inclusive range `[low, high]`: returns `low` when below
+  it, `high` when above it, otherwise the LSN unchanged.
+
+  ## Examples
+
+      iex> alias CoreDomain.Types.LogSequenceNumber, as: LSN
+      iex> LSN.clamp(LSN.new(15), LSN.new(0), LSN.new(10)).value
+      10
+      iex> LSN.clamp(LSN.new(5), LSN.new(0), LSN.new(10)).value
+      5
+  """
+  @spec clamp(t(), t(), t()) :: t()
+  def clamp(%__MODULE__{value: v}, %__MODULE__{value: low}, %__MODULE__{value: high})
+      when low <= high do
+    cond do
+      v < low -> new(low)
+      v > high -> new(high)
+      true -> new(v)
+    end
+  end
 end
