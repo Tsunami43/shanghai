@@ -109,6 +109,20 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     v >= low and v <= high
   end
 
+  @doc """
+  Clamps an offset to the inclusive range `[low, high]`: returns `low` when below
+  it, `high` when above it, otherwise the offset unchanged.
+  """
+  @spec clamp(t(), t(), t()) :: t()
+  def clamp(%__MODULE__{value: v}, %__MODULE__{value: low}, %__MODULE__{value: high})
+      when low <= high do
+    cond do
+      v < low -> new(low)
+      v > high -> new(high)
+      true -> new(v)
+    end
+  end
+
   @doc "Returns `true` when the offset is at the start of the log (value 0)."
   @spec initial?(t()) :: boolean()
   def initial?(%__MODULE__{value: 0}), do: true

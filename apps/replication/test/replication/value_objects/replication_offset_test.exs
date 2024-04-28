@@ -176,4 +176,27 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
 
     assert ReplicationOffset.range(ReplicationOffset.new(4), ReplicationOffset.new(2)) == []
   end
+
+  test "clamp/3 constrains an offset to the range" do
+    assert ReplicationOffset.clamp(
+             ReplicationOffset.new(15),
+             ReplicationOffset.new(0),
+             ReplicationOffset.new(10)
+           ).value ==
+             10
+
+    assert ReplicationOffset.clamp(
+             ReplicationOffset.new(0),
+             ReplicationOffset.new(3),
+             ReplicationOffset.new(10)
+           ).value ==
+             3
+
+    assert ReplicationOffset.clamp(
+             ReplicationOffset.new(5),
+             ReplicationOffset.new(0),
+             ReplicationOffset.new(10)
+           ).value ==
+             5
+  end
 end
