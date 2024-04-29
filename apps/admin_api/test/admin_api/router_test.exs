@@ -9,6 +9,7 @@ defmodule AdminApi.RouterTest do
 
   alias Cluster.Entities.Node
   alias CoreDomain.Types.NodeId
+  alias Replication.ValueObjects.ReplicationOffset
 
   @opts AdminApi.Router.init([])
 
@@ -208,6 +209,26 @@ defmodule AdminApi.RouterTest do
     assert is_integer(body["summary"]["lagging"])
     assert is_integer(body["summary"]["stale"])
     assert is_boolean(body["summary"]["healthy"])
+  end
+
+  test "GET /api/v1/replicas/:group_id returns a single group or 404" do
+    group_id = "api-group-#{:rand.uniform(999_999)}"
+    Replication.Monitor.record_leader_offset(group_id, ReplicationOffset.new(10))
+
+    Replication.Monitor.record_follower_offset(
+      group_id,
+      NodeId.new("api-f1"),
+      ReplicationOffset.new(9)
+    )
+
+    conn = get("/api/v1/replicas/#{group_id}")
+    assert conn.status == 200
+    body = json(conn)
+    assert body["group_id"] == group_id
+    assert is_list(body["followers"])
+
+    missing = get("/api/v1/replicas/no-such-group")
+    assert missing.status == 404
   end
 
   test "GET /api/v1/kv counts stored keys, with an optional prefix filter" do

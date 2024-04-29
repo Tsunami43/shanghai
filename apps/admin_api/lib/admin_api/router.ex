@@ -61,6 +61,7 @@ defmodule AdminApi.Router do
         "/api/v1/nodes",
         "/api/v1/nodes/:id",
         "/api/v1/replicas",
+        "/api/v1/replicas/:group_id",
         "/api/v1/snapshots",
         "POST /api/v1/snapshots",
         "POST /api/v1/compaction",
@@ -258,6 +259,14 @@ defmodule AdminApi.Router do
     replicas = Enum.map(groups, &serialize_replication_group/1)
 
     send_json(conn, 200, %{replicas: replicas, summary: Replication.summary()})
+  end
+
+  # Metrics for a single replication group, or a JSON 404 when unknown.
+  get "/api/v1/replicas/:group_id" do
+    case Replication.get_group_metrics(group_id) do
+      {:ok, group} -> send_json(conn, 200, serialize_replication_group(group))
+      {:error, :not_found} -> send_json(conn, 404, %{error: "not_found", group_id: group_id})
+    end
   end
 
   # Triggers a compaction run. Returns 503 when compaction is not configured.
