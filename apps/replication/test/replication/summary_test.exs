@@ -79,4 +79,18 @@ defmodule Replication.SummaryTest do
     Monitor.record_leader_offset("hg-1", ReplicationOffset.new(1))
     assert Replication.has_group?("hg-1")
   end
+
+  test "max_lag/0 returns the worst replica lag across groups" do
+    assert Replication.max_lag() >= 0
+
+    Replication.Monitor.record_leader_offset("ml-1", ReplicationOffset.new(100))
+
+    Replication.Monitor.record_follower_offset(
+      "ml-1",
+      NodeId.new("ml-f1"),
+      ReplicationOffset.new(10)
+    )
+
+    assert Replication.max_lag() >= 90
+  end
 end

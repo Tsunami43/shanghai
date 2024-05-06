@@ -110,6 +110,21 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the maximum replica lag (in offsets) across all groups, or `0` when
+  there are no tracked replicas. A quick worst-case staleness indicator.
+  """
+  @spec max_lag() :: non_neg_integer()
+  def max_lag do
+    all_groups()
+    |> Enum.flat_map(fn group -> Map.values(Map.get(group, :replicas, %{})) end)
+    |> Enum.map(&Map.get(&1, :lag, 0))
+    |> case do
+      [] -> 0
+      lags -> Enum.max(lags)
+    end
+  end
+
+  @doc """
   Returns the number of replication groups.
   """
   @spec group_count() :: non_neg_integer()
