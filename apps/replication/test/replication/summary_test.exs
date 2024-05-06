@@ -29,6 +29,8 @@ defmodule Replication.SummaryTest do
     assert is_integer(summary.lagging)
     assert is_integer(summary.stale)
     assert is_boolean(summary.healthy)
+    assert is_integer(summary.max_lag)
+    assert summary.max_lag >= 0
   end
 
   test "replica_count/0 counts tracked replicas across groups" do

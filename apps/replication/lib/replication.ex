@@ -43,7 +43,8 @@ defmodule Replication do
           replicas: non_neg_integer(),
           lagging: non_neg_integer(),
           stale: non_neg_integer(),
-          healthy: boolean()
+          healthy: boolean(),
+          max_lag: non_neg_integer()
         }
   def summary do
     groups = all_groups()
@@ -61,7 +62,8 @@ defmodule Replication do
       replicas: replica_count,
       lagging: lagging,
       stale: stale,
-      healthy: lagging == 0 and stale == 0
+      healthy: lagging == 0 and stale == 0,
+      max_lag: max_lag()
     }
   end
 
