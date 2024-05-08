@@ -203,4 +203,13 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.tags(NodeMetadata.new()) == %{}
     assert NodeMetadata.resources(NodeMetadata.new()) == %{}
   end
+
+  test "with_version/2 replaces the version" do
+    md = NodeMetadata.new(version: "1.0.0")
+    updated = NodeMetadata.with_version(md, "2.0.0")
+
+    assert updated.version == "2.0.0"
+    # Other fields are preserved.
+    assert updated.capabilities == md.capabilities
+  end
 end

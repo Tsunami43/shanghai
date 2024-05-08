@@ -147,6 +147,12 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec resources(t()) :: map()
   def resources(%__MODULE__{resources: resources}), do: resources
 
+  @doc "Returns a copy of the metadata with its version set to `version`."
+  @spec with_version(t(), String.t()) :: t()
+  def with_version(%__MODULE__{} = metadata, version) when is_binary(version) do
+    %{metadata | version: version}
+  end
+
   @doc "Returns the resource keys, sorted."
   @spec resource_keys(t()) :: [atom() | String.t()]
   def resource_keys(%__MODULE__{resources: resources}), do: resources |> Map.keys() |> Enum.sort()
