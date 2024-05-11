@@ -403,4 +403,22 @@ defmodule QueryTest do
       assert {:ok, nil} = Query.pop_first("q:4")
     end
   end
+
+  describe "get_path/3" do
+    test "reads a nested value" do
+      {:ok, _} = Query.write("cfg", %{db: %{host: "localhost", port: 5432}})
+
+      assert Query.get_path("cfg", [:db, :host]) == "localhost"
+      assert Query.get_path("cfg", [:db, :port]) == 5432
+      assert Query.get_path("cfg", [:db]) == %{host: "localhost", port: 5432}
+    end
+
+    test "returns the default for missing paths, keys, or non-maps" do
+      {:ok, _} = Query.write("cfg2", %{a: 1})
+
+      assert Query.get_path("cfg2", [:a, :b], :none) == :none
+      assert Query.get_path("cfg2", [:missing], :none) == :none
+      assert Query.get_path("absent", [:a], :none) == :none
+    end
+  end
 end

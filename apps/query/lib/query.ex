@@ -547,6 +547,42 @@ defmodule Query do
   end
 
   @doc """
+  Reads a nested value from the map stored at `key` following `path` (a list of
+  keys), returning `default` when the key is absent, the value is not a map, or
+  the path does not resolve.
+
+  ## Examples
+
+      iex> Query.write("cfg", %{db: %{host: "localhost"}})
+      iex> Query.get_path("cfg", [:db, :host])
+      "localhost"
+  """
+  @spec get_path(String.t(), [term()], term()) :: term()
+  def get_path(key, path, default \\ nil) when is_list(path) do
+    case read(key) do
+      {:ok, map} when is_map(map) ->
+        case fetch_path(map, path) do
+          {:ok, value} -> value
+          :error -> default
+        end
+
+      _ ->
+        default
+    end
+  end
+
+  defp fetch_path(value, []), do: {:ok, value}
+
+  defp fetch_path(map, [key | rest]) when is_map(map) do
+    case Map.fetch(map, key) do
+      {:ok, value} -> fetch_path(value, rest)
+      :error -> :error
+    end
+  end
+
+  defp fetch_path(_value, _path), do: :error
+
+  @doc """
   Returns `true` when the map stored at `key` contains `field`. `false` when the
   key is absent or does not hold a map. A read-only accessor.
   """
