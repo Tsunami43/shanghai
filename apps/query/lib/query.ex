@@ -489,6 +489,32 @@ defmodule Query do
   end
 
   @doc """
+  Atomically sets a nested value in the map stored at `key`, following `path` (a
+  non-empty list of keys) and creating intermediate maps as needed. A stored
+  non-map value is replaced with a fresh map. Returns `{:ok, new_map}`.
+
+  ## Examples
+
+      iex> Query.put_path("cfg", [:db, :host], "localhost")
+      {:ok, %{db: %{host: "localhost"}}}
+  """
+  @spec put_path(String.t(), [term(), ...], term()) :: {:ok, map()} | {:error, term()}
+  def put_path(key, [_ | _] = path, value) do
+    update(key, %{}, fn map ->
+      base = if is_map(map), do: map, else: %{}
+      deep_put(base, path, value)
+    end)
+  end
+
+  defp deep_put(map, [key], value), do: Map.put(map, key, value)
+
+  defp deep_put(map, [key | rest], value) do
+    child = Map.get(map, key)
+    child = if is_map(child), do: child, else: %{}
+    Map.put(map, key, deep_put(child, rest, value))
+  end
+
+  @doc """
   Atomically renames `from` to `to` within the map stored at `key`, preserving
   the value. A no-op when the key is absent, holds a non-map, or lacks `from`.
   Returns `{:ok, new_map}`.

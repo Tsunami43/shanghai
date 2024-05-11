@@ -421,4 +421,21 @@ defmodule QueryTest do
       assert Query.get_path("absent", [:a], :none) == :none
     end
   end
+
+  describe "put_path/3" do
+    test "sets a nested value, creating intermediate maps" do
+      assert {:ok, %{db: %{host: "localhost"}}} =
+               Query.put_path("pp:1", [:db, :host], "localhost")
+
+      assert {:ok, %{db: %{host: "localhost", port: 5432}}} =
+               Query.put_path("pp:1", [:db, :port], 5432)
+
+      assert Query.get_path("pp:1", [:db, :host]) == "localhost"
+    end
+
+    test "replaces a stored non-map with a fresh map" do
+      {:ok, _} = Query.write("pp:2", 5)
+      assert {:ok, %{a: %{b: 1}}} = Query.put_path("pp:2", [:a, :b], 1)
+    end
+  end
 end
