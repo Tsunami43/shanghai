@@ -438,4 +438,20 @@ defmodule QueryTest do
       assert {:ok, %{a: %{b: 1}}} = Query.put_path("pp:2", [:a, :b], 1)
     end
   end
+
+  describe "delete_path/2" do
+    test "removes a nested key" do
+      {:ok, _} = Query.write("dp:1", %{db: %{host: "h", port: 1}})
+
+      assert {:ok, %{db: %{port: 1}}} = Query.delete_path("dp:1", [:db, :host])
+    end
+
+    test "is a no-op for missing paths or non-maps" do
+      {:ok, _} = Query.write("dp:2", %{a: 1})
+      assert {:ok, %{a: 1}} = Query.delete_path("dp:2", [:x, :y])
+
+      {:ok, _} = Query.write("dp:3", 5)
+      assert {:ok, 5} = Query.delete_path("dp:3", [:a])
+    end
+  end
 end

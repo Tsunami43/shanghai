@@ -515,6 +515,27 @@ defmodule Query do
   end
 
   @doc """
+  Atomically removes a nested key from the map stored at `key`, following `path`
+  (a non-empty list of keys). A no-op when the key is absent, the value is not a
+  map, or the path does not resolve. Returns `{:ok, new_map}`.
+  """
+  @spec delete_path(String.t(), [term(), ...]) :: {:ok, map()} | {:error, term()}
+  def delete_path(key, [_ | _] = path) do
+    update(key, %{}, fn map ->
+      if is_map(map), do: deep_delete(map, path), else: map
+    end)
+  end
+
+  defp deep_delete(map, [key]), do: Map.delete(map, key)
+
+  defp deep_delete(map, [key | rest]) do
+    case Map.get(map, key) do
+      child when is_map(child) -> Map.put(map, key, deep_delete(child, rest))
+      _ -> map
+    end
+  end
+
+  @doc """
   Atomically renames `from` to `to` within the map stored at `key`, preserving
   the value. A no-op when the key is absent, holds a non-map, or lacks `from`.
   Returns `{:ok, new_map}`.
