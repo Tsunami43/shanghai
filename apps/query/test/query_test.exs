@@ -465,4 +465,16 @@ defmodule QueryTest do
       refute Query.has_path?("hp:absent", [:db])
     end
   end
+
+  describe "update_path/3" do
+    test "updates a nested value, seeding nil when unset" do
+      assert {:ok, %{db: %{conns: 1}}} =
+               Query.update_path("up:1", [:db, :conns], fn
+                 nil -> 1
+                 n -> n + 1
+               end)
+
+      assert {:ok, %{db: %{conns: 2}}} = Query.update_path("up:1", [:db, :conns], &(&1 + 1))
+    end
+  end
 end

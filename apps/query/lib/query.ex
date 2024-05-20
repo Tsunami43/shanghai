@@ -515,6 +515,33 @@ defmodule Query do
   end
 
   @doc """
+  Atomically updates the nested value at `path` in the map stored at `key` by
+  applying `fun` to the current value (or `nil` when the path is unset),
+  creating intermediate maps as needed. Returns `{:ok, new_map}`.
+
+  ## Examples
+
+      iex> Query.put_path("cfg", [:db, :conns], 1)
+      iex> Query.update_path("cfg", [:db, :conns], &(&1 + 1))
+      {:ok, %{db: %{conns: 2}}}
+  """
+  @spec update_path(String.t(), [term(), ...], (term() -> term())) ::
+          {:ok, map()} | {:error, term()}
+  def update_path(key, [_ | _] = path, fun) when is_function(fun, 1) do
+    update(key, %{}, fn map ->
+      base = if is_map(map), do: map, else: %{}
+
+      current =
+        case fetch_path(base, path) do
+          {:ok, value} -> value
+          :error -> nil
+        end
+
+      deep_put(base, path, fun.(current))
+    end)
+  end
+
+  @doc """
   Atomically removes a nested key from the map stored at `key`, following `path`
   (a non-empty list of keys). A no-op when the key is absent, the value is not a
   map, or the path does not resolve. Returns `{:ok, new_map}`.
