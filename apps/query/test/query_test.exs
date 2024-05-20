@@ -454,4 +454,15 @@ defmodule QueryTest do
       assert {:ok, 5} = Query.delete_path("dp:3", [:a])
     end
   end
+
+  describe "has_path?/2" do
+    test "reflects whether a nested path resolves" do
+      {:ok, _} = Query.write("hp:1", %{db: %{host: "h"}})
+
+      assert Query.has_path?("hp:1", [:db, :host])
+      assert Query.has_path?("hp:1", [:db])
+      refute Query.has_path?("hp:1", [:db, :missing])
+      refute Query.has_path?("hp:absent", [:db])
+    end
+  end
 end

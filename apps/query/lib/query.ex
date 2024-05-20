@@ -630,6 +630,18 @@ defmodule Query do
   defp fetch_path(_value, _path), do: :error
 
   @doc """
+  Returns `true` when the nested `path` resolves to a value in the map stored at
+  `key`. A read-only accessor.
+  """
+  @spec has_path?(String.t(), [term()]) :: boolean()
+  def has_path?(key, path) when is_list(path) do
+    case read(key) do
+      {:ok, map} when is_map(map) -> match?({:ok, _}, fetch_path(map, path))
+      _ -> false
+    end
+  end
+
+  @doc """
   Returns `true` when the map stored at `key` contains `field`. `false` when the
   key is absent or does not hold a map. A read-only accessor.
   """
