@@ -194,6 +194,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the distinct hosts of all nodes, sorted. Useful for grouping nodes by
+  physical machine.
+  """
+  @spec node_hosts(t()) :: [String.t()]
+  def node_hosts(%__MODULE__{nodes: nodes}) do
+    nodes |> Map.values() |> Enum.map(& &1.host) |> Enum.uniq() |> Enum.sort()
+  end
+
+  @doc """
   Returns all nodes in the cluster.
   """
   @spec all_nodes(t()) :: [Node.t()]
