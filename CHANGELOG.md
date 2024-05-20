@@ -128,6 +128,26 @@ follow semantic versioning.
   `total_entries/0` / `total_bytes/0` (over `GET /api/v1/storage`), and
   `Replication.group_ids/0` / `has_group?/1`. Prometheus now also exports
   cluster quorum, health-ratio, node-count, and fault-tolerance gauges.
+- **Nested map operations**: `Query.get_path/3`, `put_path/3`, `delete_path/2`,
+  `has_path?/2`; plus `pop_field/3`, `merge_fields/2`, `rename_field/3`,
+  `field_count/1`, `fields/1`, and list `pop_first/1` / `pop_last/1`.
+- **Serialization round-trips**: `from_map/1` for `LogEntry`, `Node`, and
+  `Heartbeat` (inverses of `to_map/1`).
+- **Value-object algebra**: `clamp/3` for `LogSequenceNumber` and
+  `ReplicationOffset`, `LogSequenceNumber.diff/2`, `NodeId.sort/1`,
+  `ConsistencyLevel.strongest/0` / `weakest/0` (core) and `rank/1` / `compare/2`
+  / `stronger/2` / `weaker/2` (replication).
+- **Topology & placement helpers**: `Cluster.State` (`stalest_node/1`,
+  `freshest_node/1`, `node_hosts/1`, `nodes_on_host/2`), `Cluster.up_node_ids/0`,
+  `Node.same_host?/2`, `Heartbeat.metric_names/1` / `metric_count/1`, and
+  `NodeMetadata.tags/1` / `resources/1` / `with_version/2`.
+- **Replication lag insight**: `Replication.max_lag/0` (also in `summary/0` and
+  exported as the `shanghai_replication_max_lag` gauge), plus the
+  `GET /api/v1/replicas/:group_id` endpoint.
+- **CLI formatting**: a `Shanghaictl.Format` module (`bytes/1`, `count/1`,
+  `percent/1`, `duration_ms/1`) now used to render human-readable sizes and
+  ratios in `shanghaictl metrics`; `Options.int_option/3`.
+- **Storage**: `Storage.empty?/0`.
 - **Storage/observability/CLI helpers**: `Storage.avg_segment_entries/0`;
   `Observability` (`Logger.with_new_correlation_id/1`,
   `Metrics.event_defined?/1`, `event_count/0`); `Admin.Health.healthy_subsystems/0`
