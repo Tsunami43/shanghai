@@ -185,6 +185,19 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "nodes_on_host/2" do
+    test "returns nodes on a host sorted by id" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostB", 4003))
+
+      on_a = State.nodes_on_host(cluster, "hostA")
+      assert Enum.map(on_a, & &1.id.value) == ["n1", "n2"]
+      assert State.nodes_on_host(cluster, "hostC") == []
+    end
+  end
+
   describe "node_ids/1" do
     test "returns sorted node ids" do
       cluster =

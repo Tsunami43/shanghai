@@ -203,6 +203,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the nodes located on `host`, sorted by node id. Empty when no node
+  runs there.
+  """
+  @spec nodes_on_host(t(), String.t()) :: [Node.t()]
+  def nodes_on_host(%__MODULE__{nodes: nodes}, host) do
+    nodes
+    |> Map.values()
+    |> Enum.filter(&(&1.host == host))
+    |> Enum.sort_by(& &1.id.value)
+  end
+
+  @doc """
   Returns all nodes in the cluster.
   """
   @spec all_nodes(t()) :: [Node.t()]
