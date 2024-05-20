@@ -225,4 +225,15 @@ defmodule Cluster.Entities.NodeTest do
       assert node.last_seen_at == nil
     end
   end
+
+  describe "same_host?/2" do
+    test "compares nodes by host" do
+      a = Node.new(NodeId.new("a"), "hostA", 4001)
+      b = Node.new(NodeId.new("b"), "hostA", 4002)
+      c = Node.new(NodeId.new("c"), "hostB", 4003)
+
+      assert Node.same_host?(a, b)
+      refute Node.same_host?(a, c)
+    end
+  end
 end

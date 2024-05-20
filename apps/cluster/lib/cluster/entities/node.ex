@@ -116,6 +116,11 @@ defmodule Cluster.Entities.Node do
   @spec address(t()) :: String.t()
   def address(%__MODULE__{host: host, port: port}), do: "#{host}:#{port}"
 
+  @doc "Returns `true` when two nodes are on the same host."
+  @spec same_host?(t(), t()) :: boolean()
+  def same_host?(%__MODULE__{host: host}, %__MODULE__{host: host}), do: true
+  def same_host?(%__MODULE__{}, %__MODULE__{}), do: false
+
   @doc "Returns `true` when the node is not `:up` (`:down` or `:suspect`)."
   @spec unavailable?(t()) :: boolean()
   def unavailable?(%__MODULE__{status: :up}), do: false
