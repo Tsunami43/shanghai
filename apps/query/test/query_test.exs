@@ -477,4 +477,18 @@ defmodule QueryTest do
       assert {:ok, %{db: %{conns: 2}}} = Query.update_path("up:1", [:db, :conns], &(&1 + 1))
     end
   end
+
+  describe "bump_max/2 and bump_min/2" do
+    test "bump_max keeps the running maximum" do
+      assert {:ok, 5} = Query.bump_max("wm:max", 5)
+      assert {:ok, 8} = Query.bump_max("wm:max", 8)
+      assert {:ok, 8} = Query.bump_max("wm:max", 3)
+    end
+
+    test "bump_min keeps the running minimum" do
+      assert {:ok, 5} = Query.bump_min("wm:min", 5)
+      assert {:ok, 2} = Query.bump_min("wm:min", 2)
+      assert {:ok, 2} = Query.bump_min("wm:min", 9)
+    end
+  end
 end

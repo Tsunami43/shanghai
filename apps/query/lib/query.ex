@@ -609,6 +609,32 @@ defmodule Query do
   end
 
   @doc """
+  Atomically raises the numeric value at `key` to `value` when `value` is
+  greater (a monotonic high-water mark). Seeds `value` when the key is absent.
+  Returns `{:ok, stored_value}`.
+  """
+  @spec bump_max(String.t(), number()) :: {:ok, number()} | {:error, term()}
+  def bump_max(key, value) when is_number(value) do
+    update(key, value, fn
+      current when is_number(current) -> max(current, value)
+      _ -> value
+    end)
+  end
+
+  @doc """
+  Atomically lowers the numeric value at `key` to `value` when `value` is
+  smaller (a monotonic low-water mark). Seeds `value` when the key is absent.
+  Returns `{:ok, stored_value}`.
+  """
+  @spec bump_min(String.t(), number()) :: {:ok, number()} | {:error, term()}
+  def bump_min(key, value) when is_number(value) do
+    update(key, value, fn
+      current when is_number(current) -> min(current, value)
+      _ -> value
+    end)
+  end
+
+  @doc """
   Reads `field` from the map stored at `key`, returning `default` when the key
   is absent, holds a non-map, or lacks the field. A read-only accessor.
   """
