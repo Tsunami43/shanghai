@@ -61,6 +61,13 @@ defmodule Cluster do
   def member?(node_id), do: match?({:ok, _node}, get_node(node_id))
 
   @doc """
+  Returns the status of the node with `node_id` (`:up`, `:down`, or `:suspect`),
+  or `nil` when it is not a member. See `Cluster.State.status_of/2`.
+  """
+  @spec node_status(NodeId.t()) :: Node.status() | nil
+  def node_status(node_id), do: State.status_of(cluster_state(), node_id)
+
+  @doc """
   Returns the nodes currently marked `:up`. Useful for routing reads and writes
   to live peers.
   """
