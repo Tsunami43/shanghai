@@ -48,4 +48,13 @@ defmodule Shanghaictl.FormatTest do
       assert Format.duration_ms(90_000) == "1.5m"
     end
   end
+
+  describe "truncate/2" do
+    test "shortens long strings with an ellipsis" do
+      assert Format.truncate("hello world", 8) == "hello w…"
+      assert Format.truncate("short", 8) == "short"
+      assert Format.truncate("exact8ch", 8) == "exact8ch"
+      assert Format.truncate("abcdef", 3) == "ab…"
+    end
+  end
 end

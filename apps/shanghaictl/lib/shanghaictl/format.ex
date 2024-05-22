@@ -105,4 +105,25 @@ defmodule Shanghaictl.Format do
   def duration_ms(ms) when is_integer(ms) do
     "#{:erlang.float_to_binary(Float.round(ms / 60_000, 1), decimals: 1)}m"
   end
+
+  @doc """
+  Truncates `string` to at most `max` characters, appending an ellipsis (`…`)
+  when it is shortened. `max` must be at least 1.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.truncate("hello world", 8)
+      "hello w…"
+
+      iex> Shanghaictl.Format.truncate("short", 8)
+      "short"
+  """
+  @spec truncate(String.t(), pos_integer()) :: String.t()
+  def truncate(string, max) when is_binary(string) and is_integer(max) and max >= 1 do
+    if String.length(string) <= max do
+      string
+    else
+      String.slice(string, 0, max - 1) <> "…"
+    end
+  end
 end
