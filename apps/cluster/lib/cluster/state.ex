@@ -422,6 +422,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the status of the node with `node_id` (`:up`, `:down`, or `:suspect`),
+  or `nil` when the node is not a member.
+  """
+  @spec status_of(t(), NodeId.t()) :: Node.status() | nil
+  def status_of(%__MODULE__{nodes: nodes}, node_id) do
+    case Map.fetch(nodes, node_id) do
+      {:ok, node} -> node.status
+      :error -> nil
+    end
+  end
+
+  @doc """
   Returns the local node's entity when it is a member of the cluster, or `nil`
   when the local id is unset or not yet joined.
   """

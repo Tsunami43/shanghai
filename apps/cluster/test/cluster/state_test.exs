@@ -357,6 +357,17 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "status_of/2" do
+    test "returns a node status or nil" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n1"))
+
+      assert State.status_of(cluster, NodeId.new("n1")) == :down
+      assert State.status_of(cluster, NodeId.new("missing")) == nil
+    end
+  end
+
   describe "take_events/1" do
     test "returns events and clears event list" do
       local_id = NodeId.new("local")
