@@ -491,4 +491,18 @@ defmodule QueryTest do
       assert {:ok, 2} = Query.bump_min("wm:min", 9)
     end
   end
+
+  describe "summary/0" do
+    test "gives a compact overview consistent with info/0" do
+      {:ok, _} = Query.write("s:1", 1)
+
+      summary = Query.summary()
+      {:ok, info} = Query.info()
+
+      assert summary.keys == info.store.size
+      assert summary.durable == info.store.durable
+      assert summary.cache_hit_ratio == info.cache.hit_ratio
+      assert is_integer(summary.cache_size)
+    end
+  end
 end

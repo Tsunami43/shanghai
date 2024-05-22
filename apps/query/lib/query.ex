@@ -993,6 +993,34 @@ defmodule Query do
   end
 
   @doc """
+  Returns a compact one-call summary of the query layer: the live key count,
+  whether the store is durable, and the cache size and hit ratio.
+
+  ## Examples
+
+      iex> summary = Query.summary()
+      iex> is_integer(summary.keys) and is_boolean(summary.durable)
+      true
+  """
+  @spec summary() :: %{
+          keys: non_neg_integer(),
+          durable: boolean(),
+          cache_size: non_neg_integer(),
+          cache_hit_ratio: float()
+        }
+  def summary do
+    {:ok, store} = Query.Store.info()
+    {:ok, cache} = Query.Cache.stats()
+
+    %{
+      keys: Map.get(store, :size, 0),
+      durable: Map.get(store, :durable, false),
+      cache_size: Map.get(cache, :size, 0),
+      cache_hit_ratio: Map.get(cache, :hit_ratio, 0.0)
+    }
+  end
+
+  @doc """
   Returns `true` when `key` exists. A cheap membership check that avoids
   fetching the value.
 
