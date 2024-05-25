@@ -505,4 +505,16 @@ defmodule QueryTest do
       assert is_integer(summary.cache_size)
     end
   end
+
+  describe "values/0" do
+    test "returns all values in key order" do
+      assert Query.values() == []
+
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.values() == [1, 2, 3]
+    end
+  end
 end

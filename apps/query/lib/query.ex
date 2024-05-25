@@ -1100,6 +1100,10 @@ defmodule Query do
   @spec to_list() :: [{term(), term()}]
   defdelegate to_list(), to: Query.Store
 
+  @doc "Returns every stored value, in key order."
+  @spec values() :: [term()]
+  defdelegate values(), to: Query.Store
+
   @doc "Returns the smallest stored key, or `nil` when empty."
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store

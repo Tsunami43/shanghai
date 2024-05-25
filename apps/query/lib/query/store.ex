@@ -119,6 +119,12 @@ defmodule Query.Store do
     ArgumentError -> []
   end
 
+  @doc "Returns every stored value, in key order."
+  @spec values() :: [term()]
+  def values do
+    for {_key, value} <- to_list(), do: value
+  end
+
   @doc "Returns the smallest stored key by term order, or `nil` when empty."
   @spec min_key() :: term() | nil
   def min_key do
