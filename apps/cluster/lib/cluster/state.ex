@@ -434,6 +434,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the metadata of the node with `node_id`, or `nil` when the node is not
+  a member.
+  """
+  @spec metadata_of(t(), NodeId.t()) :: map() | nil
+  def metadata_of(%__MODULE__{nodes: nodes}, node_id) do
+    case Map.fetch(nodes, node_id) do
+      {:ok, node} -> node.metadata
+      :error -> nil
+    end
+  end
+
+  @doc """
   Returns the local node's entity when it is a member of the cluster, or `nil`
   when the local id is unset or not yet joined.
   """
