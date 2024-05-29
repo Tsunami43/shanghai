@@ -226,6 +226,17 @@ defmodule Cluster.Entities.NodeTest do
     end
   end
 
+  describe "same_address?/2" do
+    test "compares nodes by host:port" do
+      a = Node.new(NodeId.new("a"), "hostA", 4001)
+      b = Node.new(NodeId.new("b"), "hostA", 4001)
+      c = Node.new(NodeId.new("c"), "hostA", 4002)
+
+      assert Node.same_address?(a, b)
+      refute Node.same_address?(a, c)
+    end
+  end
+
   describe "same_host?/2" do
     test "compares nodes by host" do
       a = Node.new(NodeId.new("a"), "hostA", 4001)

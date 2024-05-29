@@ -121,6 +121,10 @@ defmodule Cluster.Entities.Node do
   def same_host?(%__MODULE__{host: host}, %__MODULE__{host: host}), do: true
   def same_host?(%__MODULE__{}, %__MODULE__{}), do: false
 
+  @doc "Returns `true` when two nodes share the same `host:port` address."
+  @spec same_address?(t(), t()) :: boolean()
+  def same_address?(%__MODULE__{} = a, %__MODULE__{} = b), do: address(a) == address(b)
+
   @doc "Returns `true` when the node is not `:up` (`:down` or `:suspect`)."
   @spec unavailable?(t()) :: boolean()
   def unavailable?(%__MODULE__{status: :up}), do: false
