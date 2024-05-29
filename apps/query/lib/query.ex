@@ -976,6 +976,16 @@ defmodule Query do
   end
 
   @doc """
+  Warms the read cache for `keys` by reading each through the cache, populating
+  it for keys that exist. Returns the number of keys that were found and cached.
+  Useful ahead of a read-heavy burst.
+  """
+  @spec warm([String.t()]) :: non_neg_integer()
+  def warm(keys) when is_list(keys) do
+    Enum.count(keys, fn key -> match?({:ok, _}, read(key)) end)
+  end
+
+  @doc """
   Returns a runtime summary of the query layer: the store's durability mode,
   the number of records recovered on start, the live key count, and cache stats.
 

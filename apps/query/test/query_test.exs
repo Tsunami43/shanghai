@@ -517,4 +517,16 @@ defmodule QueryTest do
       assert Query.values() == [1, 2, 3]
     end
   end
+
+  describe "warm/1" do
+    test "populates the cache and counts the keys found" do
+      {:ok, _} = Query.write("w:1", 1)
+      {:ok, _} = Query.write("w:2", 2)
+      Query.Cache.clear()
+
+      assert Query.warm(["w:1", "w:2", "w:missing"]) == 2
+      assert Query.Cache.cached?("w:1")
+      assert Query.Cache.cached?("w:2")
+    end
+  end
 end
