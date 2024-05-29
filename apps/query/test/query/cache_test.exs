@@ -57,6 +57,17 @@ defmodule Query.CacheTest do
       assert :miss = Query.Cache.get("m:3")
     end
 
+    test "miss_ratio/0 complements hit_ratio/0" do
+      Query.Cache.clear()
+      assert Query.Cache.miss_ratio() == 0.0
+
+      assert :miss = Query.Cache.get("mr:1")
+      :ok = Query.Cache.put("mr:1", "v")
+      assert {:ok, "v"} = Query.Cache.get("mr:1")
+
+      assert_in_delta Query.Cache.miss_ratio() + Query.Cache.hit_ratio(), 1.0, 1.0e-9
+    end
+
     test "hit_ratio/0 returns the ratio directly" do
       Query.Cache.clear()
       assert Query.Cache.hit_ratio() == 0.0

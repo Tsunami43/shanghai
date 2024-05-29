@@ -103,6 +103,16 @@ defmodule Query.Cache do
     stats.hit_ratio
   end
 
+  @doc """
+  Returns the cache miss ratio (0.0..1.0), the complement of `hit_ratio/0`, or
+  `0.0` when there have been no lookups yet.
+  """
+  @spec miss_ratio() :: float()
+  def miss_ratio do
+    {:ok, stats} = stats()
+    if stats.hits + stats.misses > 0, do: 1.0 - stats.hit_ratio, else: 0.0
+  end
+
   @doc "Returns the number of entries currently cached."
   @spec size() :: non_neg_integer()
   def size do
