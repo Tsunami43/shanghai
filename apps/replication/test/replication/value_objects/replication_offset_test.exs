@@ -199,4 +199,18 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
            ).value ==
              5
   end
+
+  test "catch_up_ratio/2 measures progress toward the target" do
+    assert ReplicationOffset.catch_up_ratio(ReplicationOffset.new(5), ReplicationOffset.new(10)) ==
+             0.5
+
+    assert ReplicationOffset.catch_up_ratio(ReplicationOffset.new(10), ReplicationOffset.new(10)) ==
+             1.0
+
+    assert ReplicationOffset.catch_up_ratio(ReplicationOffset.new(12), ReplicationOffset.new(10)) ==
+             1.0
+
+    assert ReplicationOffset.catch_up_ratio(ReplicationOffset.new(0), ReplicationOffset.new(0)) ==
+             1.0
+  end
 end

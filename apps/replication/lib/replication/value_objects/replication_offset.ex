@@ -169,6 +169,20 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   def lag(_, _), do: 0
 
   @doc """
+  Returns how far `current` has caught up to `target` as a fraction in
+  `0.0..1.0`. A target at offset `0` is treated as fully caught up (`1.0`), and
+  the result is capped at `1.0` when `current` is ahead.
+  """
+  @spec catch_up_ratio(t(), t()) :: float()
+  def catch_up_ratio(%__MODULE__{value: current}, %__MODULE__{value: target}) do
+    cond do
+      target <= 0 -> 1.0
+      current >= target -> 1.0
+      true -> current / target
+    end
+  end
+
+  @doc """
   Returns the signed difference `b - a` between two offsets. Positive when `b`
   is ahead of `a`, negative when behind. Unlike `lag/2`, this never clamps.
 
