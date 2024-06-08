@@ -198,6 +198,17 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "duplicate_addresses?/1" do
+    test "detects two nodes sharing an address" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      refute State.duplicate_addresses?(cluster)
+
+      {:ok, dup} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4001))
+      assert State.duplicate_addresses?(dup)
+    end
+  end
+
   describe "node_ids/1" do
     test "returns sorted node ids" do
       cluster =

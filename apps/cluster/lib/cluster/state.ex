@@ -203,6 +203,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when more than one node shares the same `host:port` address (a
+  duplicate-registration smell).
+  """
+  @spec duplicate_addresses?(t()) :: boolean()
+  def duplicate_addresses?(%__MODULE__{nodes: nodes}) do
+    addresses = nodes |> Map.values() |> Enum.map(&Node.address/1)
+    length(addresses) != length(Enum.uniq(addresses))
+  end
+
+  @doc """
   Returns the nodes located on `host`, sorted by node id. Empty when no node
   runs there.
   """
