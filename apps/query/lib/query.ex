@@ -986,6 +986,23 @@ defmodule Query do
   end
 
   @doc """
+  Returns `true` when every key in `keys` exists. An empty list is vacuously
+  `true`. A cheap membership check that avoids fetching values.
+  """
+  @spec exists_all?([String.t()]) :: boolean()
+  def exists_all?(keys) when is_list(keys) do
+    Enum.all?(keys, &Query.Store.exists?/1)
+  end
+
+  @doc """
+  Returns `true` when at least one key in `keys` exists. An empty list is `false`.
+  """
+  @spec exists_any?([String.t()]) :: boolean()
+  def exists_any?(keys) when is_list(keys) do
+    Enum.any?(keys, &Query.Store.exists?/1)
+  end
+
+  @doc """
   Returns a runtime summary of the query layer: the store's durability mode,
   the number of records recovered on start, the live key count, and cache stats.
 

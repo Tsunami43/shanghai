@@ -529,4 +529,19 @@ defmodule QueryTest do
       assert Query.Cache.cached?("w:2")
     end
   end
+
+  describe "exists_all?/1 and exists_any?/1" do
+    test "reflect presence across a set of keys" do
+      {:ok, _} = Query.write("ea:1", 1)
+      {:ok, _} = Query.write("ea:2", 2)
+
+      assert Query.exists_all?(["ea:1", "ea:2"])
+      refute Query.exists_all?(["ea:1", "ea:missing"])
+      assert Query.exists_all?([])
+
+      assert Query.exists_any?(["ea:missing", "ea:1"])
+      refute Query.exists_any?(["ea:missing"])
+      refute Query.exists_any?([])
+    end
+  end
 end
