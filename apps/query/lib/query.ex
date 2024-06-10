@@ -1159,6 +1159,14 @@ defmodule Query do
     Enum.find(to_list(), fun)
   end
 
+  @doc """
+  Returns the keys whose value satisfies `fun`, sorted. Scans the whole store.
+  """
+  @spec keys_where((term() -> as_boolean(term()))) :: [term()]
+  def keys_where(fun) when is_function(fun, 1) do
+    for {key, value} <- to_list(), fun.(value), do: key
+  end
+
   @doc "Returns the smallest stored key, or `nil` when empty."
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store

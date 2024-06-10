@@ -566,4 +566,15 @@ defmodule QueryTest do
       assert Query.find(fn {_k, v} -> v > 100 end) == nil
     end
   end
+
+  describe "keys_where/1" do
+    test "returns the keys whose value matches, sorted" do
+      {:ok, _} = Query.write("k:1", 10)
+      {:ok, _} = Query.write("k:2", 20)
+      {:ok, _} = Query.write("k:3", 5)
+
+      assert Query.keys_where(fn v -> v >= 10 end) == ["k:1", "k:2"]
+      assert Query.keys_where(fn v -> v > 100 end) == []
+    end
+  end
 end
