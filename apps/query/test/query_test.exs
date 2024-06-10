@@ -556,4 +556,14 @@ defmodule QueryTest do
       assert Query.count_where(fn {_k, v} -> v >= 10 end) == 2
     end
   end
+
+  describe "find/1" do
+    test "returns the first matching pair or nil" do
+      {:ok, _} = Query.write("f:1", 10)
+      {:ok, _} = Query.write("f:2", 20)
+
+      assert Query.find(fn {_k, v} -> v >= 15 end) == {"f:2", 20}
+      assert Query.find(fn {_k, v} -> v > 100 end) == nil
+    end
+  end
 end

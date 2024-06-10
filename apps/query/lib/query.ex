@@ -1150,6 +1150,15 @@ defmodule Query do
     Enum.count(to_list(), fun)
   end
 
+  @doc """
+  Returns the first `{key, value}` pair (in key order) for which `fun` returns a
+  truthy value, or `nil` when none match. Scans the whole store.
+  """
+  @spec find(({term(), term()} -> as_boolean(term()))) :: {term(), term()} | nil
+  def find(fun) when is_function(fun, 1) do
+    Enum.find(to_list(), fun)
+  end
+
   @doc "Returns the smallest stored key, or `nil` when empty."
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store
