@@ -186,4 +186,16 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.from_map(map).metrics == %{}
     end
   end
+
+  describe "next/1" do
+    test "advances the sequence and carries metrics forward" do
+      hb = Heartbeat.new(NodeId.new("node1"), 4, %{cpu: 0.5})
+      nxt = Heartbeat.next(hb)
+
+      assert nxt.node_id == hb.node_id
+      assert nxt.sequence == 5
+      assert nxt.metrics == %{cpu: 0.5}
+      assert Heartbeat.newer_than?(nxt, hb)
+    end
+  end
 end

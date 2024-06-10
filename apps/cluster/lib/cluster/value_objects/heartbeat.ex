@@ -69,6 +69,20 @@ defmodule Cluster.ValueObjects.Heartbeat do
   end
 
   @doc """
+  Returns the next heartbeat for the same node: the sequence incremented by one,
+  a fresh timestamp, and the metrics carried over.
+  """
+  @spec next(t()) :: t()
+  def next(%__MODULE__{node_id: node_id, sequence: sequence, metrics: metrics}) do
+    %__MODULE__{
+      node_id: node_id,
+      sequence: sequence + 1,
+      timestamp: DateTime.utc_now(),
+      metrics: metrics
+    }
+  end
+
+  @doc """
   Returns the heartbeat with the higher sequence number. Ties resolve to `a`.
   """
   @spec latest(t(), t()) :: t()
