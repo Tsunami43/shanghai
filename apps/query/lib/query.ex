@@ -1131,6 +1131,25 @@ defmodule Query do
   @spec values() :: [term()]
   defdelegate values(), to: Query.Store
 
+  @doc """
+  Returns the `{key, value}` pairs for which `fun` returns a truthy value,
+  sorted by key. Scans the whole store — use `scan/2` or `pairs_between/2` when a
+  key range suffices.
+  """
+  @spec filter(({term(), term()} -> as_boolean(term()))) :: [{term(), term()}]
+  def filter(fun) when is_function(fun, 1) do
+    Enum.filter(to_list(), fun)
+  end
+
+  @doc """
+  Returns the number of `{key, value}` pairs for which `fun` returns a truthy
+  value. Scans the whole store.
+  """
+  @spec count_where(({term(), term()} -> as_boolean(term()))) :: non_neg_integer()
+  def count_where(fun) when is_function(fun, 1) do
+    Enum.count(to_list(), fun)
+  end
+
   @doc "Returns the smallest stored key, or `nil` when empty."
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store

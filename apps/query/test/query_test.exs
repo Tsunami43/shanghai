@@ -544,4 +544,16 @@ defmodule QueryTest do
       refute Query.exists_any?([])
     end
   end
+
+  describe "filter/1 and count_where/1" do
+    test "select and count pairs by predicate" do
+      {:ok, _} = Query.write("n:1", 10)
+      {:ok, _} = Query.write("n:2", 20)
+      {:ok, _} = Query.write("n:3", 5)
+
+      big = Query.filter(fn {_k, v} -> v >= 10 end)
+      assert big == [{"n:1", 10}, {"n:2", 20}]
+      assert Query.count_where(fn {_k, v} -> v >= 10 end) == 2
+    end
+  end
 end
