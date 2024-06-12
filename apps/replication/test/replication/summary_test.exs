@@ -95,4 +95,16 @@ defmodule Replication.SummaryTest do
 
     assert Replication.max_lag() >= 90
   end
+
+  test "in_sync_count/0 counts fully caught-up replicas" do
+    Replication.Monitor.record_leader_offset("is-1", ReplicationOffset.new(10))
+
+    Replication.Monitor.record_follower_offset(
+      "is-1",
+      NodeId.new("is-f1"),
+      ReplicationOffset.new(10)
+    )
+
+    assert Replication.in_sync_count() >= 1
+  end
 end

@@ -127,6 +127,17 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the total number of tracked replicas that are fully caught up (lag of
+  `0`) across all groups.
+  """
+  @spec in_sync_count() :: non_neg_integer()
+  def in_sync_count do
+    all_groups()
+    |> Enum.flat_map(fn group -> Map.values(Map.get(group, :replicas, %{})) end)
+    |> Enum.count(&(Map.get(&1, :lag, 0) == 0))
+  end
+
+  @doc """
   Returns the number of replication groups.
   """
   @spec group_count() :: non_neg_integer()
