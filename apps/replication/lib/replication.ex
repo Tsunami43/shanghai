@@ -138,6 +138,18 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the fraction of tracked replicas that are fully caught up (0.0..1.0),
+  or `1.0` when there are no replicas. A quick replication-health indicator.
+  """
+  @spec sync_ratio() :: float()
+  def sync_ratio do
+    case replica_count() do
+      0 -> 1.0
+      total -> in_sync_count() / total
+    end
+  end
+
+  @doc """
   Returns the number of replication groups.
   """
   @spec group_count() :: non_neg_integer()

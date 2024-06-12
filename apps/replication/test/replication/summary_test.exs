@@ -107,4 +107,18 @@ defmodule Replication.SummaryTest do
 
     assert Replication.in_sync_count() >= 1
   end
+
+  test "sync_ratio/0 is the fraction of caught-up replicas" do
+    assert Replication.sync_ratio() >= 0.0 and Replication.sync_ratio() <= 1.0
+
+    Replication.Monitor.record_leader_offset("sr-1", ReplicationOffset.new(10))
+
+    Replication.Monitor.record_follower_offset(
+      "sr-1",
+      NodeId.new("sr-f1"),
+      ReplicationOffset.new(10)
+    )
+
+    assert Replication.sync_ratio() > 0.0
+  end
 end
