@@ -577,4 +577,15 @@ defmodule QueryTest do
       assert Query.keys_where(fn v -> v > 100 end) == []
     end
   end
+
+  describe "map_values/1" do
+    test "projects every value in key order" do
+      {:ok, _} = Query.write("m:1", 1)
+      {:ok, _} = Query.write("m:2", 2)
+      {:ok, _} = Query.write("m:3", 3)
+
+      assert Query.map_values(&(&1 * 10)) == [10, 20, 30]
+      assert Query.map_values(& &1) == [1, 2, 3]
+    end
+  end
 end

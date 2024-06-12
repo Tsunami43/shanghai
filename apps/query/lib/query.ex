@@ -1167,6 +1167,15 @@ defmodule Query do
     for {key, value} <- to_list(), fun.(value), do: key
   end
 
+  @doc """
+  Applies `fun` to every stored value and returns the results in key order.
+  Scans the whole store — a read-only projection helper.
+  """
+  @spec map_values((term() -> term())) :: [term()]
+  def map_values(fun) when is_function(fun, 1) do
+    for {_key, value} <- to_list(), do: fun.(value)
+  end
+
   @doc "Returns the smallest stored key, or `nil` when empty."
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store
