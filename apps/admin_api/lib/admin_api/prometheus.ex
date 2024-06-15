@@ -214,14 +214,20 @@ defmodule AdminApi.Prometheus do
         ["shanghai_replication_lag{follower=\"", key, "\"} ", num(avg), "\n"]
       end)
 
-    max_lag =
+    extra = [
       gauge(
         "shanghai_replication_max_lag",
         "Maximum replica offset lag across all groups.",
         safe(fn -> Replication.max_lag() end, 0)
+      ),
+      gauge(
+        "shanghai_replication_sync_ratio",
+        "Fraction of tracked replicas fully caught up (0.0..1.0).",
+        safe(fn -> Replication.sync_ratio() end, 1.0)
       )
+    ]
 
-    [header, rows | max_lag]
+    [header, rows | extra]
   end
 
   # --- Heartbeat metrics (aggregated RTT per node link) ---
