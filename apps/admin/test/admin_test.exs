@@ -57,6 +57,13 @@ defmodule AdminTest do
     end
   end
 
+  describe "degraded?/0" do
+    test "is the inverse of healthy?/0" do
+      assert Admin.degraded?() == not Admin.healthy?()
+      assert Admin.Health.degraded?() == not Admin.Health.healthy?()
+    end
+  end
+
   describe "healthy_subsystems/0" do
     test "lists every passing subsystem and complements the unhealthy set" do
       healthy = Admin.Health.healthy_subsystems()

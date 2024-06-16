@@ -50,6 +50,10 @@ defmodule Admin.Health do
   @spec healthy?() :: boolean()
   def healthy?, do: check().status == :healthy
 
+  @doc "Returns `true` when at least one subsystem check fails."
+  @spec degraded?() :: boolean()
+  def degraded?, do: check().status == :degraded
+
   @doc """
   Returns the names of the subsystems whose check is currently failing (empty
   when everything is healthy). Useful for alerting and log context.
