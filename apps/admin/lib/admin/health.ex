@@ -78,5 +78,34 @@ defmodule Admin.Health do
     |> Enum.sort()
   end
 
+  @doc """
+  Returns a compact health summary: the overall status, healthy/total subsystem
+  counts, the health ratio, and the sorted list of unhealthy subsystems.
+  """
+  @spec summary() :: %{
+          status: :healthy | :degraded,
+          healthy: non_neg_integer(),
+          total: non_neg_integer(),
+          ratio: float(),
+          unhealthy: [atom()]
+        }
+  def summary do
+    checks = check().checks
+    total = map_size(checks)
+    healthy = checks |> Map.values() |> Enum.count(& &1)
+
+    %{
+      status: status_of(checks),
+      healthy: healthy,
+      total: total,
+      ratio: health_ratio(checks),
+      unhealthy:
+        checks
+        |> Enum.filter(fn {_name, up?} -> not up? end)
+        |> Enum.map(fn {name, _up?} -> name end)
+        |> Enum.sort()
+    }
+  end
+
   defp alive?(name), do: is_pid(Process.whereis(name))
 end

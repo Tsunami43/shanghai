@@ -72,4 +72,16 @@ defmodule AdminTest do
       assert healthy -- Admin.Health.unhealthy_subsystems() == healthy
     end
   end
+
+  describe "summary/0" do
+    test "aggregates subsystem health into a compact map" do
+      summary = Admin.Health.summary()
+
+      assert summary.status in [:healthy, :degraded]
+      assert summary.total == 4
+      assert summary.healthy == summary.total - length(summary.unhealthy)
+      assert summary.ratio >= 0.0 and summary.ratio <= 1.0
+      assert is_list(summary.unhealthy)
+    end
+  end
 end
