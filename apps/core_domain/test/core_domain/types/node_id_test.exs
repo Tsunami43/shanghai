@@ -70,4 +70,10 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert Enum.map(NodeId.sort(ids), & &1.value) == ["a", "b", "c"]
     assert NodeId.sort([]) == []
   end
+
+  test "uniq/1 deduplicates by value, keeping order" do
+    ids = [NodeId.new("a"), NodeId.new("b"), NodeId.new("a"), NodeId.new("c")]
+    assert Enum.map(NodeId.uniq(ids), & &1.value) == ["a", "b", "c"]
+    assert NodeId.uniq([]) == []
+  end
 end
