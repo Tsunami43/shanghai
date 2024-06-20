@@ -57,6 +57,18 @@ defmodule Observability do
     }
   end
 
+  @doc "Returns the aggregated WAL metrics section (`%{}` when unavailable)."
+  @spec wal_stats() :: map()
+  def wal_stats, do: safe(fn -> MetricsReporter.get_wal_stats() end)
+
+  @doc "Returns the aggregated replication metrics section (`%{}` when unavailable)."
+  @spec replication_stats() :: map()
+  def replication_stats, do: safe(fn -> MetricsReporter.get_replication_stats() end)
+
+  @doc "Returns the aggregated query metrics section (`%{}` when unavailable)."
+  @spec query_stats() :: map()
+  def query_stats, do: safe(fn -> MetricsReporter.get_query_stats() end)
+
   # Runs `fun`, returning `%{}` if the reporter process is unavailable.
   defp safe(fun) do
     fun.()

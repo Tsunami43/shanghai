@@ -46,4 +46,12 @@ defmodule ObservabilityTest do
     assert Map.has_key?(stats, :heartbeat)
     assert Map.has_key?(stats, :query)
   end
+
+  test "per-section accessors return maps consistent with stats/0" do
+    stats = Observability.stats()
+
+    assert Observability.wal_stats() == stats.wal
+    assert Observability.replication_stats() == stats.replication
+    assert Observability.query_stats() == stats.query
+  end
 end
