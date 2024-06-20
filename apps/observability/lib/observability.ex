@@ -65,6 +65,10 @@ defmodule Observability do
   @spec replication_stats() :: map()
   def replication_stats, do: safe(fn -> MetricsReporter.get_replication_stats() end)
 
+  @doc "Returns the aggregated heartbeat metrics section (`%{}` when unavailable)."
+  @spec heartbeat_stats() :: map()
+  def heartbeat_stats, do: safe(fn -> MetricsReporter.get_heartbeat_stats() end)
+
   @doc "Returns the aggregated query metrics section (`%{}` when unavailable)."
   @spec query_stats() :: map()
   def query_stats, do: safe(fn -> MetricsReporter.get_query_stats() end)

@@ -53,5 +53,6 @@ defmodule ObservabilityTest do
     assert Observability.wal_stats() == stats.wal
     assert Observability.replication_stats() == stats.replication
     assert Observability.query_stats() == stats.query
+    assert Observability.heartbeat_stats() == stats.heartbeat
   end
 end
