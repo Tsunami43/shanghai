@@ -357,6 +357,16 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "local?/2" do
+    test "identifies the local node id" do
+      local = NodeId.new("local")
+      cluster = State.new(local)
+
+      assert State.local?(cluster, local)
+      refute State.local?(cluster, NodeId.new("other"))
+    end
+  end
+
   describe "local_node/1" do
     test "returns nil until the local node joins, then the entity" do
       local_id = NodeId.new("local")

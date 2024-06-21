@@ -466,6 +466,11 @@ defmodule Cluster.State do
     Map.get(nodes, id)
   end
 
+  @doc "Returns `true` when `node_id` is the cluster's local node id."
+  @spec local?(t(), NodeId.t()) :: boolean()
+  def local?(%__MODULE__{local_node_id: nil}, _node_id), do: false
+  def local?(%__MODULE__{local_node_id: local}, node_id), do: local == node_id
+
   @doc """
   Updates node metadata.
   """
