@@ -367,6 +367,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "peer_ids/1" do
+    test "returns members except the local node, sorted" do
+      local = NodeId.new("local")
+      cluster = State.new(local)
+      {:ok, cluster} = State.add_node(cluster, Node.new(local, "h", 4000))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "h", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+
+      assert Enum.map(State.peer_ids(cluster), & &1.value) == ["n1", "n2"]
+    end
+  end
+
   describe "local_node/1" do
     test "returns nil until the local node joins, then the entity" do
       local_id = NodeId.new("local")

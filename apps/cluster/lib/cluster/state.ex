@@ -472,6 +472,16 @@ defmodule Cluster.State do
   def local?(%__MODULE__{local_node_id: local}, node_id), do: local == node_id
 
   @doc """
+  Returns the ids of all peer nodes (every member except the local node), sorted.
+  """
+  @spec peer_ids(t()) :: [NodeId.t()]
+  def peer_ids(%__MODULE__{local_node_id: local} = cluster) do
+    cluster
+    |> node_ids()
+    |> Enum.reject(&(&1 == local))
+  end
+
+  @doc """
   Updates node metadata.
   """
   @spec update_node_metadata(t(), NodeId.t(), map()) :: {:ok, t()} | {:error, atom()}
