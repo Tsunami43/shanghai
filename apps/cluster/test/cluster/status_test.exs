@@ -33,6 +33,8 @@ defmodule Cluster.StatusTest do
     assert Cluster.health_ratio() >= 0.0 and Cluster.health_ratio() <= 1.0
     assert is_list(Cluster.node_ids())
     assert is_list(Cluster.node_addresses())
+    assert is_list(Cluster.peer_ids())
+    refute Cluster.local_node_id() in Cluster.peer_ids()
 
     id = NodeId.new("status-test-#{:rand.uniform(999_999)}")
     :ok = Cluster.join(Node.new(id, "localhost", 4321))

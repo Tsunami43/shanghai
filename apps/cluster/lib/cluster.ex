@@ -48,6 +48,10 @@ defmodule Cluster do
   @spec node_addresses() :: [String.t()]
   def node_addresses, do: State.node_addresses(cluster_state())
 
+  @doc "Returns the ids of all peer nodes (members except the local node), sorted."
+  @spec peer_ids() :: [NodeId.t()]
+  def peer_ids, do: State.peer_ids(cluster_state())
+
   @doc """
   Gets a specific node by ID.
   """
