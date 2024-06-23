@@ -57,4 +57,11 @@ defmodule Shanghaictl.FormatTest do
       assert Format.truncate("abcdef", 3) == "ab…"
     end
   end
+
+  describe "yes_no/1" do
+    test "renders booleans" do
+      assert Format.yes_no(true) == "yes"
+      assert Format.yes_no(false) == "no"
+    end
+  end
 end

@@ -126,4 +126,19 @@ defmodule Shanghaictl.Format do
       String.slice(string, 0, max - 1) <> "…"
     end
   end
+
+  @doc """
+  Renders a boolean as `"yes"`/`"no"` for human-readable CLI output.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.yes_no(true)
+      "yes"
+
+      iex> Shanghaictl.Format.yes_no(false)
+      "no"
+  """
+  @spec yes_no(boolean()) :: String.t()
+  def yes_no(true), do: "yes"
+  def yes_no(false), do: "no"
 end
