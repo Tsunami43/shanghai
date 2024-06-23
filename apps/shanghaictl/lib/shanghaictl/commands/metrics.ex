@@ -115,7 +115,7 @@ defmodule Shanghaictl.Commands.Metrics do
   def storage_lines(storage) when is_map(storage) and map_size(storage) > 0 do
     [
       "Storage (WAL):",
-      "  Running: #{Map.get(storage, "wal_running")}",
+      "  Running: #{format_bool(Map.get(storage, "wal_running"))}",
       "  Segments: #{Map.get(storage, "segments", Map.get(storage, "active_segments"))}",
       "  Current LSN: #{Map.get(storage, "current_lsn")}",
       "  Entries: #{Map.get(storage, "entries")}",
@@ -140,7 +140,7 @@ defmodule Shanghaictl.Commands.Metrics do
       when is_map(store) and is_map(cache) do
     [
       "Store Metrics:",
-      "  Durable: #{Map.get(store, "durable")}",
+      "  Durable: #{format_bool(Map.get(store, "durable"))}",
       "  Recovered: #{Map.get(store, "recovered")}",
       "  Keys: #{Map.get(store, "size")}",
       "  Memory: #{format_bytes(Map.get(store, "memory_bytes"))}",
@@ -162,6 +162,10 @@ defmodule Shanghaictl.Commands.Metrics do
   # Human-readable percentage; passes through non-numbers unchanged.
   defp format_percent(ratio) when is_number(ratio), do: Format.percent(ratio)
   defp format_percent(other), do: "#{other}"
+
+  # Human-readable yes/no; passes through non-booleans unchanged.
+  defp format_bool(value) when is_boolean(value), do: Format.yes_no(value)
+  defp format_bool(other), do: "#{other}"
 
   defp display_wal_metrics(%{"writes" => writes, "syncs" => syncs}) do
     IO.puts("WAL Metrics:")
