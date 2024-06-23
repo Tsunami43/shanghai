@@ -1176,6 +1176,21 @@ defmodule Query do
     for {_key, value} <- to_list(), do: fun.(value)
   end
 
+  @doc """
+  Folds `fun` over every `{key, value}` pair in key order, starting from `acc`.
+  Scans the whole store — a read-only aggregation helper.
+
+  ## Examples
+
+      iex> Query.mset(%{"a" => 1, "b" => 2, "c" => 3})
+      iex> Query.reduce(0, fn {_k, v}, acc -> acc + v end)
+      6
+  """
+  @spec reduce(acc, ({term(), term()}, acc -> acc)) :: acc when acc: var
+  def reduce(acc, fun) when is_function(fun, 2) do
+    Enum.reduce(to_list(), acc, fun)
+  end
+
   @doc "Returns the smallest stored key, or `nil` when empty."
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store

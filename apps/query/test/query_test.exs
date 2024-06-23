@@ -588,4 +588,18 @@ defmodule QueryTest do
       assert Query.map_values(& &1) == [1, 2, 3]
     end
   end
+
+  describe "reduce/2" do
+    test "folds over all pairs in key order" do
+      {:ok, _} = Query.write("r:1", 1)
+      {:ok, _} = Query.write("r:2", 2)
+      {:ok, _} = Query.write("r:3", 3)
+
+      sum = Query.reduce(0, fn {_k, v}, acc -> acc + v end)
+      assert sum == 6
+
+      keys = Query.reduce([], fn {k, _v}, acc -> [k | acc] end)
+      assert Enum.reverse(keys) == ["r:1", "r:2", "r:3"]
+    end
+  end
 end
