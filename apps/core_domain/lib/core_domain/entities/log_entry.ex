@@ -55,6 +55,15 @@ defmodule CoreDomain.Entities.LogEntry do
   @spec same_lsn?(t(), t()) :: boolean()
   def same_lsn?(entry, other), do: compare(entry, other) == :eq
 
+  @doc "Returns `true` when two entries were produced by the same node."
+  @spec same_node?(t(), t()) :: boolean()
+  def same_node?(%__MODULE__{node_id: a}, %__MODULE__{node_id: b}), do: a == b
+
+  @doc "Returns `true` when the entry was produced by `node_id`."
+  @spec from_node?(t(), NodeId.t()) :: boolean()
+  def from_node?(%__MODULE__{node_id: node_id}, node_id), do: true
+  def from_node?(%__MODULE__{}, _node_id), do: false
+
   @doc """
   Returns the entry with the higher LSN (the more recent of the two).
   """

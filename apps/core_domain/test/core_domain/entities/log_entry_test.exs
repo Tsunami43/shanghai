@@ -128,4 +128,18 @@ defmodule CoreDomain.Entities.LogEntryTest do
     map = %{lsn: 1, data: "d", timestamp: DateTime.utc_now(), node_id: "n"}
     assert LogEntry.from_map(map).metadata == %{}
   end
+
+  test "same_node?/2 and from_node?/2 compare producing nodes" do
+    a = %NodeId{value: "n1"}
+    b = %NodeId{value: "n2"}
+
+    e1 = LogEntry.new(LogSequenceNumber.new(1), "d", a)
+    e2 = LogEntry.new(LogSequenceNumber.new(2), "d", a)
+    e3 = LogEntry.new(LogSequenceNumber.new(3), "d", b)
+
+    assert LogEntry.same_node?(e1, e2)
+    refute LogEntry.same_node?(e1, e3)
+    assert LogEntry.from_node?(e1, a)
+    refute LogEntry.from_node?(e1, b)
+  end
 end
