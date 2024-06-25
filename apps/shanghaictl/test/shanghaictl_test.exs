@@ -85,6 +85,7 @@ defmodule ShanghaictlTest do
       lines = Metrics.store_lines(store)
       joined = Enum.join(lines, "\n")
 
+      assert joined =~ "Durable: no"
       assert joined =~ "Keys: 3"
       assert joined =~ "Memory: 512 B"
       assert joined =~ "TTL: 60000ms"
@@ -156,6 +157,7 @@ defmodule ShanghaictlTest do
       assert joined =~ "Segments: 2"
       assert joined =~ "Entries: 100"
       assert joined =~ "Size: 4.0 KB"
+      assert joined =~ "Running: yes"
       assert joined =~ "Snapshots: 3"
     end
 
