@@ -213,4 +213,15 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.catch_up_ratio(ReplicationOffset.new(0), ReplicationOffset.new(0)) ==
              1.0
   end
+
+  test "distance/2 is the non-negative gap regardless of order" do
+    assert ReplicationOffset.distance(ReplicationOffset.new(3), ReplicationOffset.new(10)).value ==
+             7
+
+    assert ReplicationOffset.distance(ReplicationOffset.new(10), ReplicationOffset.new(3)).value ==
+             7
+
+    assert ReplicationOffset.distance(ReplicationOffset.new(5), ReplicationOffset.new(5)).value ==
+             0
+  end
 end

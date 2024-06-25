@@ -159,6 +159,13 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   end
 
   @doc """
+  Returns the arithmetic difference `later - earlier` of the two offsets as an
+  offset, regardless of argument order (always non-negative).
+  """
+  @spec distance(t(), t()) :: t()
+  def distance(%__MODULE__{value: a}, %__MODULE__{value: b}), do: new(abs(a - b))
+
+  @doc """
   Calculates the lag (difference) between two offsets.
   """
   @spec lag(t(), t()) :: non_neg_integer()
