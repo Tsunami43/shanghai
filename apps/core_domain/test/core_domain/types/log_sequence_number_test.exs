@@ -105,4 +105,11 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.clamp(LSN.new(0), LSN.new(3), LSN.new(10)).value == 3
     assert LSN.clamp(LSN.new(5), LSN.new(0), LSN.new(10)).value == 5
   end
+
+  test "gap/2 counts the LSNs missing between two" do
+    assert LSN.gap(LSN.new(3), LSN.new(7)) == 3
+    assert LSN.gap(LSN.new(3), LSN.new(4)) == 0
+    assert LSN.gap(LSN.new(5), LSN.new(5)) == 0
+    assert LSN.gap(LSN.new(7), LSN.new(3)) == 0
+  end
 end

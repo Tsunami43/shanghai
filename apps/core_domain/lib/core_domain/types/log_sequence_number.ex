@@ -96,6 +96,22 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def contiguous?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: b == a + 1
 
   @doc """
+  Returns the number of LSNs missing strictly between `a` and `b` (the gap
+  size). `0` for adjacent or non-increasing LSNs.
+
+  ## Examples
+
+      iex> alias CoreDomain.Types.LogSequenceNumber, as: LSN
+      iex> LSN.gap(LSN.new(3), LSN.new(7))
+      3
+      iex> LSN.gap(LSN.new(3), LSN.new(4))
+      0
+  """
+  @spec gap(t(), t()) :: non_neg_integer()
+  def gap(%__MODULE__{value: a}, %__MODULE__{value: b}) when b > a + 1, do: b - a - 1
+  def gap(%__MODULE__{}, %__MODULE__{}), do: 0
+
+  @doc """
   Returns the raw integer value of an LSN.
 
   ## Examples
