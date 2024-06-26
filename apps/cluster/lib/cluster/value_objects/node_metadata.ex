@@ -153,6 +153,29 @@ defmodule Cluster.ValueObjects.NodeMetadata do
     %{metadata | version: version}
   end
 
+  @doc """
+  Returns `true` when the metadata satisfies a placement requirement: it has
+  every capability in `:capabilities` and every `key => value` in `:tags`. Both
+  requirement keys are optional and default to empty.
+
+  ## Examples
+
+      iex> md =
+      ...>   Cluster.ValueObjects.NodeMetadata.new()
+      ...>   |> Cluster.ValueObjects.NodeMetadata.add_capability(:storage)
+      ...>   |> Cluster.ValueObjects.NodeMetadata.put_tag(:region, "eu")
+      iex> Cluster.ValueObjects.NodeMetadata.satisfies?(md, %{capabilities: [:storage], tags: %{region: "eu"}})
+      true
+  """
+  @spec satisfies?(t(), map()) :: boolean()
+  def satisfies?(%__MODULE__{} = metadata, requirement) when is_map(requirement) do
+    caps = Map.get(requirement, :capabilities, [])
+    tags = Map.get(requirement, :tags, %{})
+
+    has_all_capabilities?(metadata, caps) and
+      Enum.all?(tags, fn {key, value} -> get_tag(metadata, key) == value end)
+  end
+
   @doc "Returns the resource keys, sorted."
   @spec resource_keys(t()) :: [atom() | String.t()]
   def resource_keys(%__MODULE__{resources: resources}), do: resources |> Map.keys() |> Enum.sort()

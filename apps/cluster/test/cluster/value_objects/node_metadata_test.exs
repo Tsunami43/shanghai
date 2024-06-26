@@ -212,4 +212,17 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     # Other fields are preserved.
     assert updated.capabilities == md.capabilities
   end
+
+  test "satisfies?/2 checks capability and tag requirements" do
+    md =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:storage)
+      |> NodeMetadata.add_capability(:query)
+      |> NodeMetadata.put_tag(:region, "eu")
+
+    assert NodeMetadata.satisfies?(md, %{capabilities: [:storage], tags: %{region: "eu"}})
+    assert NodeMetadata.satisfies?(md, %{})
+    refute NodeMetadata.satisfies?(md, %{capabilities: [:replication]})
+    refute NodeMetadata.satisfies?(md, %{tags: %{region: "us"}})
+  end
 end
