@@ -99,6 +99,15 @@ defmodule Cluster.ValueObjects.Heartbeat do
   end
 
   @doc """
+  Returns the number of sequence numbers `b` is ahead of `a` (`b.sequence -
+  a.sequence`), or `0` when `a` is at or ahead of `b`. A measure of how many
+  heartbeats were missed.
+  """
+  @spec sequence_gap(t(), t()) :: non_neg_integer()
+  def sequence_gap(%__MODULE__{sequence: a}, %__MODULE__{sequence: b}) when b > a, do: b - a
+  def sequence_gap(%__MODULE__{}, %__MODULE__{}), do: 0
+
+  @doc """
   Adds health metrics to the heartbeat.
   """
   @spec with_metrics(t(), map()) :: t()

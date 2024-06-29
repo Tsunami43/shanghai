@@ -198,4 +198,16 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.newer_than?(nxt, hb)
     end
   end
+
+  describe "sequence_gap/2" do
+    test "counts sequence numbers between two heartbeats" do
+      node = NodeId.new("node1")
+      a = Heartbeat.new(node, 3)
+      b = Heartbeat.new(node, 7)
+
+      assert Heartbeat.sequence_gap(a, b) == 4
+      assert Heartbeat.sequence_gap(b, a) == 0
+      assert Heartbeat.sequence_gap(a, a) == 0
+    end
+  end
 end
