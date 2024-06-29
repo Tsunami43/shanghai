@@ -76,4 +76,9 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert Enum.map(NodeId.uniq(ids), & &1.value) == ["a", "b", "c"]
     assert NodeId.uniq([]) == []
   end
+
+  test "contains?/2 checks for a substring" do
+    assert NodeId.contains?(NodeId.new("node-eu-1"), "eu")
+    refute NodeId.contains?(NodeId.new("node-eu-1"), "us")
+  end
 end

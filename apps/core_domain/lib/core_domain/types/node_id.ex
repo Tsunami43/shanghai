@@ -75,6 +75,12 @@ defmodule CoreDomain.Types.NodeId do
     String.starts_with?(value, prefix)
   end
 
+  @doc "Returns `true` when the NodeId's value contains `substring`."
+  @spec contains?(t(), String.t()) :: boolean()
+  def contains?(%__MODULE__{value: value}, substring) when is_binary(substring) do
+    String.contains?(value, substring)
+  end
+
   @doc "Sorts a list of NodeIds by their string value, ascending."
   @spec sort([t()]) :: [t()]
   def sort(node_ids) when is_list(node_ids), do: Enum.sort_by(node_ids, & &1.value)
