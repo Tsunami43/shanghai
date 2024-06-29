@@ -602,4 +602,22 @@ defmodule QueryTest do
       assert Enum.reverse(keys) == ["r:1", "r:2", "r:3"]
     end
   end
+
+  describe "pop_min/0 and pop_max/0" do
+    test "remove and return the extreme key pairs" do
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+
+      assert {:ok, {"a", 1}} = Query.pop_min()
+      assert {:ok, {"c", 3}} = Query.pop_max()
+      refute Query.exists?("a")
+      refute Query.exists?("c")
+    end
+
+    test "return nil for an empty store" do
+      assert {:ok, nil} = Query.pop_min()
+      assert {:ok, nil} = Query.pop_max()
+    end
+  end
 end

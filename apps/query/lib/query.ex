@@ -1224,6 +1224,37 @@ defmodule Query do
   end
 
   @doc """
+  Atomically removes and returns the `{key, value}` pair at the smallest key, or
+  `{:ok, nil}` when the store is empty. Useful for ordered draining.
+  """
+  @spec pop_min() :: {:ok, {term(), term()} | nil} | {:error, term()}
+  def pop_min do
+    case min_key() do
+      nil -> {:ok, nil}
+      key -> pop_pair(key)
+    end
+  end
+
+  @doc """
+  Atomically removes and returns the `{key, value}` pair at the largest key, or
+  `{:ok, nil}` when the store is empty.
+  """
+  @spec pop_max() :: {:ok, {term(), term()} | nil} | {:error, term()}
+  def pop_max do
+    case max_key() do
+      nil -> {:ok, nil}
+      key -> pop_pair(key)
+    end
+  end
+
+  defp pop_pair(key) do
+    case take(key) do
+      {:ok, value} -> {:ok, {key, value}}
+      {:error, :not_found} -> {:ok, nil}
+    end
+  end
+
+  @doc """
   Returns `true` when the store is empty (no keys).
   """
   @spec empty?() :: boolean()
