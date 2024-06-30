@@ -64,6 +64,19 @@ defmodule Storage do
     SegmentManager.list_segments() |> Enum.map(&elem(&1, 0)) |> Enum.sort()
   end
 
+  @doc "Returns the number of active WAL segments."
+  @spec segment_count() :: non_neg_integer()
+  def segment_count, do: SegmentManager.count()
+
+  @doc "Returns the id of the most recent (highest-numbered) WAL segment, or `nil` when there are none."
+  @spec latest_segment_id() :: non_neg_integer() | nil
+  def latest_segment_id do
+    case segment_ids() do
+      [] -> nil
+      ids -> List.last(ids)
+    end
+  end
+
   @doc """
   Aggregates on-disk WAL statistics across all active segments: the segment
   count, the total number of entries, and the total file size in bytes.

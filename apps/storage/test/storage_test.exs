@@ -28,6 +28,12 @@ defmodule StorageTest do
     assert ids == Enum.sort(ids)
   end
 
+  test "segment_count/0 and latest_segment_id/0 agree with segment_ids/0" do
+    ids = Storage.segment_ids()
+    assert Storage.segment_count() == length(ids)
+    assert Storage.latest_segment_id() == List.last(ids)
+  end
+
   test "avg_segment_bytes/0 is a non-negative integer" do
     assert is_integer(Storage.avg_segment_bytes())
     assert Storage.avg_segment_bytes() >= 0
