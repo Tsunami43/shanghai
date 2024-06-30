@@ -64,4 +64,12 @@ defmodule Shanghaictl.FormatTest do
       assert Format.yes_no(false) == "no"
     end
   end
+
+  describe "list/1" do
+    test "joins items or shows none" do
+      assert Format.list([:a, :b, :c]) == "a, b, c"
+      assert Format.list(["x"]) == "x"
+      assert Format.list([]) == "none"
+    end
+  end
 end

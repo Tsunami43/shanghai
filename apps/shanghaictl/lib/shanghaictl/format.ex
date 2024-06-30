@@ -141,4 +141,20 @@ defmodule Shanghaictl.Format do
   @spec yes_no(boolean()) :: String.t()
   def yes_no(true), do: "yes"
   def yes_no(false), do: "no"
+
+  @doc """
+  Joins a list into a comma-separated string, or returns `"none"` for an empty
+  list. Elements are rendered with `to_string/1`.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.list([:a, :b, :c])
+      "a, b, c"
+
+      iex> Shanghaictl.Format.list([])
+      "none"
+  """
+  @spec list([term()]) :: String.t()
+  def list([]), do: "none"
+  def list(items) when is_list(items), do: Enum.map_join(items, ", ", &to_string/1)
 end
