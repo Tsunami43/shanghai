@@ -506,6 +506,21 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "majority?/2" do
+    test "checks whether a count is a strict majority" do
+      cluster =
+        Enum.reduce(1..5, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "h", 4000 + i))
+          next
+        end)
+
+      refute State.majority?(cluster, 2)
+      assert State.majority?(cluster, 3)
+      assert State.majority?(cluster, 5)
+      refute State.majority?(State.new(NodeId.new("solo")), 1)
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))

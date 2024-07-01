@@ -346,6 +346,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when `count` constitutes a majority of the cluster's nodes
+  (strictly more than half). Always `false` for an empty cluster.
+  """
+  @spec majority?(t(), non_neg_integer()) :: boolean()
+  def majority?(%__MODULE__{} = cluster, count) when is_integer(count) do
+    total = node_count(cluster)
+    total > 0 and count > div(total, 2)
+  end
+
+  @doc """
   Returns a map of node counts per status: `%{up: n, suspect: n, down: n}`.
   """
   @spec status_summary(t()) :: %{
