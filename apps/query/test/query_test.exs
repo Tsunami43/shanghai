@@ -620,4 +620,16 @@ defmodule QueryTest do
       assert {:ok, nil} = Query.pop_max()
     end
   end
+
+  describe "sum_values/0" do
+    test "sums numeric values, ignoring others" do
+      assert Query.sum_values() == 0
+
+      {:ok, _} = Query.write("s:1", 10)
+      {:ok, _} = Query.write("s:2", 5)
+      {:ok, _} = Query.write("s:3", "not a number")
+
+      assert Query.sum_values() == 15
+    end
+  end
 end

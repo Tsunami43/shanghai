@@ -1191,6 +1191,18 @@ defmodule Query do
     Enum.reduce(to_list(), acc, fun)
   end
 
+  @doc """
+  Returns the sum of all numeric values in the store, ignoring non-numeric ones.
+  Scans the whole store.
+  """
+  @spec sum_values() :: number()
+  def sum_values do
+    reduce(0, fn
+      {_key, value}, acc when is_number(value) -> acc + value
+      {_key, _value}, acc -> acc
+    end)
+  end
+
   @doc "Returns the smallest stored key, or `nil` when empty."
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store
