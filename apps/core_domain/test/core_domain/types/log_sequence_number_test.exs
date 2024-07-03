@@ -112,4 +112,14 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.gap(LSN.new(5), LSN.new(5)) == 0
     assert LSN.gap(LSN.new(7), LSN.new(3)) == 0
   end
+
+  test "sort/1 orders LSNs ascending" do
+    lsns = [LSN.new(3), LSN.new(1), LSN.new(2)]
+    assert Enum.map(LSN.sort(lsns), & &1.value) == [1, 2, 3]
+  end
+
+  test "sort_uniq/1 sorts and drops duplicates by value" do
+    lsns = [LSN.new(3), LSN.new(1), LSN.new(3), LSN.new(2)]
+    assert Enum.map(LSN.sort_uniq(lsns), & &1.value) == [1, 2, 3]
+  end
 end

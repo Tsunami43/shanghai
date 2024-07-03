@@ -152,6 +152,16 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec max_of([t(), ...]) :: t()
   def max_of([first | rest]), do: Enum.reduce(rest, first, &later/2)
 
+  @doc "Sorts a list of LSNs in ascending order."
+  @spec sort([t()]) :: [t()]
+  def sort(lsns) when is_list(lsns), do: Enum.sort_by(lsns, & &1.value)
+
+  @doc "Returns the sorted list of LSNs with duplicates removed (by value)."
+  @spec sort_uniq([t()]) :: [t()]
+  def sort_uniq(lsns) when is_list(lsns) do
+    lsns |> Enum.uniq_by(& &1.value) |> Enum.sort_by(& &1.value)
+  end
+
   @doc "Returns the smallest LSN in a non-empty list. Raises on an empty list."
   @spec min_of([t(), ...]) :: t()
   def min_of([first | rest]), do: Enum.reduce(rest, first, &earlier/2)
