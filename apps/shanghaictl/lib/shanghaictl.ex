@@ -17,7 +17,8 @@ defmodule Shanghaictl do
     Replicas,
     Shutdown,
     Snapshot,
-    Status
+    Status,
+    Storage
   }
 
   @doc """
@@ -63,6 +64,7 @@ defmodule Shanghaictl do
   def parse(["snapshot", "list" | opts]), do: {:snapshot_list, opts}
   def parse(["replicas" | opts]), do: {:replicas, opts}
   def parse(["metrics" | opts]), do: {:metrics, opts}
+  def parse(["storage" | opts]), do: {:storage, opts}
   def parse(["node", "join" | opts]), do: {:node_join, opts}
   def parse(["node", "leave" | opts]), do: {:node_leave, opts}
   def parse(["node", "get" | opts]), do: {:node_get, opts}
@@ -88,6 +90,7 @@ defmodule Shanghaictl do
       config            Show effective runtime configuration
       replicas          Show replication groups and their status
       metrics           Show performance and operational metrics
+      storage           Show a WAL/storage overview
       node join <id>    Add a node to the cluster
       node leave <id>   Remove a node from the cluster
       node get <id>     Show details for a single node
@@ -137,6 +140,10 @@ defmodule Shanghaictl do
 
   defp execute({:metrics, opts}) do
     Metrics.run(opts)
+  end
+
+  defp execute({:storage, opts}) do
+    Storage.run(opts)
   end
 
   defp execute({:node_join, opts}) do
