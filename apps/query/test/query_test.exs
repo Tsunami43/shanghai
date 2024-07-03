@@ -632,4 +632,14 @@ defmodule QueryTest do
       assert Query.sum_values() == 15
     end
   end
+
+  describe "group_keys_by/1" do
+    test "groups keys by a value function" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.group_keys_by(fn v -> rem(v, 2) end) == %{0 => ["b"], 1 => ["a", "c"]}
+    end
+  end
 end

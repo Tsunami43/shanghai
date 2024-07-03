@@ -1203,6 +1203,24 @@ defmodule Query do
     end)
   end
 
+  @doc """
+  Groups the store's keys by the result of applying `fun` to each value,
+  returning a map of `group => [keys]` (each key list sorted). Scans the whole
+  store.
+
+  ## Examples
+
+      iex> Query.mset(%{"a" => 1, "b" => 2, "c" => 3})
+      iex> Query.group_keys_by(fn v -> rem(v, 2) end)
+      %{0 => ["b"], 1 => ["a", "c"]}
+  """
+  @spec group_keys_by((term() -> term())) :: %{optional(term()) => [term()]}
+  def group_keys_by(fun) when is_function(fun, 1) do
+    to_list()
+    |> Enum.group_by(fn {_key, value} -> fun.(value) end, fn {key, _value} -> key end)
+    |> Map.new(fn {group, keys} -> {group, Enum.sort(keys)} end)
+  end
+
   @doc "Returns the smallest stored key, or `nil` when empty."
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store
