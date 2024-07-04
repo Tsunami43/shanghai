@@ -19,6 +19,7 @@ shanghaictl <command> [options]
 | `replicas` | Replication groups and their status |
 | `metrics` | Performance and operational metrics |
 | `storage` | WAL/storage overview |
+| `topology` | Cluster topology snapshot |
 | `node join <id>` | Add a node to the cluster |
 | `node leave <id>` | Remove a node from the cluster |
 | `node get <id>` | Show details for a single node |
