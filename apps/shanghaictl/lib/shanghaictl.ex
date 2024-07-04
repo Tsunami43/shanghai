@@ -71,6 +71,7 @@ defmodule Shanghaictl do
   def parse(["node", "leave" | opts]), do: {:node_leave, opts}
   def parse(["node", "get" | opts]), do: {:node_get, opts}
   def parse(["kv", "get" | opts]), do: {:kv_get, opts}
+  def parse(["kv", "exists" | opts]), do: {:kv_exists, opts}
   def parse(["kv", "count" | opts]), do: {:kv_count, opts}
   def parse(["kv", "keys" | opts]), do: {:kv_keys, opts}
   def parse(["shutdown" | opts]), do: {:shutdown, opts}
@@ -98,6 +99,7 @@ defmodule Shanghaictl do
       node leave <id>   Remove a node from the cluster
       node get <id>     Show details for a single node
       kv get <key>      Read a value from the store by key
+      kv exists <key>   Report whether a key exists (true/false)
       kv count [prefix] Count stored keys (optionally under a prefix)
       kv keys [prefix]  List stored keys (optionally under a prefix)
       compact           Trigger a WAL compaction run
@@ -167,6 +169,10 @@ defmodule Shanghaictl do
 
   defp execute({:kv_get, opts}) do
     Kv.get(opts)
+  end
+
+  defp execute({:kv_exists, opts}) do
+    Kv.exists(opts)
   end
 
   defp execute({:kv_count, opts}) do

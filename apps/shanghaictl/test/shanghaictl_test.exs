@@ -49,6 +49,7 @@ defmodule ShanghaictlTest do
     end
 
     test "kv count carries an optional prefix and options" do
+      assert Shanghaictl.parse(["kv", "exists", "user:1"]) == {:kv_exists, ["user:1"]}
       assert Shanghaictl.parse(["kv", "count"]) == {:kv_count, []}
       assert Shanghaictl.parse(["kv", "count", "user:"]) == {:kv_count, ["user:"]}
     end

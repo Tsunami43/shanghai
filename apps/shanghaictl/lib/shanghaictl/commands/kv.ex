@@ -24,6 +24,27 @@ defmodule Shanghaictl.Commands.Kv do
   end
 
   @doc """
+  Reports whether a key exists, printing `true` or `false`. Expects
+  `[key | opts]`; supports `--admin-url URL`.
+  """
+  def exists([]) do
+    IO.puts("Error: missing key")
+    IO.puts("Usage: shanghaictl kv exists <key> [--admin-url URL]")
+    System.halt(1)
+  end
+
+  def exists([key | opts]) do
+    admin_url = Shanghaictl.Options.admin_url(opts)
+
+    case fetch(admin_url, key) do
+      {:ok, _value} -> IO.puts("true")
+      {:error, :not_found} -> IO.puts("false")
+      {:error, :not_connected} -> not_connected()
+      {:error, reason} -> error(reason)
+    end
+  end
+
+  @doc """
   Counts stored keys, optionally under a prefix. Expects `[]`, `[prefix]`, or
   options; supports `--admin-url URL`.
   """
