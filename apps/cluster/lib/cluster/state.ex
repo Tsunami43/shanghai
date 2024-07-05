@@ -224,6 +224,12 @@ defmodule Cluster.State do
     |> Enum.sort_by(& &1.id.value)
   end
 
+  @doc "Returns the number of nodes located on `host`."
+  @spec count_on_host(t(), String.t()) :: non_neg_integer()
+  def count_on_host(%__MODULE__{nodes: nodes}, host) do
+    Enum.count(Map.values(nodes), &(&1.host == host))
+  end
+
   @doc """
   Returns all nodes in the cluster.
   """
