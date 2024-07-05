@@ -62,6 +62,13 @@ defmodule Observability.MetricsTest do
                     %{operation: :read, result: :ok}}
   end
 
+  test "domains/0 lists the distinct sorted domains" do
+    domains = Metrics.domains()
+    assert :query in domains
+    assert :storage in domains
+    assert domains == Enum.sort(Enum.uniq(domains))
+  end
+
   test "events_for_domain/1 filters by the second path segment" do
     query = Metrics.events_for_domain(:query)
     assert query == [[:shanghai, :query, :operation]]

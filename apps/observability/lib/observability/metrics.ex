@@ -260,4 +260,21 @@ defmodule Observability.Metrics do
       _ -> false
     end)
   end
+
+  @doc """
+  Returns the distinct telemetry domains (the second path segment of each event
+  name), sorted.
+
+  ## Examples
+
+      iex> :query in Observability.Metrics.domains()
+      true
+  """
+  @spec domains() :: [atom()]
+  def domains do
+    event_names()
+    |> Enum.map(fn [:shanghai, domain | _rest] -> domain end)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
 end
