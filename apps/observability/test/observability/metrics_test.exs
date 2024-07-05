@@ -62,6 +62,17 @@ defmodule Observability.MetricsTest do
                     %{operation: :read, result: :ok}}
   end
 
+  test "events_for_domain/1 filters by the second path segment" do
+    query = Metrics.events_for_domain(:query)
+    assert query == [[:shanghai, :query, :operation]]
+
+    storage = Metrics.events_for_domain(:storage)
+    assert Enum.all?(storage, fn [:shanghai, :storage | _] -> true end)
+    assert [:shanghai, :storage, :wal, :write] in storage
+
+    assert Metrics.events_for_domain(:nope) == []
+  end
+
   test "event_defined?/1 and event_count/0 describe the known events" do
     assert Metrics.event_defined?([:shanghai, :query, :operation])
     refute Metrics.event_defined?([:shanghai, :nope])

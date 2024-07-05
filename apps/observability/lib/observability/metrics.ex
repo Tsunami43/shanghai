@@ -243,4 +243,21 @@ defmodule Observability.Metrics do
   @doc "Returns the number of distinct telemetry events Shanghai emits."
   @spec event_count() :: non_neg_integer()
   def event_count, do: length(event_names())
+
+  @doc """
+  Returns the telemetry event names belonging to `domain` (the second path
+  segment, e.g. `:storage`, `:replication`, `:cluster`, `:query`).
+
+  ## Examples
+
+      iex> Observability.Metrics.events_for_domain(:query)
+      [[:shanghai, :query, :operation]]
+  """
+  @spec events_for_domain(atom()) :: [[atom()]]
+  def events_for_domain(domain) when is_atom(domain) do
+    Enum.filter(event_names(), fn
+      [:shanghai, ^domain | _rest] -> true
+      _ -> false
+    end)
+  end
 end
