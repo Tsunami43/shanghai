@@ -225,4 +225,24 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.satisfies?(md, %{capabilities: [:replication]})
     refute NodeMetadata.satisfies?(md, %{tags: %{region: "us"}})
   end
+
+  test "merge_all/1 folds a list of metadata" do
+    a = NodeMetadata.new() |> NodeMetadata.add_capability(:storage)
+
+    b =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:query)
+      |> NodeMetadata.put_tag(:region, "eu")
+
+    c = NodeMetadata.new(version: "2.0.0") |> NodeMetadata.put_tag(:zone, "a")
+
+    merged = NodeMetadata.merge_all([a, b, c])
+
+    assert NodeMetadata.capabilities(merged) == [:query, :storage]
+    assert NodeMetadata.get_tag(merged, :region) == "eu"
+    assert NodeMetadata.get_tag(merged, :zone) == "a"
+    assert merged.version == "2.0.0"
+
+    assert NodeMetadata.merge_all([]) == NodeMetadata.new()
+  end
 end

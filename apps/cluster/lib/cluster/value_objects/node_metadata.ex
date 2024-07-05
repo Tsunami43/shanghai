@@ -202,6 +202,14 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   end
 
   @doc """
+  Merges a list of metadata values left-to-right via `merge/2`. Returns fresh
+  default metadata for an empty list.
+  """
+  @spec merge_all([t()]) :: t()
+  def merge_all([]), do: new()
+  def merge_all([first | rest]), do: Enum.reduce(rest, first, &merge(&2, &1))
+
+  @doc """
   Returns `true` when the metadata carries no capabilities, tags, or resources
   (regardless of the version string).
   """
