@@ -224,4 +224,9 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.distance(ReplicationOffset.new(5), ReplicationOffset.new(5)).value ==
              0
   end
+
+  test "sort/1 orders offsets ascending" do
+    offsets = [ReplicationOffset.new(3), ReplicationOffset.new(1), ReplicationOffset.new(2)]
+    assert Enum.map(ReplicationOffset.sort(offsets), & &1.value) == [1, 2, 3]
+  end
 end

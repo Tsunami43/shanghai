@@ -143,6 +143,10 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     Enum.reduce(rest, first, &later/2)
   end
 
+  @doc "Sorts a list of offsets in ascending order."
+  @spec sort([t()]) :: [t()]
+  def sort(offsets) when is_list(offsets), do: Enum.sort_by(offsets, & &1.value)
+
   @doc """
   Returns the smallest offset in a non-empty list (the slowest replica).
   Raises when the list is empty.
