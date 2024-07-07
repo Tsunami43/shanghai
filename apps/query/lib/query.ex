@@ -1234,6 +1234,32 @@ defmodule Query do
 
   defp numeric_values, do: for({_key, value} <- to_list(), is_number(value), do: value)
 
+  @doc """
+  Returns compact aggregate statistics over the store's numeric values:
+  `%{count, sum, min, max, avg}`. `min`/`max` are `nil` and `avg` is `0.0` when
+  there are no numeric values. Scans the whole store.
+  """
+  @spec value_stats() :: %{
+          count: non_neg_integer(),
+          sum: number(),
+          min: number() | nil,
+          max: number() | nil,
+          avg: float()
+        }
+  def value_stats do
+    values = numeric_values()
+    count = length(values)
+    sum = Enum.sum(values)
+
+    %{
+      count: count,
+      sum: sum,
+      min: extreme(values, &Enum.min/1),
+      max: extreme(values, &Enum.max/1),
+      avg: if(count > 0, do: sum / count, else: 0.0)
+    }
+  end
+
   defp extreme([], _fun), do: nil
   defp extreme(values, fun), do: fun.(values)
 

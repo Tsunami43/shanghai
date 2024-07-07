@@ -668,4 +668,22 @@ defmodule QueryTest do
       assert Query.min_value() == 3
     end
   end
+
+  describe "value_stats/0" do
+    test "summarizes numeric values" do
+      empty = Query.value_stats()
+      assert empty == %{count: 0, sum: 0, min: nil, max: nil, avg: 0.0}
+
+      {:ok, _} = Query.write("vs:1", 10)
+      {:ok, _} = Query.write("vs:2", 20)
+      {:ok, _} = Query.write("vs:3", "skip")
+
+      stats = Query.value_stats()
+      assert stats.count == 2
+      assert stats.sum == 30
+      assert stats.min == 10
+      assert stats.max == 20
+      assert stats.avg == 15.0
+    end
+  end
 end
