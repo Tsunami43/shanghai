@@ -231,6 +231,17 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns a map of `host => node_count` across the cluster — a quick view of how
+  nodes are distributed across physical machines.
+  """
+  @spec hosts_summary(t()) :: %{optional(String.t()) => non_neg_integer()}
+  def hosts_summary(%__MODULE__{nodes: nodes}) do
+    nodes
+    |> Map.values()
+    |> Enum.frequencies_by(& &1.host)
+  end
+
+  @doc """
   Returns all nodes in the cluster.
   """
   @spec all_nodes(t()) :: [Node.t()]
