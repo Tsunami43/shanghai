@@ -654,4 +654,18 @@ defmodule QueryTest do
       assert Query.avg_values() == 15.0
     end
   end
+
+  describe "max_value/0 and min_value/0" do
+    test "return the numeric extremes or nil" do
+      assert Query.max_value() == nil
+      assert Query.min_value() == nil
+
+      {:ok, _} = Query.write("v:1", 10)
+      {:ok, _} = Query.write("v:2", 3)
+      {:ok, _} = Query.write("v:3", "skip")
+
+      assert Query.max_value() == 10
+      assert Query.min_value() == 3
+    end
+  end
 end

@@ -1219,6 +1219,25 @@ defmodule Query do
   end
 
   @doc """
+  Returns the largest numeric value in the store, or `nil` when there are no
+  numeric values. Scans the whole store.
+  """
+  @spec max_value() :: number() | nil
+  def max_value, do: numeric_values() |> extreme(&Enum.max/1)
+
+  @doc """
+  Returns the smallest numeric value in the store, or `nil` when there are no
+  numeric values. Scans the whole store.
+  """
+  @spec min_value() :: number() | nil
+  def min_value, do: numeric_values() |> extreme(&Enum.min/1)
+
+  defp numeric_values, do: for({_key, value} <- to_list(), is_number(value), do: value)
+
+  defp extreme([], _fun), do: nil
+  defp extreme(values, fun), do: fun.(values)
+
+  @doc """
   Groups the store's keys by the result of applying `fun` to each value,
   returning a map of `group => [keys]` (each key list sorted). Scans the whole
   store.
