@@ -144,6 +144,27 @@ follow semantic versioning.
 - **Replication lag insight**: `Replication.max_lag/0` (also in `summary/0` and
   exported as the `shanghai_replication_max_lag` gauge), plus the
   `GET /api/v1/replicas/:group_id` endpoint.
+- **Query scans & aggregates**: `filter/1`, `count_where/1`, `find/1`,
+  `keys_where/1`, `map_values/1`, `reduce/2`, `sum_values/0`, `group_keys_by/1`,
+  `values/0`, `pop_min/0` / `pop_max/0`, `bump_max/2` / `bump_min/2`,
+  `update_path/3`, `warm/1`, `exists_all?/1` / `exists_any?/1`, and
+  `summary/0`.
+- **New CLI commands**: `shanghaictl storage`, `topology`, and `kv exists`, plus
+  `Shanghaictl.Format` helpers (`yes_no/1`, `list/1`, `truncate/2`) now used to
+  render durability flags and sizes.
+- **Health & observability**: `Admin.Health.degraded?/0` and `summary/0`;
+  `Observability` per-section stats accessors and `Metrics.events_for_domain/1`
+  / `domains/0`. Replication also exposes `in_sync_count/0`, `sync_ratio/0`
+  (gauge `shanghai_replication_sync_ratio`), and `group_ids/0`.
+- **Value objects & placement**: `NodeMetadata.satisfies?/2` / `merge_all/1` /
+  `with_version/2`, `LogSequenceNumber` (`gap/2`, `sort/1`, `sort_uniq/1`),
+  `ReplicationOffset` (`distance/2`, `catch_up_ratio/2`, `sort/1`), `NodeId`
+  (`uniq/1`, `contains?/2`), `Heartbeat` (`next/1`, `sequence_gap/2`),
+  `LogEntry.same_node?/2` / `from_node?/2`, and `Node.same_address?/2`.
+- **More cluster/storage introspection**: `Cluster.State` (`status_of/2`,
+  `metadata_of/2`, `local?/2`, `peer_ids/1`, `majority?/2`, `count_on_host/2`,
+  `duplicate_addresses?/1`), `Cluster.node_status/0` / `peer_ids/0`, and
+  `Storage.segment_count/0` / `latest_segment_id/0`.
 - **CLI formatting**: a `Shanghaictl.Format` module (`bytes/1`, `count/1`,
   `percent/1`, `duration_ms/1`) now used to render human-readable sizes and
   ratios in `shanghaictl metrics`; `Options.int_option/3`.
