@@ -125,6 +125,21 @@ defmodule Cluster.Entities.Node do
   @spec same_address?(t(), t()) :: boolean()
   def same_address?(%__MODULE__{} = a, %__MODULE__{} = b), do: address(a) == address(b)
 
+  @doc """
+  Returns a compact human-readable description of the node in the form
+  `id@host:port (status)`. Useful for logs and CLI output.
+
+  ## Examples
+
+      iex> node = Cluster.Entities.Node.new(CoreDomain.Types.NodeId.new("n1"), "localhost", 4000)
+      iex> Cluster.Entities.Node.describe(node)
+      "n1@localhost:4000 (up)"
+  """
+  @spec describe(t()) :: String.t()
+  def describe(%__MODULE__{id: %NodeId{value: value}, status: status} = node) do
+    "#{value}@#{address(node)} (#{status})"
+  end
+
   @doc "Returns `true` when the node is not `:up` (`:down` or `:suspect`)."
   @spec unavailable?(t()) :: boolean()
   def unavailable?(%__MODULE__{status: :up}), do: false

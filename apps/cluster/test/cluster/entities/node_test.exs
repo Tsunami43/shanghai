@@ -247,4 +247,14 @@ defmodule Cluster.Entities.NodeTest do
       refute Node.same_host?(a, c)
     end
   end
+
+  describe "describe/1" do
+    test "renders a compact one-line description" do
+      node = Node.new(NodeId.new("n1"), "localhost", 4000)
+      assert Node.describe(node) == "n1@localhost:4000 (up)"
+
+      down = Node.mark_down(node)
+      assert Node.describe(down) == "n1@localhost:4000 (down)"
+    end
+  end
 end
