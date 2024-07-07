@@ -1204,6 +1204,21 @@ defmodule Query do
   end
 
   @doc """
+  Returns the average of all numeric values in the store, ignoring non-numeric
+  ones. Returns `0.0` when there are no numeric values. Scans the whole store.
+  """
+  @spec avg_values() :: float()
+  def avg_values do
+    {sum, count} =
+      reduce({0, 0}, fn
+        {_key, value}, {sum, count} when is_number(value) -> {sum + value, count + 1}
+        {_key, _value}, acc -> acc
+      end)
+
+    if count > 0, do: sum / count, else: 0.0
+  end
+
+  @doc """
   Groups the store's keys by the result of applying `fun` to each value,
   returning a map of `group => [keys]` (each key list sorted). Scans the whole
   store.

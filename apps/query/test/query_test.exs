@@ -642,4 +642,16 @@ defmodule QueryTest do
       assert Query.group_keys_by(fn v -> rem(v, 2) end) == %{0 => ["b"], 1 => ["a", "c"]}
     end
   end
+
+  describe "avg_values/0" do
+    test "averages numeric values, ignoring others" do
+      assert Query.avg_values() == 0.0
+
+      {:ok, _} = Query.write("a:1", 10)
+      {:ok, _} = Query.write("a:2", 20)
+      {:ok, _} = Query.write("a:3", "skip")
+
+      assert Query.avg_values() == 15.0
+    end
+  end
 end
