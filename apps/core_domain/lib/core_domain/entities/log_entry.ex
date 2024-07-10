@@ -88,6 +88,22 @@ defmodule CoreDomain.Entities.LogEntry do
   @spec lsn_value(t()) :: non_neg_integer()
   def lsn_value(%__MODULE__{lsn: lsn}), do: LogSequenceNumber.to_integer(lsn)
 
+  @doc """
+  Returns a compact human-readable description of the entry in the form
+  `LSN(n) from <node_id>`. Useful for logs.
+
+  ## Examples
+
+      iex> lsn = CoreDomain.Types.LogSequenceNumber.new(7)
+      iex> id = CoreDomain.Types.NodeId.new("n1")
+      iex> CoreDomain.Entities.LogEntry.describe(CoreDomain.Entities.LogEntry.new(lsn, "d", id))
+      "LSN(7) from n1"
+  """
+  @spec describe(t()) :: String.t()
+  def describe(%__MODULE__{lsn: lsn, node_id: %NodeId{value: value}}) do
+    "#{LogSequenceNumber.to_string(lsn)} from #{value}"
+  end
+
   @doc "Returns the age of the entry in milliseconds since its timestamp."
   @spec age_ms(t()) :: non_neg_integer()
   def age_ms(%__MODULE__{timestamp: timestamp}) do

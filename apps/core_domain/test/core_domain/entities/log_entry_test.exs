@@ -142,4 +142,10 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.from_node?(e1, a)
     refute LogEntry.from_node?(e1, b)
   end
+
+  test "describe/1 renders a compact description" do
+    id = %NodeId{value: "n1"}
+    entry = LogEntry.new(LogSequenceNumber.new(7), "d", id)
+    assert LogEntry.describe(entry) == "LSN(7) from n1"
+  end
 end
