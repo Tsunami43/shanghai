@@ -210,4 +210,11 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.sequence_gap(a, a) == 0
     end
   end
+
+  describe "describe/1" do
+    test "renders a compact description" do
+      hb = Heartbeat.new(NodeId.new("n1"), 5)
+      assert Heartbeat.describe(hb) == "n1 seq=5"
+    end
+  end
 end

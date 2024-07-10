@@ -69,6 +69,21 @@ defmodule Cluster.ValueObjects.Heartbeat do
   end
 
   @doc """
+  Returns a compact human-readable description of the heartbeat in the form
+  `<node_id> seq=<sequence>`. Useful for logs.
+
+  ## Examples
+
+      iex> hb = Cluster.ValueObjects.Heartbeat.new(CoreDomain.Types.NodeId.new("n1"), 5)
+      iex> Cluster.ValueObjects.Heartbeat.describe(hb)
+      "n1 seq=5"
+  """
+  @spec describe(t()) :: String.t()
+  def describe(%__MODULE__{node_id: %NodeId{value: value}, sequence: sequence}) do
+    "#{value} seq=#{sequence}"
+  end
+
+  @doc """
   Returns the next heartbeat for the same node: the sequence incremented by one,
   a fresh timestamp, and the metrics carried over.
   """
