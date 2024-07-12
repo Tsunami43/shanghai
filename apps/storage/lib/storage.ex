@@ -77,6 +77,15 @@ defmodule Storage do
     end
   end
 
+  @doc "Returns the id of the oldest (lowest-numbered) WAL segment, or `nil` when there are none."
+  @spec oldest_segment_id() :: non_neg_integer() | nil
+  def oldest_segment_id do
+    case segment_ids() do
+      [] -> nil
+      [first | _rest] -> first
+    end
+  end
+
   @doc """
   Aggregates on-disk WAL statistics across all active segments: the segment
   count, the total number of entries, and the total file size in bytes.

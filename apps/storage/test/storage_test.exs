@@ -34,6 +34,10 @@ defmodule StorageTest do
     assert Storage.latest_segment_id() == List.last(ids)
   end
 
+  test "oldest_segment_id/0 is the lowest segment id" do
+    assert Storage.oldest_segment_id() == List.first(Storage.segment_ids())
+  end
+
   test "avg_segment_bytes/0 is a non-negative integer" do
     assert is_integer(Storage.avg_segment_bytes())
     assert Storage.avg_segment_bytes() >= 0
