@@ -92,4 +92,10 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
                Enum.min(Enum.map(ConsistencyLevel.all(), &ConsistencyLevel.rank/1))
     end
   end
+
+  describe "ordered/0" do
+    test "lists levels from weakest to strongest" do
+      assert ConsistencyLevel.ordered() == [:eventual, :causal, :strong]
+    end
+  end
 end

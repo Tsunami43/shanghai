@@ -26,6 +26,13 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   def all, do: @valid_levels
 
   @doc """
+  Returns all consistency levels sorted from weakest to strongest by `rank/1`:
+  `[:eventual, :causal, :strong]`.
+  """
+  @spec ordered() :: [t()]
+  def ordered, do: Enum.sort_by(@valid_levels, &rank/1)
+
+  @doc """
   Parses a consistency level from a string or atom without creating new atoms
   (safe for untrusted input such as HTTP query parameters or config values).
 
