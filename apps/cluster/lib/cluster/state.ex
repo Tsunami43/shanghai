@@ -413,6 +413,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns a compact human-readable description of the cluster in the form
+  `<node_count> nodes (up/suspect/down)`. Useful for logs.
+  """
+  @spec describe(t()) :: String.t()
+  def describe(%__MODULE__{} = cluster) do
+    summary = status_summary(cluster)
+    "#{node_count(cluster)} nodes (#{summary.up}/#{summary.suspect}/#{summary.down})"
+  end
+
+  @doc """
   Returns a serializable topology snapshot of the cluster: the local node id (as
   a string, or `nil`), the total node count, per-status counts, and every node
   as a plain map (sorted by id).

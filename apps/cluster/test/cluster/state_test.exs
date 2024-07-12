@@ -545,6 +545,17 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "describe/1" do
+    test "renders a compact cluster description" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "h", 4002))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n2"))
+
+      assert State.describe(cluster) == "2 nodes (1/0/1)"
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))
