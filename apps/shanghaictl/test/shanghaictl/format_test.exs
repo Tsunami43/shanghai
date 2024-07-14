@@ -72,4 +72,13 @@ defmodule Shanghaictl.FormatTest do
       assert Format.list([]) == "none"
     end
   end
+
+  describe "pluralize/3" do
+    test "pluralizes based on count" do
+      assert Format.pluralize(1, "node") == "1 node"
+      assert Format.pluralize(0, "node") == "0 nodes"
+      assert Format.pluralize(3, "node") == "3 nodes"
+      assert Format.pluralize(2, "entry", "entries") == "2 entries"
+    end
+  end
 end

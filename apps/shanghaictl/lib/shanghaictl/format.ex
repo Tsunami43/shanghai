@@ -157,4 +157,25 @@ defmodule Shanghaictl.Format do
   @spec list([term()]) :: String.t()
   def list([]), do: "none"
   def list(items) when is_list(items), do: Enum.map_join(items, ", ", &to_string/1)
+
+  @doc """
+  Pluralizes a `word` based on `count`: appends `"s"` for counts other than 1
+  (or uses the explicit `plural` form when given).
+
+  ## Examples
+
+      iex> Shanghaictl.Format.pluralize(1, "node")
+      "1 node"
+
+      iex> Shanghaictl.Format.pluralize(3, "node")
+      "3 nodes"
+
+      iex> Shanghaictl.Format.pluralize(2, "entry", "entries")
+      "2 entries"
+  """
+  @spec pluralize(integer(), String.t(), String.t() | nil) :: String.t()
+  def pluralize(count, word, plural \\ nil) when is_integer(count) and is_binary(word) do
+    label = if count == 1, do: word, else: plural || word <> "s"
+    "#{count} #{label}"
+  end
 end
