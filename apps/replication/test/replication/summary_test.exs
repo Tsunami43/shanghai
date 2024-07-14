@@ -121,4 +121,15 @@ defmodule Replication.SummaryTest do
 
     assert Replication.sync_ratio() > 0.0
   end
+
+  test "overview/0 gives a compact replication snapshot" do
+    overview = Replication.overview()
+
+    assert is_integer(overview.groups)
+    assert is_integer(overview.replicas)
+    assert is_integer(overview.in_sync)
+    assert overview.sync_ratio >= 0.0 and overview.sync_ratio <= 1.0
+    assert is_integer(overview.max_lag)
+    assert is_boolean(overview.healthy)
+  end
 end

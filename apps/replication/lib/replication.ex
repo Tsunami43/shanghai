@@ -150,6 +150,29 @@ defmodule Replication do
   end
 
   @doc """
+  Returns a compact one-call replication overview: group and replica counts,
+  in-sync count, sync ratio, max lag, and overall health.
+  """
+  @spec overview() :: %{
+          groups: non_neg_integer(),
+          replicas: non_neg_integer(),
+          in_sync: non_neg_integer(),
+          sync_ratio: float(),
+          max_lag: non_neg_integer(),
+          healthy: boolean()
+        }
+  def overview do
+    %{
+      groups: group_count(),
+      replicas: replica_count(),
+      in_sync: in_sync_count(),
+      sync_ratio: sync_ratio(),
+      max_lag: max_lag(),
+      healthy: healthy?()
+    }
+  end
+
+  @doc """
   Returns the number of replication groups.
   """
   @spec group_count() :: non_neg_integer()
