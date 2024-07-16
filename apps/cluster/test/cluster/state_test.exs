@@ -437,6 +437,16 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "address_of/2" do
+    test "returns a node address or nil" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+
+      assert State.address_of(cluster, NodeId.new("n1")) == "hostA:4001"
+      assert State.address_of(cluster, NodeId.new("missing")) == nil
+    end
+  end
+
   describe "take_events/1" do
     test "returns events and clears event list" do
       local_id = NodeId.new("local")
