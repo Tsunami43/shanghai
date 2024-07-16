@@ -81,6 +81,26 @@ defmodule CoreDomain.Types.NodeId do
     String.contains?(value, substring)
   end
 
+  @doc """
+  Builds a NodeId from an Erlang node name atom or string of the form
+  `name@host`, taking the part before `@` as the id value. A name without `@` is
+  used as-is.
+
+  ## Examples
+
+      iex> CoreDomain.Types.NodeId.from_erlang_node(:"n1@localhost").value
+      "n1"
+
+      iex> CoreDomain.Types.NodeId.from_erlang_node("n2@host").value
+      "n2"
+  """
+  @spec from_erlang_node(atom() | String.t()) :: t()
+  def from_erlang_node(name) when is_atom(name), do: from_erlang_node(Atom.to_string(name))
+
+  def from_erlang_node(name) when is_binary(name) do
+    name |> String.split("@", parts: 2) |> hd() |> new()
+  end
+
   @doc "Sorts a list of NodeIds by their string value, ascending."
   @spec sort([t()]) :: [t()]
   def sort(node_ids) when is_list(node_ids), do: Enum.sort_by(node_ids, & &1.value)

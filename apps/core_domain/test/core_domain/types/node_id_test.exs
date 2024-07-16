@@ -81,4 +81,10 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert NodeId.contains?(NodeId.new("node-eu-1"), "eu")
     refute NodeId.contains?(NodeId.new("node-eu-1"), "us")
   end
+
+  test "from_erlang_node/1 extracts the id before the @" do
+    assert NodeId.from_erlang_node(:n1@localhost).value == "n1"
+    assert NodeId.from_erlang_node("n2@host").value == "n2"
+    assert NodeId.from_erlang_node("plain").value == "plain"
+  end
 end
