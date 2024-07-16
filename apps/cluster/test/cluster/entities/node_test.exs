@@ -257,4 +257,14 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.describe(down) == "n1@localhost:4000 (down)"
     end
   end
+
+  describe "current?/1" do
+    test "matches the running node's erlang name" do
+      [name, host] = :erlang.node() |> Atom.to_string() |> String.split("@", parts: 2)
+      node = Node.new(NodeId.new(name), host, 4000)
+      assert Node.current?(node)
+
+      refute Node.current?(Node.new(NodeId.new("other"), "elsewhere", 4000))
+    end
+  end
 end

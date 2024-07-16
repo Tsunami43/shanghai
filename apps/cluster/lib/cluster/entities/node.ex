@@ -192,6 +192,15 @@ defmodule Cluster.Entities.Node do
   end
 
   @doc """
+  Returns `true` when this node's Erlang node name matches `Node.self/0` — i.e.
+  it represents the current runtime node.
+  """
+  @spec current?(t()) :: boolean()
+  def current?(%__MODULE__{} = node) do
+    erlang_node_name(node) == :erlang.node()
+  end
+
+  @doc """
   Returns a plain-map view of the node for serialization, with the id as its
   string value and the address rendered as `host:port`.
   """
