@@ -976,6 +976,15 @@ defmodule Query do
   end
 
   @doc """
+  Returns the subset of `keys` that are present in the store, preserving the
+  input order. The complement of `missing/1`.
+  """
+  @spec present([String.t()]) :: [String.t()]
+  def present(keys) when is_list(keys) do
+    Enum.filter(keys, &Query.Store.exists?/1)
+  end
+
+  @doc """
   Warms the read cache for `keys` by reading each through the cache, populating
   it for keys that exist. Returns the number of keys that were found and cached.
   Useful ahead of a read-heavy burst.

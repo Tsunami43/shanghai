@@ -686,4 +686,14 @@ defmodule QueryTest do
       assert stats.avg == 15.0
     end
   end
+
+  describe "present/1" do
+    test "returns the keys that exist, in input order" do
+      {:ok, _} = Query.write("p:1", 1)
+      {:ok, _} = Query.write("p:3", 3)
+
+      assert Query.present(["p:1", "p:2", "p:3", "p:4"]) == ["p:1", "p:3"]
+      assert Query.present([]) == []
+    end
+  end
 end
