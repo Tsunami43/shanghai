@@ -94,6 +94,17 @@ defmodule Cluster do
   def suspect_nodes, do: Enum.filter(nodes(), &Node.suspect?/1)
 
   @doc """
+  Returns the nodes that are not `:up` (`:down` or `:suspect`) — those needing
+  attention. Sorted by node id.
+  """
+  @spec unavailable_nodes() :: [Node.t()]
+  def unavailable_nodes do
+    nodes()
+    |> Enum.filter(&Node.unavailable?/1)
+    |> Enum.sort_by(& &1.id.value)
+  end
+
+  @doc """
   Returns the health ratio of the cluster: the fraction of nodes that are `:up`
   (0.0..1.0). See `Cluster.State.health_ratio/1`.
   """

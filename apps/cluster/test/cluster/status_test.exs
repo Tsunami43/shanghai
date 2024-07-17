@@ -77,6 +77,8 @@ defmodule Cluster.StatusTest do
     assert Cluster.up_node_ids() == Enum.sort_by(Cluster.up_node_ids(), & &1.value)
     assert is_list(Cluster.down_nodes())
     assert is_list(Cluster.suspect_nodes())
+    assert is_list(Cluster.unavailable_nodes())
+    assert Enum.all?(Cluster.unavailable_nodes(), &Cluster.Entities.Node.unavailable?/1)
     refute Enum.any?(Cluster.down_nodes(), &(&1.id == id))
 
     :ok = Cluster.leave(id)
