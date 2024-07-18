@@ -74,6 +74,15 @@ defmodule Cluster.Entities.Node do
   end
 
   @doc """
+  Applies a status transition by name: `:up`, `:down`, or `:suspect`. Delegates
+  to the corresponding `mark_*` function so timestamps stay consistent.
+  """
+  @spec with_status(t(), status()) :: t()
+  def with_status(%__MODULE__{} = node, :up), do: mark_up(node)
+  def with_status(%__MODULE__{} = node, :down), do: mark_down(node)
+  def with_status(%__MODULE__{} = node, :suspect), do: mark_suspect(node)
+
+  @doc """
   Returns true if the node is currently up.
   """
   @spec up?(t()) :: boolean()

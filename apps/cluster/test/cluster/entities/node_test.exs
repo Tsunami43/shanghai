@@ -267,4 +267,14 @@ defmodule Cluster.Entities.NodeTest do
       refute Node.current?(Node.new(NodeId.new("other"), "elsewhere", 4000))
     end
   end
+
+  describe "with_status/2" do
+    test "dispatches to the matching mark_* transition" do
+      node = Node.new(NodeId.new("n1"), "h", 4000)
+
+      assert Node.with_status(node, :down).status == :down
+      assert Node.with_status(node, :suspect).status == :suspect
+      assert Node.with_status(Node.mark_down(node), :up).status == :up
+    end
+  end
 end
