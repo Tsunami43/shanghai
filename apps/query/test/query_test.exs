@@ -696,4 +696,15 @@ defmodule QueryTest do
       assert Query.present([]) == []
     end
   end
+
+  describe "any?/0" do
+    test "is the complement of empty?/0" do
+      assert Query.empty?()
+      refute Query.any?()
+
+      {:ok, _} = Query.write("x", 1)
+      assert Query.any?()
+      refute Query.empty?()
+    end
+  end
 end

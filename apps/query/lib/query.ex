@@ -1359,6 +1359,13 @@ defmodule Query do
   @spec empty?() :: boolean()
   def empty?, do: Query.Store.count() == 0
 
+  @doc """
+  Returns `true` when the store has at least one key. The complement of
+  `empty?/0`.
+  """
+  @spec any?() :: boolean()
+  def any?, do: Query.Store.count() > 0
+
   # Validates the requested consistency level, if any was provided. Accepts both
   # atoms and strings (e.g. `"eventual"` from an HTTP query parameter) via a
   # safe parse that never creates new atoms.
