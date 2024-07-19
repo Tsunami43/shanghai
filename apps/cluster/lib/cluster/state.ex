@@ -177,6 +177,12 @@ defmodule Cluster.State do
     end
   end
 
+  @doc "Returns `true` when some node in the cluster is at the `host:port` `address`."
+  @spec has_address?(t(), String.t()) :: boolean()
+  def has_address?(%__MODULE__{} = cluster, address) when is_binary(address) do
+    match?({:ok, _node}, get_node_by_address(cluster, address))
+  end
+
   @doc """
   Returns the ids of all nodes in the cluster, sorted by their string value.
   """

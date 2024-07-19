@@ -163,6 +163,16 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "has_address?/2" do
+    test "detects whether an address is in use" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+
+      assert State.has_address?(cluster, "hostA:4001")
+      refute State.has_address?(cluster, "hostZ:9999")
+    end
+  end
+
   describe "node_addresses/1" do
     test "returns sorted host:port addresses" do
       cluster = State.new(NodeId.new("local"))
