@@ -81,6 +81,12 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   def capability_count(%__MODULE__{capabilities: caps}), do: MapSet.size(caps)
 
   @doc """
+  Returns `true` when the metadata advertises any capability at all.
+  """
+  @spec any_capabilities?(t()) :: boolean()
+  def any_capabilities?(%__MODULE__{capabilities: caps}), do: MapSet.size(caps) > 0
+
+  @doc """
   Returns `true` when the metadata has all the given capabilities.
   """
   @spec has_all_capabilities?(t(), [atom()]) :: boolean()

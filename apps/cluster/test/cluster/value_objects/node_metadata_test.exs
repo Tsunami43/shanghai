@@ -245,4 +245,12 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
 
     assert NodeMetadata.merge_all([]) == NodeMetadata.new()
   end
+
+  test "any_capabilities?/1 reflects whether any capability is set" do
+    refute NodeMetadata.any_capabilities?(NodeMetadata.new())
+
+    assert NodeMetadata.new()
+           |> NodeMetadata.add_capability(:storage)
+           |> NodeMetadata.any_capabilities?()
+  end
 end
