@@ -60,6 +60,14 @@ defmodule Observability.Logger do
   end
 
   @doc """
+  Returns `true` when a correlation ID is currently set on the process.
+  """
+  @spec has_correlation_id?() :: boolean()
+  def has_correlation_id? do
+    get_correlation_id() != nil
+  end
+
+  @doc """
   Sets the correlation ID in the process dictionary.
   """
   def put_correlation_id(correlation_id) do

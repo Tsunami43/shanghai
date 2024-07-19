@@ -83,4 +83,12 @@ defmodule Observability.LoggerTest do
     assert inside == id
     assert Log.get_correlation_id() == "outer"
   end
+
+  test "has_correlation_id?/0 reflects whether one is set" do
+    Log.clear_correlation_id()
+    refute Log.has_correlation_id?()
+
+    Log.put_correlation_id("cid")
+    assert Log.has_correlation_id?()
+  end
 end
