@@ -89,6 +89,15 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     current >= target
   end
 
+  @doc """
+  Returns `true` when this offset is strictly before `target` (still behind and
+  not yet caught up). The complement of `caught_up?/2`.
+  """
+  @spec pending?(t(), t()) :: boolean()
+  def pending?(%__MODULE__{value: current}, %__MODULE__{value: target}) do
+    current < target
+  end
+
   @doc "Returns the raw integer value of an offset."
   @spec to_integer(t()) :: non_neg_integer()
   def to_integer(%__MODULE__{value: value}), do: value

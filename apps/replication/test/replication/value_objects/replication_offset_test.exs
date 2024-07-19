@@ -229,4 +229,10 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     offsets = [ReplicationOffset.new(3), ReplicationOffset.new(1), ReplicationOffset.new(2)]
     assert Enum.map(ReplicationOffset.sort(offsets), & &1.value) == [1, 2, 3]
   end
+
+  test "pending?/2 is the complement of caught_up?/2" do
+    assert ReplicationOffset.pending?(ReplicationOffset.new(2), ReplicationOffset.new(5))
+    refute ReplicationOffset.pending?(ReplicationOffset.new(5), ReplicationOffset.new(5))
+    refute ReplicationOffset.pending?(ReplicationOffset.new(6), ReplicationOffset.new(5))
+  end
 end
