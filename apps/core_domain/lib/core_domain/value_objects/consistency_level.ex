@@ -76,6 +76,14 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   def stronger_than?(:causal, :eventual), do: true
   def stronger_than?(_, _), do: false
 
+  @doc "Checks if a level is weaker than another (the inverse of `stronger_than?/2`)."
+  @spec weaker_than?(t(), t()) :: boolean()
+  def weaker_than?(a, b), do: stronger_than?(b, a)
+
+  @doc "Returns `true` when `a` is at least as strong as `b` (stronger or equal)."
+  @spec at_least?(t(), t()) :: boolean()
+  def at_least?(a, b), do: a == b or stronger_than?(a, b)
+
   @doc """
   Returns the ordinal strength of a level: `:eventual` (0) < `:causal` (1) <
   `:strong` (2). Useful for sorting or comparing levels numerically.

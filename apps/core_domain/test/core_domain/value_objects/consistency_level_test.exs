@@ -98,4 +98,18 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       assert ConsistencyLevel.ordered() == [:eventual, :causal, :strong]
     end
   end
+
+  describe "weaker_than?/2 and at_least?/2" do
+    test "weaker_than? is the inverse of stronger_than?" do
+      assert ConsistencyLevel.weaker_than?(:eventual, :strong)
+      refute ConsistencyLevel.weaker_than?(:strong, :eventual)
+      refute ConsistencyLevel.weaker_than?(:strong, :strong)
+    end
+
+    test "at_least? accepts stronger or equal levels" do
+      assert ConsistencyLevel.at_least?(:strong, :eventual)
+      assert ConsistencyLevel.at_least?(:strong, :strong)
+      refute ConsistencyLevel.at_least?(:eventual, :strong)
+    end
+  end
 end
