@@ -30,6 +30,17 @@ defmodule ObservabilityTest do
     assert Observability.correlation_id() == id
   end
 
+  test "has_correlation_id?/0 and clear_correlation_id/0 via the facade" do
+    Observability.clear_correlation_id()
+    refute Observability.has_correlation_id?()
+
+    Observability.ensure_correlation_id()
+    assert Observability.has_correlation_id?()
+
+    assert Observability.clear_correlation_id() == :ok
+    refute Observability.has_correlation_id?()
+  end
+
   test "ensure_correlation_id/0 returns a stable id within the process" do
     Process.delete(:correlation_id)
     id = Observability.ensure_correlation_id()

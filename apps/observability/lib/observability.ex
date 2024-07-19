@@ -42,6 +42,14 @@ defmodule Observability do
   @spec ensure_correlation_id() :: String.t()
   defdelegate ensure_correlation_id(), to: StructuredLogger
 
+  @doc "Returns `true` when a correlation id is currently set on the process."
+  @spec has_correlation_id?() :: boolean()
+  defdelegate has_correlation_id?(), to: StructuredLogger
+
+  @doc "Clears the current correlation id from the process."
+  @spec clear_correlation_id() :: :ok
+  defdelegate clear_correlation_id(), to: StructuredLogger
+
   @doc """
   Returns a snapshot of the aggregated runtime metrics: WAL, replication,
   heartbeat and query statistics. Each section is `%{}` when its data is not yet
