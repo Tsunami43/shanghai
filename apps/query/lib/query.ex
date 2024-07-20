@@ -1087,6 +1087,21 @@ defmodule Query do
   defdelegate any_prefix?(prefix), to: Query.Store
 
   @doc """
+  Deletes every key that starts with `prefix` and returns the pairs that were
+  removed, sorted by key. A scan followed by an atomic prefix delete, so a
+  concurrent write to the same namespace may be deleted without being returned.
+  """
+  @spec drain_prefix(binary()) :: {:ok, [{binary(), term()}]} | {:error, term()}
+  def drain_prefix(prefix) when is_binary(prefix) do
+    pairs = Query.Store.scan(prefix, [])
+
+    case delete_prefix(prefix) do
+      {:ok, _deleted} -> {:ok, pairs}
+      other -> other
+    end
+  end
+
+  @doc """
   Durably removes every key from the store and flushes the cache. Returns
   `{:ok, :cleared}`. The empty state is persisted to the WAL, so it survives a
   restart.

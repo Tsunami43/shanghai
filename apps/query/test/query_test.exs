@@ -707,4 +707,18 @@ defmodule QueryTest do
       refute Query.empty?()
     end
   end
+
+  describe "drain_prefix/1" do
+    test "removes and returns the matching pairs" do
+      {:ok, _} = Query.write("job:1", "a")
+      {:ok, _} = Query.write("job:2", "b")
+      {:ok, _} = Query.write("other", "c")
+
+      assert {:ok, pairs} = Query.drain_prefix("job:")
+      assert pairs == [{"job:1", "a"}, {"job:2", "b"}]
+      refute Query.exists?("job:1")
+      refute Query.exists?("job:2")
+      assert Query.exists?("other")
+    end
+  end
 end
