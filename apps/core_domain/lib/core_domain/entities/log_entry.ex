@@ -128,6 +128,10 @@ defmodule CoreDomain.Entities.LogEntry do
     %{entry | metadata: Map.put(metadata, key, value)}
   end
 
+  @doc "Returns `true` when the entry's metadata contains `key`."
+  @spec has_metadata?(t(), term()) :: boolean()
+  def has_metadata?(%__MODULE__{metadata: metadata}, key), do: Map.has_key?(metadata, key)
+
   @doc """
   Returns a plain-map view of the entry for serialization, with the LSN as a raw
   integer and the node id as its string value.

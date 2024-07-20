@@ -148,4 +148,12 @@ defmodule CoreDomain.Entities.LogEntryTest do
     entry = LogEntry.new(LogSequenceNumber.new(7), "d", id)
     assert LogEntry.describe(entry) == "LSN(7) from n1"
   end
+
+  test "has_metadata?/2 checks for a metadata key" do
+    id = %NodeId{value: "n"}
+    entry = LogEntry.new(LogSequenceNumber.new(1), "d", id, %{source: "leader"})
+
+    assert LogEntry.has_metadata?(entry, :source)
+    refute LogEntry.has_metadata?(entry, :missing)
+  end
 end
