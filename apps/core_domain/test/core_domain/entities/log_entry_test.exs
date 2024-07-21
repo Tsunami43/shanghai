@@ -156,4 +156,12 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.has_metadata?(entry, :source)
     refute LogEntry.has_metadata?(entry, :missing)
   end
+
+  test "metadata_keys/1 returns sorted keys" do
+    id = %NodeId{value: "n"}
+    entry = LogEntry.new(LogSequenceNumber.new(1), "d", id, %{b: 2, a: 1})
+
+    assert LogEntry.metadata_keys(entry) == [:a, :b]
+    assert LogEntry.metadata_keys(LogEntry.new(LogSequenceNumber.new(1), "d", id)) == []
+  end
 end

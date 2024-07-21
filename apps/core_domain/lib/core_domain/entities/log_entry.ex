@@ -122,6 +122,10 @@ defmodule CoreDomain.Entities.LogEntry do
     Map.get(metadata, key, default)
   end
 
+  @doc "Returns the sorted metadata keys of the entry."
+  @spec metadata_keys(t()) :: [term()]
+  def metadata_keys(%__MODULE__{metadata: metadata}), do: metadata |> Map.keys() |> Enum.sort()
+
   @doc "Returns a copy of the entry with `key` set to `value` in its metadata."
   @spec put_metadata(t(), term(), term()) :: t()
   def put_metadata(%__MODULE__{metadata: metadata} = entry, key, value) do
