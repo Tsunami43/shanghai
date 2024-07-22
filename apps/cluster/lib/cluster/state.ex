@@ -329,6 +329,12 @@ defmodule Cluster.State do
   def empty?(%__MODULE__{nodes: nodes}), do: map_size(nodes) == 0
 
   @doc """
+  Returns `true` when the cluster has a single member node (a solo deployment).
+  """
+  @spec single_node?(t()) :: boolean()
+  def single_node?(%__MODULE__{nodes: nodes}), do: map_size(nodes) == 1
+
+  @doc """
   Returns the number of nodes in the cluster.
   """
   @spec node_count(t()) :: non_neg_integer()

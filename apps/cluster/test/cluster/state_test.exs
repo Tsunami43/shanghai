@@ -243,6 +243,19 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "single_node?/1" do
+    test "detects a solo deployment" do
+      cluster = State.new(NodeId.new("local"))
+      refute State.single_node?(cluster)
+
+      {:ok, one} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      assert State.single_node?(one)
+
+      {:ok, two} = State.add_node(one, Node.new(NodeId.new("n2"), "h", 4002))
+      refute State.single_node?(two)
+    end
+  end
+
   describe "node_ids/1" do
     test "returns sorted node ids" do
       cluster =
