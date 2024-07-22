@@ -94,6 +94,20 @@ defmodule Replication do
   def stale_count, do: length(get_stale_replicas())
 
   @doc """
+  Returns `true` when there are no lagging or stale replicas *and* every group
+  has at least one replica — a stricter check than `healthy?/0`, which is also
+  true for a cluster with no replicas configured.
+  """
+  @spec fully_replicated?() :: boolean()
+  def fully_replicated? do
+    groups = all_groups()
+
+    groups != [] and
+      Enum.all?(groups, fn group -> map_size(Map.get(group, :replicas, %{})) > 0 end) and
+      healthy?()
+  end
+
+  @doc """
   Returns the ids of all replication groups, sorted.
   """
   @spec group_ids() :: [String.t()]

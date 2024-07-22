@@ -132,4 +132,19 @@ defmodule Replication.SummaryTest do
     assert is_integer(overview.max_lag)
     assert is_boolean(overview.healthy)
   end
+
+  test "fully_replicated?/0 requires replicas in every group and health" do
+    # No groups configured yet in a fresh monitor: not fully replicated.
+    refute Replication.fully_replicated?()
+
+    Replication.Monitor.record_leader_offset("fr-1", ReplicationOffset.new(10))
+
+    Replication.Monitor.record_follower_offset(
+      "fr-1",
+      NodeId.new("fr-f1"),
+      ReplicationOffset.new(10)
+    )
+
+    assert is_boolean(Replication.fully_replicated?())
+  end
 end
