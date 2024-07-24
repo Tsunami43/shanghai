@@ -1082,6 +1082,19 @@ defmodule Query do
   @spec count_prefix(binary()) :: non_neg_integer()
   defdelegate count_prefix(prefix), to: Query.Store
 
+  @doc """
+  Returns the distinct prefixes obtained by splitting each key on `separator`
+  and taking the first segment, sorted. Useful for discovering key namespaces.
+  """
+  @spec namespaces(binary()) :: [binary()]
+  def namespaces(separator \\ ":") when is_binary(separator) do
+    keys()
+    |> Enum.filter(&is_binary/1)
+    |> Enum.map(fn key -> key |> String.split(separator, parts: 2) |> hd() end)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
   @doc "Returns `true` when at least one key starts with `prefix`."
   @spec any_prefix?(binary()) :: boolean()
   defdelegate any_prefix?(prefix), to: Query.Store

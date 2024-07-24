@@ -721,4 +721,15 @@ defmodule QueryTest do
       assert Query.exists?("other")
     end
   end
+
+  describe "namespaces/1" do
+    test "returns distinct sorted key namespaces" do
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("user:2", 2)
+      {:ok, _} = Query.write("order:1", 3)
+      {:ok, _} = Query.write("flat", 4)
+
+      assert Query.namespaces() == ["flat", "order", "user"]
+    end
+  end
 end
