@@ -44,12 +44,19 @@ defmodule Replication.Leader do
   Options:
   - `:consistency_level` - ConsistencyLevel.t() or atom (:local, :quorum, :leader)
   - `:timeout` - Write timeout in milliseconds (default: 5000)
+
+  Returns:
+  - `{:ok, offset}` - Write succeeded at the given offset
+  - `{:error, :timeout}` - Timeout waiting for consistency level
+  - `{:error, :invalid_consistency_level}` - Invalid consistency level provided
   """
   @spec write(String.t(), binary(), keyword()) :: {:ok, ReplicationOffset.t()} | {:error, atom()}
   def write(group_id, data, opts \\ []) do
     timeout = Keyword.get(opts, :timeout, 5000)
-    consistency_level = parse_consistency_level(Keyword.get(opts, :consistency_level, :quorum))
-    GenServer.call(via_tuple(group_id), {:write, data, consistency_level}, timeout)
+
+    with {:ok, consistency_level} <- validate_consistency_level(opts) do
+      GenServer.call(via_tuple(group_id), {:write, data, consistency_level}, timeout)
+    end
   end
 
   @doc """
@@ -236,13 +243,13 @@ defmodule Replication.Leader do
     end
   end
 
-  defp parse_consistency_level(level) when is_atom(level) do
-    case ConsistencyLevel.parse(level) do
-      {:ok, cl} -> cl
-      {:error, _} -> ConsistencyLevel.default()
+  defp validate_consistency_level(opts) do
+    level = Keyword.get(opts, :consistency_level, :quorum)
+
+    case level do
+      %ConsistencyLevel{} -> {:ok, level}
+      atom when is_atom(atom) -> ConsistencyLevel.parse(atom)
+      _ -> {:error, :invalid_consistency_level}
     end
   end
-
-  defp parse_consistency_level(%ConsistencyLevel{} = level), do: level
-  defp parse_consistency_level(_), do: ConsistencyLevel.default()
 end
