@@ -732,4 +732,14 @@ defmodule QueryTest do
       assert Query.namespaces() == ["flat", "order", "user"]
     end
   end
+
+  describe "namespace_counts/1" do
+    test "counts keys per namespace" do
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("user:2", 2)
+      {:ok, _} = Query.write("order:1", 3)
+
+      assert Query.namespace_counts() == %{"user" => 2, "order" => 1}
+    end
+  end
 end

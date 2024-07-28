@@ -1095,6 +1095,18 @@ defmodule Query do
     |> Enum.sort()
   end
 
+  @doc """
+  Returns a map of `namespace => key_count` — how many keys fall under each
+  first-segment namespace (split on `separator`). Useful for a quick key-space
+  distribution overview.
+  """
+  @spec namespace_counts(binary()) :: %{optional(binary()) => non_neg_integer()}
+  def namespace_counts(separator \\ ":") when is_binary(separator) do
+    keys()
+    |> Enum.filter(&is_binary/1)
+    |> Enum.frequencies_by(fn key -> key |> String.split(separator, parts: 2) |> hd() end)
+  end
+
   @doc "Returns `true` when at least one key starts with `prefix`."
   @spec any_prefix?(binary()) :: boolean()
   defdelegate any_prefix?(prefix), to: Query.Store
