@@ -253,4 +253,12 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
            |> NodeMetadata.add_capability(:storage)
            |> NodeMetadata.any_capabilities?()
   end
+
+  test "tagged?/3 checks an exact tag value" do
+    md = NodeMetadata.new() |> NodeMetadata.put_tag(:region, "eu")
+
+    assert NodeMetadata.tagged?(md, :region, "eu")
+    refute NodeMetadata.tagged?(md, :region, "us")
+    refute NodeMetadata.tagged?(md, :zone, "a")
+  end
 end
