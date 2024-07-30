@@ -62,6 +62,13 @@ defmodule Observability.MetricsTest do
                     %{operation: :read, result: :ok}}
   end
 
+  test "domain_event_counts/0 counts events per domain" do
+    counts = Metrics.domain_event_counts()
+    assert counts[:query] == 1
+    assert counts[:storage] >= 1
+    assert Enum.sum(Map.values(counts)) == Metrics.event_count()
+  end
+
   test "domains/0 lists the distinct sorted domains" do
     domains = Metrics.domains()
     assert :query in domains

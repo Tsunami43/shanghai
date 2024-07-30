@@ -277,4 +277,18 @@ defmodule Observability.Metrics do
     |> Enum.uniq()
     |> Enum.sort()
   end
+
+  @doc """
+  Returns a map of `domain => event_count` — how many telemetry events each
+  domain emits.
+
+  ## Examples
+
+      iex> Observability.Metrics.domain_event_counts()[:query]
+      1
+  """
+  @spec domain_event_counts() :: %{optional(atom()) => non_neg_integer()}
+  def domain_event_counts do
+    Enum.frequencies_by(event_names(), fn [:shanghai, domain | _rest] -> domain end)
+  end
 end
