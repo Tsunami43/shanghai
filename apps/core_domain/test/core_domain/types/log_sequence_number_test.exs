@@ -122,4 +122,14 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     lsns = [LSN.new(3), LSN.new(1), LSN.new(3), LSN.new(2)]
     assert Enum.map(LSN.sort_uniq(lsns), & &1.value) == [1, 2, 3]
   end
+
+  test "after?/2 and before?/2 compare LSNs" do
+    assert LSN.after?(LSN.new(5), LSN.new(3))
+    refute LSN.after?(LSN.new(3), LSN.new(5))
+    refute LSN.after?(LSN.new(3), LSN.new(3))
+
+    assert LSN.before?(LSN.new(3), LSN.new(5))
+    refute LSN.before?(LSN.new(5), LSN.new(3))
+    refute LSN.before?(LSN.new(3), LSN.new(3))
+  end
 end

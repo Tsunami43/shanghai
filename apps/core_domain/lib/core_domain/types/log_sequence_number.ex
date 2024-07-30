@@ -67,6 +67,18 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def next(lsn), do: increment(lsn)
 
   @doc """
+  Returns `true` when the LSN is greater than another (strictly after it).
+  """
+  @spec after?(t(), t()) :: boolean()
+  def after?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a > b
+
+  @doc """
+  Returns `true` when the LSN is less than another (strictly before it).
+  """
+  @spec before?(t(), t()) :: boolean()
+  def before?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a < b
+
+  @doc """
   Returns the LSN immediately before this one, or `nil` for the zero LSN.
 
   ## Examples
