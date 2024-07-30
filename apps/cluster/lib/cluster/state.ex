@@ -353,6 +353,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the fraction of nodes with the given status (0.0..1.0). Returns `0.0`
+  for an empty cluster.
+  """
+  @spec status_ratio(t(), atom()) :: float()
+  def status_ratio(%__MODULE__{} = cluster, status) do
+    case node_count(cluster) do
+      0 -> 0.0
+      total -> status_count(cluster, status) / total
+    end
+  end
+
+  @doc """
   Returns the number of nodes required for a majority quorum (`⌊n/2⌋ + 1`), or
   `0` for an empty cluster.
   """

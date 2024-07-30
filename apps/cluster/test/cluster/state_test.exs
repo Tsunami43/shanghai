@@ -589,6 +589,22 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "status_ratio/2" do
+    test "returns the fraction of nodes with a status" do
+      cluster =
+        Enum.reduce(1..4, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "h", 4000 + i))
+          next
+        end)
+
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n1"))
+
+      assert State.status_ratio(cluster, :up) == 0.75
+      assert State.status_ratio(cluster, :down) == 0.25
+      assert State.status_ratio(State.new(NodeId.new("solo")), :up) == 0.0
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))
