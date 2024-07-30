@@ -132,6 +132,12 @@ defmodule CoreDomain.Entities.LogEntry do
     %{entry | metadata: Map.put(metadata, key, value)}
   end
 
+  @doc "Returns a copy of the entry with `key` removed from its metadata."
+  @spec delete_metadata(t(), term()) :: t()
+  def delete_metadata(%__MODULE__{metadata: metadata} = entry, key) do
+    %{entry | metadata: Map.delete(metadata, key)}
+  end
+
   @doc "Returns `true` when the entry's metadata contains `key`."
   @spec has_metadata?(t(), term()) :: boolean()
   def has_metadata?(%__MODULE__{metadata: metadata}, key), do: Map.has_key?(metadata, key)

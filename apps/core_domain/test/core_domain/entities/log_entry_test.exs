@@ -164,4 +164,13 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.metadata_keys(entry) == [:a, :b]
     assert LogEntry.metadata_keys(LogEntry.new(LogSequenceNumber.new(1), "d", id)) == []
   end
+
+  test "delete_metadata/2 removes a metadata key" do
+    id = %NodeId{value: "n"}
+    entry = LogEntry.new(LogSequenceNumber.new(1), "d", id, %{a: 1, b: 2})
+
+    updated = LogEntry.delete_metadata(entry, :a)
+    assert LogEntry.get_metadata(updated, :a) == nil
+    assert LogEntry.get_metadata(updated, :b) == 2
+  end
 end
