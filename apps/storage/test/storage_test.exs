@@ -54,6 +54,11 @@ defmodule StorageTest do
     assert Storage.total_bytes() == stats.bytes
   end
 
+  test "avg_entry_bytes/0 is a non-negative integer" do
+    assert is_integer(Storage.avg_entry_bytes())
+    assert Storage.avg_entry_bytes() >= 0
+  end
+
   test "empty?/0 reflects whether the WAL has entries" do
     assert Storage.empty?() == (Storage.wal_stats().entries == 0)
   end

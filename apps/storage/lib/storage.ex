@@ -225,6 +225,20 @@ defmodule Storage do
   def total_bytes, do: wal_stats().bytes
 
   @doc """
+  Returns the average number of bytes per WAL entry across all active segments,
+  or `0` when there are no entries. A rough indicator of record size.
+  """
+  @spec avg_entry_bytes() :: non_neg_integer()
+  def avg_entry_bytes do
+    stats = wal_stats()
+
+    case stats.entries do
+      0 -> 0
+      n -> div(stats.bytes, n)
+    end
+  end
+
+  @doc """
   Returns `true` when the WAL holds no entries across all active segments (a
   fresh or fully-compacted log).
   """
