@@ -29,6 +29,7 @@ defmodule Cluster.StatusTest do
     assert before.fault_tolerance == Cluster.fault_tolerance()
     assert is_float(before.health_ratio)
     assert is_boolean(Cluster.healthy?())
+    assert is_boolean(Cluster.single_node?())
     assert is_float(Cluster.health_ratio())
     assert Cluster.health_ratio() >= 0.0 and Cluster.health_ratio() <= 1.0
     assert is_list(Cluster.node_ids())

@@ -112,6 +112,13 @@ defmodule Cluster do
   def health_ratio, do: State.health_ratio(cluster_state())
 
   @doc """
+  Returns `true` when the local node is the only member of the cluster (a solo
+  deployment). See `Cluster.State.single_node?/1`.
+  """
+  @spec single_node?() :: boolean()
+  def single_node?, do: State.single_node?(cluster_state())
+
+  @doc """
   Requests a node to join the cluster.
   """
   @spec join(Node.t()) :: :ok | {:error, atom()}
