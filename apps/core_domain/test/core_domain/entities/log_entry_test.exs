@@ -173,4 +173,13 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.get_metadata(updated, :a) == nil
     assert LogEntry.get_metadata(updated, :b) == 2
   end
+
+  test "merge_metadata/2 merges fields into metadata" do
+    id = %NodeId{value: "n"}
+    entry = LogEntry.new(LogSequenceNumber.new(1), "d", id, %{a: 1})
+
+    updated = LogEntry.merge_metadata(entry, %{a: 9, b: 2})
+    assert LogEntry.get_metadata(updated, :a) == 9
+    assert LogEntry.get_metadata(updated, :b) == 2
+  end
 end

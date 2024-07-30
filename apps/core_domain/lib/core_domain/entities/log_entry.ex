@@ -138,6 +138,15 @@ defmodule CoreDomain.Entities.LogEntry do
     %{entry | metadata: Map.delete(metadata, key)}
   end
 
+  @doc """
+  Returns a copy of the entry with `fields` merged into its metadata; keys in
+  `fields` take precedence.
+  """
+  @spec merge_metadata(t(), map()) :: t()
+  def merge_metadata(%__MODULE__{metadata: metadata} = entry, fields) when is_map(fields) do
+    %{entry | metadata: Map.merge(metadata, fields)}
+  end
+
   @doc "Returns `true` when the entry's metadata contains `key`."
   @spec has_metadata?(t(), term()) :: boolean()
   def has_metadata?(%__MODULE__{metadata: metadata}, key), do: Map.has_key?(metadata, key)
