@@ -140,6 +140,12 @@ defmodule Cluster.ValueObjects.Heartbeat do
     Map.get(metrics, key, default)
   end
 
+  @doc "Returns a copy of the heartbeat with a single metric `key` set to `value`."
+  @spec put_metric(t(), term(), term()) :: t()
+  def put_metric(%__MODULE__{metrics: metrics} = heartbeat, key, value) do
+    %{heartbeat | metrics: Map.put(metrics, key, value)}
+  end
+
   @doc "Returns the metric keys carried by the heartbeat, sorted."
   @spec metric_names(t()) :: [term()]
   def metric_names(%__MODULE__{metrics: metrics}), do: metrics |> Map.keys() |> Enum.sort()

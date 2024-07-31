@@ -217,4 +217,14 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.describe(hb) == "n1 seq=5"
     end
   end
+
+  describe "put_metric/3" do
+    test "sets a single metric" do
+      hb = Heartbeat.new(NodeId.new("n1"), 1)
+      updated = Heartbeat.put_metric(hb, :cpu, 0.5)
+
+      assert Heartbeat.get_metric(updated, :cpu) == 0.5
+      assert Heartbeat.put_metric(updated, :cpu, 0.9) |> Heartbeat.get_metric(:cpu) == 0.9
+    end
+  end
 end
