@@ -81,6 +81,16 @@ defmodule CoreDomain.Types.NodeId do
     String.contains?(value, substring)
   end
 
+  @doc "Returns `true` when the NodeId's value ends with `suffix`."
+  @spec ends_with?(t(), String.t()) :: boolean()
+  def ends_with?(%__MODULE__{value: value}, suffix) when is_binary(suffix) do
+    String.ends_with?(value, suffix)
+  end
+
+  @doc "Returns the length of the NodeId's value in characters."
+  @spec length(t()) :: non_neg_integer()
+  def length(%__MODULE__{value: value}), do: String.length(value)
+
   @doc """
   Builds a NodeId from an Erlang node name atom or string of the form
   `name@host`, taking the part before `@` as the id value. A name without `@` is

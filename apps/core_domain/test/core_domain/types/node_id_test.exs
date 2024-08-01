@@ -87,4 +87,14 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert NodeId.from_erlang_node("n2@host").value == "n2"
     assert NodeId.from_erlang_node("plain").value == "plain"
   end
+
+  test "ends_with?/2 checks the id suffix" do
+    assert NodeId.ends_with?(NodeId.new("node-eu-1"), "1")
+    refute NodeId.ends_with?(NodeId.new("node-eu-1"), "2")
+  end
+
+  test "length/1 returns the value length" do
+    assert NodeId.length(NodeId.new("node1")) == 5
+    assert NodeId.length(NodeId.new("")) == 0
+  end
 end
