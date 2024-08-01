@@ -1152,6 +1152,15 @@ defmodule Query do
   @spec values_prefix(binary()) :: [term()]
   defdelegate values_prefix(prefix), to: Query.Store
 
+  @doc """
+  Returns the `{key, value}` pairs whose key starts with `prefix` as a map.
+  Convenience over `scan/1` when a map is more useful than an ordered list.
+  """
+  @spec map_prefix(binary()) :: %{optional(binary()) => term()}
+  def map_prefix(prefix) when is_binary(prefix) do
+    prefix |> Query.Store.scan([]) |> Map.new()
+  end
+
   @doc "Returns the keys within the inclusive range `[low, high]`, sorted."
   @spec keys_between(term(), term()) :: [term()]
   defdelegate keys_between(low, high), to: Query.Store

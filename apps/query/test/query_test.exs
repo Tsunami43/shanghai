@@ -742,4 +742,15 @@ defmodule QueryTest do
       assert Query.namespace_counts() == %{"user" => 2, "order" => 1}
     end
   end
+
+  describe "map_prefix/1" do
+    test "returns matching pairs as a map" do
+      {:ok, _} = Query.write("cfg:a", 1)
+      {:ok, _} = Query.write("cfg:b", 2)
+      {:ok, _} = Query.write("other", 3)
+
+      assert Query.map_prefix("cfg:") == %{"cfg:a" => 1, "cfg:b" => 2}
+      assert Query.map_prefix("none:") == %{}
+    end
+  end
 end
