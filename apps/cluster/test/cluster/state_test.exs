@@ -605,6 +605,24 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "quorum_shortfall/1" do
+    test "reports how many more up nodes are needed for quorum" do
+      cluster =
+        Enum.reduce(1..3, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "h", 4000 + i))
+          next
+        end)
+
+      # 3 up, quorum 2 -> already available
+      assert State.quorum_shortfall(cluster) == 0
+
+      {:ok, two_down} = State.mark_node_down(cluster, NodeId.new("n1"))
+      {:ok, two_down} = State.mark_node_down(two_down, NodeId.new("n2"))
+      # 1 up, quorum 2 -> need 1 more
+      assert State.quorum_shortfall(two_down) == 1
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))

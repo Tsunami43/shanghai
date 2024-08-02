@@ -377,6 +377,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the number of additional `:up` nodes required to reach a majority
+  quorum, or `0` when quorum is already available.
+  """
+  @spec quorum_shortfall(t()) :: non_neg_integer()
+  def quorum_shortfall(%__MODULE__{} = cluster) do
+    up = status_count(cluster, :up)
+    max(quorum_size(cluster) - up, 0)
+  end
+
+  @doc """
   Returns the number of node failures the cluster can tolerate while still
   retaining a majority quorum (`n - quorum_size`). Returns `0` for an empty
   cluster.
