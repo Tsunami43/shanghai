@@ -165,6 +165,25 @@ follow semantic versioning.
   `metadata_of/2`, `local?/2`, `peer_ids/1`, `majority?/2`, `count_on_host/2`,
   `duplicate_addresses?/1`), `Cluster.node_status/0` / `peer_ids/0`, and
   `Storage.segment_count/0` / `latest_segment_id/0`.
+- **Aggregates & namespaces**: `Query` gains `avg_values/0`, `value_stats/0`,
+  `max_value/0` / `min_value/0`, `namespaces/1`, `namespace_counts/1`,
+  `map_prefix/1`, `drain_prefix/1`, `present/1`, `any?/0`, and `warm/1`.
+- **`describe/1` log helpers** for `Cluster.State`, `Node`, `LogEntry`, and
+  `Heartbeat`, plus `Node.with_status/2`, `current?/1`, and
+  `NodeId.from_erlang_node/1`.
+- **More value-object predicates**: `LogSequenceNumber` (`after?/2`, `before?/2`,
+  `gap/2`), `ReplicationOffset.pending?/2`, `ConsistencyLevel`
+  (`weaker_than?/2`, `at_least?/2`, `ordered/0`), `NodeId` (`ends_with?/2`,
+  `length/1`), `NodeMetadata` (`tagged?/3`, `any_capabilities?/1`), and
+  `LogEntry` metadata ops (`has_metadata?/2`, `metadata_keys/1`,
+  `delete_metadata/2`, `merge_metadata/2`).
+- **More topology/health/replication introspection**: `Cluster`
+  (`unavailable_nodes/0`, `single_node?/0`), `Cluster.State`
+  (`hosts_summary/1`, `address_of/2`, `has_address?/2`, `status_ratio/2`,
+  `quorum_shortfall/1`, `single_node?/1`), `Replication`
+  (`overview/0`, `fully_replicated?/0`), `Storage`
+  (`oldest_segment_id/0`, `avg_entry_bytes/0`), and `Observability.Metrics`
+  (`domains/0`, `domain_event_counts/0`).
 - **CLI formatting**: a `Shanghaictl.Format` module (`bytes/1`, `count/1`,
   `percent/1`, `duration_ms/1`) now used to render human-readable sizes and
   ratios in `shanghaictl metrics`; `Options.int_option/3`.
