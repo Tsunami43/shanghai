@@ -178,4 +178,20 @@ defmodule Shanghaictl.Format do
     label = if count == 1, do: word, else: plural || word <> "s"
     "#{count} #{label}"
   end
+
+  @doc """
+  Renders a `value` as a string, or `"-"` when it is `nil`. Useful for table
+  cells with optional fields.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.dash(nil)
+      "-"
+
+      iex> Shanghaictl.Format.dash(42)
+      "42"
+  """
+  @spec dash(term()) :: String.t()
+  def dash(nil), do: "-"
+  def dash(value), do: to_string(value)
 end

@@ -81,4 +81,12 @@ defmodule Shanghaictl.FormatTest do
       assert Format.pluralize(2, "entry", "entries") == "2 entries"
     end
   end
+
+  describe "dash/1" do
+    test "renders nil as a dash" do
+      assert Format.dash(nil) == "-"
+      assert Format.dash(42) == "42"
+      assert Format.dash("x") == "x"
+    end
+  end
 end
