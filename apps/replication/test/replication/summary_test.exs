@@ -147,4 +147,18 @@ defmodule Replication.SummaryTest do
 
     assert is_boolean(Replication.fully_replicated?())
   end
+
+  test "total_lag/0 sums replica lag across groups" do
+    assert Replication.total_lag() >= 0
+
+    Replication.Monitor.record_leader_offset("tl-1", ReplicationOffset.new(100))
+
+    Replication.Monitor.record_follower_offset(
+      "tl-1",
+      NodeId.new("tl-f1"),
+      ReplicationOffset.new(40)
+    )
+
+    assert Replication.total_lag() >= 60
+  end
 end

@@ -141,6 +141,18 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the total replica lag (sum of offsets) across all groups — a rough
+  aggregate backlog indicator. `0` when there are no tracked replicas.
+  """
+  @spec total_lag() :: non_neg_integer()
+  def total_lag do
+    all_groups()
+    |> Enum.flat_map(fn group -> Map.values(Map.get(group, :replicas, %{})) end)
+    |> Enum.map(&Map.get(&1, :lag, 0))
+    |> Enum.sum()
+  end
+
+  @doc """
   Returns the total number of tracked replicas that are fully caught up (lag of
   `0`) across all groups.
   """
