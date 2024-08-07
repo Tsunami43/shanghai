@@ -178,6 +178,13 @@ defmodule Cluster do
   def quorum_available?, do: State.quorum_available?(cluster_state())
 
   @doc """
+  Returns how many more `:up` nodes are needed to reach a majority quorum, or
+  `0` when quorum is available. See `Cluster.State.quorum_shortfall/1`.
+  """
+  @spec quorum_shortfall() :: non_neg_integer()
+  def quorum_shortfall, do: State.quorum_shortfall(cluster_state())
+
+  @doc """
   Returns the number of node failures the cluster can tolerate while retaining
   quorum. See `Cluster.State.fault_tolerance/1`.
   """

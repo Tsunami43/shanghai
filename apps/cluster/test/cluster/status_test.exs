@@ -24,6 +24,8 @@ defmodule Cluster.StatusTest do
     assert is_integer(before.up)
     assert is_boolean(before.quorum_available)
     assert Cluster.quorum_available?() == before.quorum_available
+    assert is_integer(Cluster.quorum_shortfall())
+    assert Cluster.quorum_shortfall() >= 0
     assert is_integer(before.quorum_size)
     assert is_integer(before.fault_tolerance)
     assert before.fault_tolerance == Cluster.fault_tolerance()
