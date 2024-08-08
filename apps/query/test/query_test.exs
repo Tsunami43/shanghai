@@ -753,4 +753,14 @@ defmodule QueryTest do
       assert Query.map_prefix("none:") == %{}
     end
   end
+
+  describe "count_existing/1" do
+    test "counts the keys that exist" do
+      {:ok, _} = Query.write("ce:1", 1)
+      {:ok, _} = Query.write("ce:2", 2)
+
+      assert Query.count_existing(["ce:1", "ce:2", "ce:missing"]) == 2
+      assert Query.count_existing([]) == 0
+    end
+  end
 end

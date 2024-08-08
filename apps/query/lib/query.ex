@@ -1012,6 +1012,15 @@ defmodule Query do
   end
 
   @doc """
+  Returns the number of keys in `keys` that exist. A cheap counterpart to
+  `mget/1` when only the count matters.
+  """
+  @spec count_existing([String.t()]) :: non_neg_integer()
+  def count_existing(keys) when is_list(keys) do
+    Enum.count(keys, &Query.Store.exists?/1)
+  end
+
+  @doc """
   Returns a runtime summary of the query layer: the store's durability mode,
   the number of records recovered on start, the live key count, and cache stats.
 
