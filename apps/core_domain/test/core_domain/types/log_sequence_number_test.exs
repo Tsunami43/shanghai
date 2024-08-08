@@ -132,4 +132,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     refute LSN.before?(LSN.new(5), LSN.new(3))
     refute LSN.before?(LSN.new(3), LSN.new(3))
   end
+
+  test "positive?/1 is the inverse of initial?/1" do
+    assert LSN.positive?(LSN.new(1))
+    refute LSN.positive?(LSN.zero())
+    assert LSN.positive?(LSN.new(5)) == not LSN.initial?(LSN.new(5))
+  end
 end

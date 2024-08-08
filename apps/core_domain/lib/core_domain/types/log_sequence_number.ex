@@ -183,6 +183,11 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def initial?(%__MODULE__{value: 0}), do: true
   def initial?(%__MODULE__{}), do: false
 
+  @doc "Returns `true` when the LSN is not the zero (initial) LSN."
+  @spec positive?(t()) :: boolean()
+  def positive?(%__MODULE__{value: 0}), do: false
+  def positive?(%__MODULE__{}), do: true
+
   @doc """
   Returns the earlier (lesser) of two LSNs.
 
