@@ -623,6 +623,20 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "all_up?/1" do
+    test "is true only when every node is up" do
+      refute State.all_up?(State.new(NodeId.new("local")))
+
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "h", 4002))
+      assert State.all_up?(cluster)
+
+      {:ok, degraded} = State.mark_node_down(cluster, NodeId.new("n2"))
+      refute State.all_up?(degraded)
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))

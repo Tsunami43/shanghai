@@ -423,6 +423,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when every node in the cluster is `:up`. `false` for an empty
+  cluster.
+  """
+  @spec all_up?(t()) :: boolean()
+  def all_up?(%__MODULE__{} = cluster) do
+    total = node_count(cluster)
+    total > 0 and status_count(cluster, :up) == total
+  end
+
+  @doc """
   Returns true when a strict majority of the cluster's nodes are `:up` — the
   condition for serving quorum reads and writes. Always false for an empty
   cluster.
