@@ -261,4 +261,10 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     refute NodeMetadata.tagged?(md, :region, "us")
     refute NodeMetadata.tagged?(md, :zone, "a")
   end
+
+  test "resource_count/1 counts resource entries" do
+    md = NodeMetadata.new() |> NodeMetadata.update_resources(%{cpu: 8, mem: 16})
+    assert NodeMetadata.resource_count(md) == 2
+    assert NodeMetadata.resource_count(NodeMetadata.new()) == 0
+  end
 end
