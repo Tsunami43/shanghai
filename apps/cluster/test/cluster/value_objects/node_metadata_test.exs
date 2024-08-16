@@ -267,4 +267,10 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.resource_count(md) == 2
     assert NodeMetadata.resource_count(NodeMetadata.new()) == 0
   end
+
+  test "has_resource?/2 reflects whether a resource is set" do
+    md = NodeMetadata.new() |> NodeMetadata.update_resources(%{cpu: 8})
+    assert NodeMetadata.has_resource?(md, :cpu)
+    refute NodeMetadata.has_resource?(md, :mem)
+  end
 end

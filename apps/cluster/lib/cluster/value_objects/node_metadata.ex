@@ -114,6 +114,10 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec has_tag?(t(), atom() | String.t()) :: boolean()
   def has_tag?(%__MODULE__{tags: tags}, key), do: Map.has_key?(tags, key)
 
+  @doc "Returns `true` when a resource with `key` is set."
+  @spec has_resource?(t(), atom() | String.t()) :: boolean()
+  def has_resource?(%__MODULE__{resources: resources}, key), do: Map.has_key?(resources, key)
+
   @doc "Returns `true` when the tag `key` is set to exactly `value`."
   @spec tagged?(t(), atom() | String.t(), any()) :: boolean()
   def tagged?(%__MODULE__{tags: tags}, key, value), do: Map.get(tags, key) == value
