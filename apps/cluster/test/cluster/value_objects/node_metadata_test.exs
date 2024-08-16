@@ -273,4 +273,13 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.has_resource?(md, :cpu)
     refute NodeMetadata.has_resource?(md, :mem)
   end
+
+  test "delete_resource/2 removes a resource (idempotent)" do
+    md = NodeMetadata.new() |> NodeMetadata.update_resources(%{cpu: 8, mem: 16})
+    md = NodeMetadata.delete_resource(md, :cpu)
+
+    refute NodeMetadata.has_resource?(md, :cpu)
+    assert NodeMetadata.has_resource?(md, :mem)
+    assert NodeMetadata.delete_resource(md, :cpu) == md
+  end
 end

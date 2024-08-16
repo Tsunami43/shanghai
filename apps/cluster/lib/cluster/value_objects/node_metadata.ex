@@ -136,6 +136,12 @@ defmodule Cluster.ValueObjects.NodeMetadata do
     %{metadata | tags: Map.delete(tags, key)}
   end
 
+  @doc "Removes a resource by key (idempotent)."
+  @spec delete_resource(t(), atom() | String.t()) :: t()
+  def delete_resource(%__MODULE__{resources: resources} = metadata, key) do
+    %{metadata | resources: Map.delete(resources, key)}
+  end
+
   @doc """
   Adds or updates a tag.
   """
