@@ -1186,6 +1186,15 @@ defmodule Query do
   @spec count() :: non_neg_integer()
   defdelegate count(), to: Query.Store
 
+  @doc """
+  Returns `true` when every stored `{key, value}` pair satisfies `fun`. Vacuously
+  `true` for an empty store. Scans the whole store.
+  """
+  @spec all?(({term(), term()} -> as_boolean(term()))) :: boolean()
+  def all?(fun) when is_function(fun, 1) do
+    Enum.all?(to_list(), fun)
+  end
+
   @doc "Returns the entire store as a map of `key => value`."
   @spec to_map() :: %{optional(term()) => term()}
   defdelegate to_map(), to: Query.Store

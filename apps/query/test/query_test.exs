@@ -763,4 +763,16 @@ defmodule QueryTest do
       assert Query.count_existing([]) == 0
     end
   end
+
+  describe "all?/1" do
+    test "checks a predicate over every pair" do
+      assert Query.all?(fn {_k, _v} -> false end)
+
+      {:ok, _} = Query.write("p:1", 2)
+      {:ok, _} = Query.write("p:2", 4)
+
+      assert Query.all?(fn {_k, v} -> rem(v, 2) == 0 end)
+      refute Query.all?(fn {_k, v} -> v > 3 end)
+    end
+  end
 end
