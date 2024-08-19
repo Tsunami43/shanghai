@@ -775,4 +775,16 @@ defmodule QueryTest do
       refute Query.all?(fn {_k, v} -> v > 3 end)
     end
   end
+
+  describe "exists_pair?/1" do
+    test "checks whether any pair matches" do
+      refute Query.exists_pair?(fn {_k, _v} -> true end)
+
+      {:ok, _} = Query.write("ep:1", 1)
+      {:ok, _} = Query.write("ep:2", 9)
+
+      assert Query.exists_pair?(fn {_k, v} -> v > 5 end)
+      refute Query.exists_pair?(fn {_k, v} -> v > 100 end)
+    end
+  end
 end

@@ -1195,6 +1195,15 @@ defmodule Query do
     Enum.all?(to_list(), fun)
   end
 
+  @doc """
+  Returns `true` when at least one stored `{key, value}` pair satisfies `fun`.
+  `false` for an empty store. Scans the whole store.
+  """
+  @spec exists_pair?(({term(), term()} -> as_boolean(term()))) :: boolean()
+  def exists_pair?(fun) when is_function(fun, 1) do
+    Enum.any?(to_list(), fun)
+  end
+
   @doc "Returns the entire store as a map of `key => value`."
   @spec to_map() :: %{optional(term()) => term()}
   defdelegate to_map(), to: Query.Store
