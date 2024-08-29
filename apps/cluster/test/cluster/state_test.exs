@@ -485,6 +485,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "peek_events/1" do
+    test "returns pending events without clearing them" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+
+      events = State.peek_events(cluster)
+      assert length(events) == 1
+      # Still pending after a peek.
+      assert State.pending_event_count(cluster) == 1
+    end
+  end
+
   describe "take_events/1" do
     test "returns events and clears event list" do
       local_id = NodeId.new("local")

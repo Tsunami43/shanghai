@@ -508,6 +508,13 @@ defmodule Cluster.State do
   @spec pending_event_count(t()) :: non_neg_integer()
   def pending_event_count(%__MODULE__{events: events}), do: length(events)
 
+  @doc """
+  Returns the pending (uncommitted) domain events in occurrence order, without
+  clearing them. A read-only peek; use `take_events/1` to consume.
+  """
+  @spec peek_events(t()) :: [struct()]
+  def peek_events(%__MODULE__{events: events}), do: Enum.reverse(events)
+
   @doc "Returns `true` when there are pending (uncommitted) domain events."
   @spec pending_events?(t()) :: boolean()
   def pending_events?(%__MODULE__{events: events}), do: events != []
