@@ -470,6 +470,21 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "pending_event_count/1 and pending_events?/1" do
+    test "track uncommitted events" do
+      cluster = State.new(NodeId.new("local"))
+      refute State.pending_events?(cluster)
+      assert State.pending_event_count(cluster) == 0
+
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      assert State.pending_events?(cluster)
+      assert State.pending_event_count(cluster) == 1
+
+      {_events, cleared} = State.take_events(cluster)
+      refute State.pending_events?(cleared)
+    end
+  end
+
   describe "take_events/1" do
     test "returns events and clears event list" do
       local_id = NodeId.new("local")

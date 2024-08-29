@@ -504,6 +504,14 @@ defmodule Cluster.State do
     {Enum.reverse(events), %{cluster | events: []}}
   end
 
+  @doc "Returns the number of pending (uncommitted) domain events."
+  @spec pending_event_count(t()) :: non_neg_integer()
+  def pending_event_count(%__MODULE__{events: events}), do: length(events)
+
+  @doc "Returns `true` when there are pending (uncommitted) domain events."
+  @spec pending_events?(t()) :: boolean()
+  def pending_events?(%__MODULE__{events: events}), do: events != []
+
   @doc """
   Returns true if the specified node is in the cluster.
   """
