@@ -89,4 +89,12 @@ defmodule Shanghaictl.FormatTest do
       assert Format.dash("x") == "x"
     end
   end
+
+  describe "pad/2" do
+    test "right-pads to the requested width" do
+      assert Format.pad("id", 5) == "id   "
+      assert Format.pad("longvalue", 5) == "longvalue"
+      assert Format.pad(42, 4) == "42  "
+    end
+  end
 end

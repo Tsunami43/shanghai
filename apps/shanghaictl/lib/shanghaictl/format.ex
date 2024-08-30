@@ -194,4 +194,22 @@ defmodule Shanghaictl.Format do
   @spec dash(term()) :: String.t()
   def dash(nil), do: "-"
   def dash(value), do: to_string(value)
+
+  @doc """
+  Right-pads `value` (rendered via `to_string/1`) with spaces to at least
+  `width` characters, for simple column alignment. Values already at or beyond
+  `width` are returned unchanged.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.pad("id", 5)
+      "id   "
+
+      iex> Shanghaictl.Format.pad("longvalue", 5)
+      "longvalue"
+  """
+  @spec pad(term(), non_neg_integer()) :: String.t()
+  def pad(value, width) when is_integer(width) and width >= 0 do
+    value |> to_string() |> String.pad_trailing(width)
+  end
 end
