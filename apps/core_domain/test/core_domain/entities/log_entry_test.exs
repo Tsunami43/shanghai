@@ -182,4 +182,14 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.get_metadata(updated, :a) == 9
     assert LogEntry.get_metadata(updated, :b) == 2
   end
+
+  test "sort/1 orders entries by ascending LSN" do
+    id = %NodeId{value: "n"}
+    a = LogEntry.new(LogSequenceNumber.new(3), "c", id)
+    b = LogEntry.new(LogSequenceNumber.new(1), "a", id)
+    c = LogEntry.new(LogSequenceNumber.new(2), "b", id)
+
+    sorted = LogEntry.sort([a, b, c])
+    assert Enum.map(sorted, &LogEntry.lsn_value/1) == [1, 2, 3]
+  end
 end

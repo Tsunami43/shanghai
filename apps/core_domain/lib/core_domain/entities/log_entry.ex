@@ -43,6 +43,14 @@ defmodule CoreDomain.Entities.LogEntry do
     LogSequenceNumber.compare(lsn1, lsn2)
   end
 
+  @doc """
+  Sorts a list of log entries by LSN in ascending order (WAL/replay order).
+  """
+  @spec sort([t()]) :: [t()]
+  def sort(entries) when is_list(entries) do
+    Enum.sort_by(entries, &LogSequenceNumber.to_integer(&1.lsn))
+  end
+
   @doc "Returns `true` when `entry` has a strictly higher LSN than `other`."
   @spec newer_than?(t(), t()) :: boolean()
   def newer_than?(entry, other), do: compare(entry, other) == :gt
