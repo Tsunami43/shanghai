@@ -235,4 +235,9 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     refute ReplicationOffset.pending?(ReplicationOffset.new(5), ReplicationOffset.new(5))
     refute ReplicationOffset.pending?(ReplicationOffset.new(6), ReplicationOffset.new(5))
   end
+
+  test "positive?/1 is the inverse of initial?/1" do
+    assert ReplicationOffset.positive?(ReplicationOffset.new(1))
+    refute ReplicationOffset.positive?(ReplicationOffset.zero())
+  end
 end

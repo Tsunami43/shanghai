@@ -102,6 +102,11 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   @spec to_integer(t()) :: non_neg_integer()
   def to_integer(%__MODULE__{value: value}), do: value
 
+  @doc "Returns `true` when the offset is past the start (value greater than 0)."
+  @spec positive?(t()) :: boolean()
+  def positive?(%__MODULE__{value: 0}), do: false
+  def positive?(%__MODULE__{}), do: true
+
   @doc """
   Returns a display string for the offset in the form `Offset(n)`.
   """
