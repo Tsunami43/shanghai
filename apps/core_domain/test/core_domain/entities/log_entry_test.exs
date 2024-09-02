@@ -192,4 +192,14 @@ defmodule CoreDomain.Entities.LogEntryTest do
     sorted = LogEntry.sort([a, b, c])
     assert Enum.map(sorted, &LogEntry.lsn_value/1) == [1, 2, 3]
   end
+
+  test "contiguous?/1 detects LSN gaps in a sequence" do
+    id = %NodeId{value: "n"}
+    entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    assert LogEntry.contiguous?([entry.(1), entry.(2), entry.(3)])
+    refute LogEntry.contiguous?([entry.(1), entry.(3)])
+    assert LogEntry.contiguous?([entry.(5)])
+    assert LogEntry.contiguous?([])
+  end
 end

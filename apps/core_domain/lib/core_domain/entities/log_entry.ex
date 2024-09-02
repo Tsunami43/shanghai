@@ -51,6 +51,24 @@ defmodule CoreDomain.Entities.LogEntry do
     Enum.sort_by(entries, &LogSequenceNumber.to_integer(&1.lsn))
   end
 
+  @doc """
+  Returns `true` when a list of entries is contiguous by LSN (no gaps): each
+  entry's LSN is exactly one greater than the previous, in the given order. An
+  empty or single-entry list is trivially contiguous.
+  """
+  @spec contiguous?([t()]) :: boolean()
+  def contiguous?(entries) when is_list(entries) do
+    entries
+    |> Enum.map(&LogSequenceNumber.to_integer(&1.lsn))
+    |> consecutive?()
+  end
+
+  defp consecutive?([]), do: true
+  defp consecutive?([_single]), do: true
+
+  defp consecutive?([a, b | rest]) when b == a + 1, do: consecutive?([b | rest])
+  defp consecutive?(_), do: false
+
   @doc "Returns `true` when `entry` has a strictly higher LSN than `other`."
   @spec newer_than?(t(), t()) :: boolean()
   def newer_than?(entry, other), do: compare(entry, other) == :gt
