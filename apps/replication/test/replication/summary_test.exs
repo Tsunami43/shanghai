@@ -161,4 +161,18 @@ defmodule Replication.SummaryTest do
 
     assert Replication.total_lag() >= 60
   end
+
+  test "unhealthy_group_ids/0 lists groups with a lagging or stale replica" do
+    assert is_list(Replication.unhealthy_group_ids())
+
+    Replication.Monitor.record_leader_offset("ug-1", ReplicationOffset.new(1000))
+
+    Replication.Monitor.record_follower_offset(
+      "ug-1",
+      NodeId.new("ug-f1"),
+      ReplicationOffset.new(1)
+    )
+
+    assert is_list(Replication.unhealthy_group_ids())
+  end
 end

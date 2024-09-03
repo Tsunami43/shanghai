@@ -118,6 +118,23 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the ids of replication groups that have at least one lagging or stale
+  replica — the groups worth investigating. Sorted.
+  """
+  @spec unhealthy_group_ids() :: [String.t()]
+  def unhealthy_group_ids do
+    all_groups()
+    |> Enum.filter(fn group ->
+      group
+      |> Map.get(:replicas, %{})
+      |> Map.values()
+      |> Enum.any?(fn replica -> Map.get(replica, :status, :healthy) != :healthy end)
+    end)
+    |> Enum.map(& &1.group_id)
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns `true` when a replication group with `group_id` is being tracked.
   """
   @spec has_group?(String.t()) :: boolean()
