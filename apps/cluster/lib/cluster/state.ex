@@ -192,6 +192,17 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the ids of nodes with the given status, sorted by their string value.
+  """
+  @spec node_ids_with_status(t(), atom()) :: [NodeId.t()]
+  def node_ids_with_status(%__MODULE__{} = cluster, status) do
+    cluster
+    |> nodes_with_status(status)
+    |> Enum.map(& &1.id)
+    |> Enum.sort_by(& &1.value)
+  end
+
+  @doc """
   Returns the `host:port` addresses of all nodes, sorted.
   """
   @spec node_addresses(t()) :: [String.t()]
