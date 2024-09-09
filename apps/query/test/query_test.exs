@@ -787,4 +787,14 @@ defmodule QueryTest do
       refute Query.exists_pair?(fn {_k, v} -> v > 100 end)
     end
   end
+
+  describe "distinct_values/0" do
+    test "returns sorted unique values" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("c", 1)
+
+      assert Query.distinct_values() == [1, 2]
+    end
+  end
 end

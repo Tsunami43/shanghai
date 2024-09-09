@@ -1217,6 +1217,13 @@ defmodule Query do
   defdelegate values(), to: Query.Store
 
   @doc """
+  Returns the distinct stored values, sorted. Scans the whole store — useful for
+  discovering the set of values in a small key space.
+  """
+  @spec distinct_values() :: [term()]
+  def distinct_values, do: values() |> Enum.uniq() |> Enum.sort()
+
+  @doc """
   Returns the `{key, value}` pairs for which `fun` returns a truthy value,
   sorted by key. Scans the whole store — use `scan/2` or `pairs_between/2` when a
   key range suffices.
