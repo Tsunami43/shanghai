@@ -154,6 +154,14 @@ defmodule Cluster.Entities.Node do
   def unavailable?(%__MODULE__{status: :up}), do: false
   def unavailable?(%__MODULE__{}), do: true
 
+  @doc """
+  Returns `true` when the node is reachable for serving traffic — i.e. it is
+  `:up`. The inverse of `unavailable?/1`, spelled for routing readability.
+  """
+  @spec available?(t()) :: boolean()
+  def available?(%__MODULE__{status: :up}), do: true
+  def available?(%__MODULE__{}), do: false
+
   @doc "Returns `true` when the node has never reported a heartbeat."
   @spec never_seen?(t()) :: boolean()
   def never_seen?(%__MODULE__{last_seen_at: nil}), do: true

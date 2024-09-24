@@ -277,4 +277,13 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.with_status(Node.mark_down(node), :up).status == :up
     end
   end
+
+  describe "available?/1" do
+    test "is the inverse of unavailable?/1" do
+      up = Node.new(NodeId.new("n1"), "h", 4000)
+      assert Node.available?(up)
+      refute Node.available?(Node.mark_down(up))
+      assert Node.available?(up) == not Node.unavailable?(up)
+    end
+  end
 end
