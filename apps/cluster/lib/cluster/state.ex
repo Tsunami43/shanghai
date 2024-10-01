@@ -267,6 +267,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the nodes available to serve traffic (status `:up`), sorted by node id.
+  """
+  @spec available_nodes(t()) :: [Node.t()]
+  def available_nodes(%__MODULE__{} = cluster) do
+    cluster
+    |> nodes_with_status(:up)
+    |> Enum.sort_by(& &1.id.value)
+  end
+
+  @doc """
   Returns the node whose last heartbeat is oldest (the most likely failed), or
   `nil` for an empty cluster. Never-seen nodes rank as stalest; ties break by
   node id for determinism.
