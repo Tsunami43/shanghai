@@ -129,6 +129,28 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   end
 
   @doc """
+  Returns the strongest level in a non-empty list. Raises on an empty list.
+
+  ## Examples
+
+      iex> CoreDomain.ValueObjects.ConsistencyLevel.strongest_of([:eventual, :strong, :causal])
+      :strong
+  """
+  @spec strongest_of([t(), ...]) :: t()
+  def strongest_of([first | rest]), do: Enum.reduce(rest, first, &stronger/2)
+
+  @doc """
+  Returns the weakest level in a non-empty list. Raises on an empty list.
+
+  ## Examples
+
+      iex> CoreDomain.ValueObjects.ConsistencyLevel.weakest_of([:strong, :causal, :eventual])
+      :eventual
+  """
+  @spec weakest_of([t(), ...]) :: t()
+  def weakest_of([first | rest]), do: Enum.reduce(rest, first, &weaker/2)
+
+  @doc """
   Returns the weaker of two consistency levels.
 
   ## Examples

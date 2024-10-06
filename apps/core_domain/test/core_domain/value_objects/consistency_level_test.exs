@@ -112,4 +112,12 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       refute ConsistencyLevel.at_least?(:eventual, :strong)
     end
   end
+
+  describe "strongest_of/1 and weakest_of/1" do
+    test "reduce a list to its extreme level" do
+      assert ConsistencyLevel.strongest_of([:eventual, :strong, :causal]) == :strong
+      assert ConsistencyLevel.weakest_of([:strong, :causal, :eventual]) == :eventual
+      assert ConsistencyLevel.strongest_of([:causal]) == :causal
+    end
+  end
 end
