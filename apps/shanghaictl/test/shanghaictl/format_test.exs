@@ -97,4 +97,11 @@ defmodule Shanghaictl.FormatTest do
       assert Format.pad(42, 4) == "42  "
     end
   end
+
+  describe "kv/3" do
+    test "renders an aligned key/value line" do
+      assert Format.kv("Status", "up", 8) == "Status  : up"
+      assert Format.kv("A", 1) == "A: 1"
+    end
+  end
 end

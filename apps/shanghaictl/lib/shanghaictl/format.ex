@@ -212,4 +212,18 @@ defmodule Shanghaictl.Format do
   def pad(value, width) when is_integer(width) and width >= 0 do
     value |> to_string() |> String.pad_trailing(width)
   end
+
+  @doc """
+  Renders a key/value pair as an aligned `"<key>: <value>"` line, right-padding
+  the key label to `width` for column alignment.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.kv("Status", "up", 8)
+      "Status  : up"
+  """
+  @spec kv(String.t(), term(), non_neg_integer()) :: String.t()
+  def kv(key, value, width \\ 0) when is_binary(key) and is_integer(width) do
+    "#{pad(key, width)}: #{value}"
+  end
 end
