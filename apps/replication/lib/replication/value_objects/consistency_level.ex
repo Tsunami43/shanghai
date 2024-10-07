@@ -61,6 +61,13 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
     end
   end
 
+  @doc """
+  Returns all consistency levels sorted from weakest to strongest by durability
+  (`rank/1`): `:local`, `:quorum`, `:leader`.
+  """
+  @spec ordered() :: [t()]
+  def ordered, do: Enum.sort_by(all(), &rank/1)
+
   @doc "Returns the stronger (higher-durability) of two levels; ties return `a`."
   @spec stronger(t(), t()) :: t()
   def stronger(%__MODULE__{} = a, %__MODULE__{} = b) do

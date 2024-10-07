@@ -201,4 +201,10 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
       assert ConsistencyLevel.weaker(quorum, quorum) == quorum
     end
   end
+
+  describe "ordered/0" do
+    test "lists levels from weakest to strongest" do
+      assert Enum.map(ConsistencyLevel.ordered(), & &1.level) == [:local, :quorum, :leader]
+    end
+  end
 end
