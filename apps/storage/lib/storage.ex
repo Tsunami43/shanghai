@@ -246,6 +246,18 @@ defmodule Storage do
   def empty?, do: wal_stats().entries == 0
 
   @doc """
+  Returns the span of active WAL segment ids as `{oldest, latest}`, or `nil`
+  when there are no segments.
+  """
+  @spec segment_span() :: {non_neg_integer(), non_neg_integer()} | nil
+  def segment_span do
+    case segment_ids() do
+      [] -> nil
+      ids -> {List.first(ids), List.last(ids)}
+    end
+  end
+
+  @doc """
   Returns a compact one-call overview of the storage subsystem: durability, the
   active-segment count, total entries and bytes, snapshot count, and whether
   compaction is running.
