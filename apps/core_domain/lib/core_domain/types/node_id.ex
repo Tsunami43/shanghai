@@ -40,6 +40,10 @@ defmodule CoreDomain.Types.NodeId do
   @spec equal?(t(), t()) :: boolean()
   def equal?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a == b
 
+  @doc "Returns `true` when two NodeIds differ."
+  @spec differ?(t(), t()) :: boolean()
+  def differ?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a != b
+
   @doc """
   Returns `true` when `value` is a non-empty binary suitable for a NodeId.
   """

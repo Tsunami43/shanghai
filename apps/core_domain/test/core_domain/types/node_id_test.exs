@@ -97,4 +97,9 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert NodeId.length(NodeId.new("node1")) == 5
     assert NodeId.length(NodeId.new("")) == 0
   end
+
+  test "differ?/2 is the inverse of equal?/2" do
+    refute NodeId.differ?(NodeId.new("n"), NodeId.new("n"))
+    assert NodeId.differ?(NodeId.new("n1"), NodeId.new("n2"))
+  end
 end
