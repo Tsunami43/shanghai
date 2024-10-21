@@ -1382,6 +1382,34 @@ defmodule Query do
   defdelegate max_key(), to: Query.Store
 
   @doc """
+  Returns the `{key, value}` pair with the largest numeric value, or `nil` when
+  there are no numeric values. Scans the whole store.
+  """
+  @spec max_by_value() :: {term(), number()} | nil
+  def max_by_value, do: extreme_pair(&>=/2)
+
+  @doc """
+  Returns the `{key, value}` pair with the smallest numeric value, or `nil` when
+  there are no numeric values. Scans the whole store.
+  """
+  @spec min_by_value() :: {term(), number()} | nil
+  def min_by_value, do: extreme_pair(&<=/2)
+
+  defp extreme_pair(better?) do
+    to_list()
+    |> Enum.filter(fn {_key, value} -> is_number(value) end)
+    |> case do
+      [] ->
+        nil
+
+      [first | rest] ->
+        Enum.reduce(rest, first, fn {_k, v} = pair, {_bk, bv} = best ->
+          if better?.(v, bv), do: pair, else: best
+        end)
+    end
+  end
+
+  @doc """
   Returns the `{key, value}` pair at the smallest key, or `nil` when the store
   is empty.
   """

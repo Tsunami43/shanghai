@@ -797,4 +797,18 @@ defmodule QueryTest do
       assert Query.distinct_values() == [1, 2]
     end
   end
+
+  describe "max_by_value/0 and min_by_value/0" do
+    test "return the extreme numeric pairs or nil" do
+      assert Query.max_by_value() == nil
+      assert Query.min_by_value() == nil
+
+      {:ok, _} = Query.write("a", 10)
+      {:ok, _} = Query.write("b", 3)
+      {:ok, _} = Query.write("c", "skip")
+
+      assert Query.max_by_value() == {"a", 10}
+      assert Query.min_by_value() == {"b", 3}
+    end
+  end
 end
