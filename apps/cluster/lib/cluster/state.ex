@@ -478,6 +478,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when at least one node is `:down` or `:suspect` — the cluster is
+  degraded. Always `false` for an empty cluster.
+  """
+  @spec degraded?(t()) :: boolean()
+  def degraded?(%__MODULE__{} = cluster) do
+    status_count(cluster, :down) > 0 or status_count(cluster, :suspect) > 0
+  end
+
+  @doc """
   Returns a compact human-readable description of the cluster in the form
   `<node_count> nodes (up/suspect/down)`. Useful for logs.
   """

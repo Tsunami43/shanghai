@@ -687,6 +687,17 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "degraded?/1" do
+    test "is true when any node is down or suspect" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      refute State.degraded?(cluster)
+
+      {:ok, down} = State.mark_node_down(cluster, NodeId.new("n1"))
+      assert State.degraded?(down)
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))
