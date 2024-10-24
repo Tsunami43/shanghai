@@ -154,6 +154,10 @@ defmodule Cluster.ValueObjects.Heartbeat do
   @spec metric_count(t()) :: non_neg_integer()
   def metric_count(%__MODULE__{metrics: metrics}), do: map_size(metrics)
 
+  @doc "Returns `true` when the heartbeat carries no metrics."
+  @spec metrics_empty?(t()) :: boolean()
+  def metrics_empty?(%__MODULE__{metrics: metrics}), do: map_size(metrics) == 0
+
   @doc """
   Returns a plain-map view of the heartbeat for serialization, with the source
   node id rendered as its string value.

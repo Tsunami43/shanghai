@@ -227,4 +227,9 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.put_metric(updated, :cpu, 0.9) |> Heartbeat.get_metric(:cpu) == 0.9
     end
   end
+
+  test "metrics_empty?/1 reflects whether metrics are set" do
+    assert Heartbeat.metrics_empty?(Heartbeat.new(NodeId.new("n1"), 1))
+    refute Heartbeat.metrics_empty?(Heartbeat.new(NodeId.new("n1"), 1, %{cpu: 0.5}))
+  end
 end
