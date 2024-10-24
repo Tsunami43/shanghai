@@ -38,6 +38,8 @@ defmodule Cluster.StatusTest do
     assert is_list(Cluster.node_addresses())
     assert is_list(Cluster.peer_ids())
     refute Cluster.local_node_id() in Cluster.peer_ids()
+    assert is_list(Cluster.peers())
+    refute Enum.any?(Cluster.peers(), &(&1.id == Cluster.local_node_id()))
 
     id = NodeId.new("status-test-#{:rand.uniform(999_999)}")
     :ok = Cluster.join(Node.new(id, "localhost", 4321))

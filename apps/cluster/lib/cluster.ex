@@ -52,6 +52,13 @@ defmodule Cluster do
   @spec peer_ids() :: [NodeId.t()]
   def peer_ids, do: State.peer_ids(cluster_state())
 
+  @doc "Returns the peer nodes (members except the local node)."
+  @spec peers() :: [Node.t()]
+  def peers do
+    local = local_node_id()
+    Enum.reject(nodes(), &(&1.id == local))
+  end
+
   @doc """
   Gets a specific node by ID.
   """
