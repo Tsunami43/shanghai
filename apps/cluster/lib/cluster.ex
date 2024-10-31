@@ -208,6 +208,14 @@ defmodule Cluster do
   end
 
   @doc """
+  Returns `true` when the cluster is degraded: at least one `:down` or `:suspect`
+  node. The inverse of `healthy?/0` for a non-empty cluster. See
+  `Cluster.State.degraded?/1`.
+  """
+  @spec degraded?() :: boolean()
+  def degraded?, do: State.degraded?(cluster_state())
+
+  @doc """
   Returns a concise cluster status summary: the local node id, the total node
   count, per-status counts, and whether quorum is available.
   """
