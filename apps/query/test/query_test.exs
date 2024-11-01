@@ -811,4 +811,17 @@ defmodule QueryTest do
       assert Query.min_by_value() == {"b", 3}
     end
   end
+
+  describe "each/1" do
+    test "iterates over every pair in key order" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+
+      test_pid = self()
+      assert Query.each(fn pair -> send(test_pid, pair) end) == :ok
+
+      assert_received {"a", 1}
+      assert_received {"b", 2}
+    end
+  end
 end

@@ -1187,6 +1187,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Applies `fun` to every `{key, value}` pair in key order, for its side effects,
+  and returns `:ok`. Scans the whole store.
+  """
+  @spec each(({term(), term()} -> any())) :: :ok
+  def each(fun) when is_function(fun, 1) do
+    Enum.each(to_list(), fun)
+  end
+
+  @doc """
   Returns `true` when every stored `{key, value}` pair satisfies `fun`. Vacuously
   `true` for an empty store. Scans the whole store.
   """
