@@ -138,4 +138,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     refute LSN.positive?(LSN.zero())
     assert LSN.positive?(LSN.new(5)) == not LSN.initial?(LSN.new(5))
   end
+
+  test "span/1 returns the min and max LSNs" do
+    {lo, hi} = LSN.span([LSN.new(3), LSN.new(1), LSN.new(7), LSN.new(2)])
+    assert lo.value == 1
+    assert hi.value == 7
+  end
 end

@@ -178,6 +178,13 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec min_of([t(), ...]) :: t()
   def min_of([first | rest]), do: Enum.reduce(rest, first, &earlier/2)
 
+  @doc """
+  Returns the span of a non-empty list of LSNs as `{min, max}`. Raises on an
+  empty list.
+  """
+  @spec span([t(), ...]) :: {t(), t()}
+  def span([_ | _] = lsns), do: {min_of(lsns), max_of(lsns)}
+
   @doc "Returns `true` when the LSN is the zero (initial) LSN."
   @spec initial?(t()) :: boolean()
   def initial?(%__MODULE__{value: 0}), do: true
