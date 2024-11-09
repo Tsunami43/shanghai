@@ -240,4 +240,16 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.positive?(ReplicationOffset.new(1))
     refute ReplicationOffset.positive?(ReplicationOffset.zero())
   end
+
+  test "span/1 returns the min and max offsets" do
+    {lo, hi} =
+      ReplicationOffset.span([
+        ReplicationOffset.new(3),
+        ReplicationOffset.new(1),
+        ReplicationOffset.new(7)
+      ])
+
+    assert lo.value == 1
+    assert hi.value == 7
+  end
 end

@@ -170,6 +170,13 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     Enum.reduce(rest, first, &earlier/2)
   end
 
+  @doc """
+  Returns the span of a non-empty list of offsets as `{min, max}`. Raises when
+  the list is empty.
+  """
+  @spec span([t(), ...]) :: {t(), t()}
+  def span([_ | _] = offsets), do: {min_of(offsets), max_of(offsets)}
+
   @doc "Returns the earlier (lesser) of two offsets."
   @spec earlier(t(), t()) :: t()
   def earlier(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do
