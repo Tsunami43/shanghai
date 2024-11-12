@@ -824,4 +824,13 @@ defmodule QueryTest do
       assert_received {"b", 2}
     end
   end
+
+  describe "map/1" do
+    test "projects each pair in key order" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+
+      assert Query.map(fn {k, v} -> "#{k}=#{v}" end) == ["a=1", "b=2"]
+    end
+  end
 end
