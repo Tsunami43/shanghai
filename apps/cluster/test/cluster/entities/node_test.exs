@@ -286,4 +286,14 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.available?(up) == not Node.unavailable?(up)
     end
   end
+
+  describe "status_in?/2" do
+    test "checks membership in a status set" do
+      node = Node.new(NodeId.new("n1"), "h", 4000)
+
+      assert Node.status_in?(node, [:up, :suspect])
+      refute Node.status_in?(node, [:down, :suspect])
+      assert Node.status_in?(Node.mark_down(node), [:down])
+    end
+  end
 end

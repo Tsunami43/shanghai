@@ -103,6 +103,12 @@ defmodule Cluster.Entities.Node do
   def suspect?(%__MODULE__{status: :suspect}), do: true
   def suspect?(%__MODULE__{}), do: false
 
+  @doc "Returns `true` when the node has one of the given statuses."
+  @spec status_in?(t(), [status()]) :: boolean()
+  def status_in?(%__MODULE__{status: status}, statuses) when is_list(statuses) do
+    status in statuses
+  end
+
   @doc """
   Updates node metadata.
   """
