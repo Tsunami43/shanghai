@@ -202,4 +202,16 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.contiguous?([entry.(5)])
     assert LogEntry.contiguous?([])
   end
+
+  test "from_node/2 filters entries by producing node" do
+    a = %NodeId{value: "a"}
+    b = %NodeId{value: "b"}
+    entry = fn n, id -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    entries = [entry.(1, a), entry.(2, b), entry.(3, a)]
+    from_a = LogEntry.from_node(entries, a)
+
+    assert length(from_a) == 2
+    assert Enum.all?(from_a, &(&1.node_id == a))
+  end
 end
