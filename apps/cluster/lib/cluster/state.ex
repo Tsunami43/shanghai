@@ -320,6 +320,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns all nodes whose status is one of `statuses`.
+  """
+  @spec nodes_with_statuses(t(), [atom()]) :: [Node.t()]
+  def nodes_with_statuses(%__MODULE__{nodes: nodes}, statuses) when is_list(statuses) do
+    nodes
+    |> Map.values()
+    |> Enum.filter(&(&1.status in statuses))
+  end
+
+  @doc """
   Groups the cluster's nodes by status into `%{up: [...], suspect: [...],
   down: [...]}`. Each list is sorted by node id for deterministic output; a
   status with no members maps to `[]`.
