@@ -1261,6 +1261,16 @@ defmodule Query do
   end
 
   @doc """
+  Partitions the store's `{key, value}` pairs into `{matching, rest}` by the
+  predicate `fun`, each list sorted by key. Scans the whole store.
+  """
+  @spec partition(({term(), term()} -> as_boolean(term()))) ::
+          {[{term(), term()}], [{term(), term()}]}
+  def partition(fun) when is_function(fun, 1) do
+    Enum.split_with(to_list(), fun)
+  end
+
+  @doc """
   Returns the first `{key, value}` pair (in key order) for which `fun` returns a
   truthy value, or `nil` when none match. Scans the whole store.
   """

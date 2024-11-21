@@ -833,4 +833,16 @@ defmodule QueryTest do
       assert Query.map(fn {k, v} -> "#{k}=#{v}" end) == ["a=1", "b=2"]
     end
   end
+
+  describe "partition/1" do
+    test "splits pairs by a predicate" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 4)
+      {:ok, _} = Query.write("c", 2)
+
+      {big, small} = Query.partition(fn {_k, v} -> v >= 3 end)
+      assert big == [{"b", 4}]
+      assert small == [{"a", 1}, {"c", 2}]
+    end
+  end
 end
