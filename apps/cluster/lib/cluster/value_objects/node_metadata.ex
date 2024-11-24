@@ -86,6 +86,14 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec any_capabilities?(t()) :: boolean()
   def any_capabilities?(%__MODULE__{capabilities: caps}), do: MapSet.size(caps) > 0
 
+  @doc "Returns `true` when the metadata carries any tags."
+  @spec any_tags?(t()) :: boolean()
+  def any_tags?(%__MODULE__{tags: tags}), do: map_size(tags) > 0
+
+  @doc "Returns `true` when the metadata carries any resources."
+  @spec any_resources?(t()) :: boolean()
+  def any_resources?(%__MODULE__{resources: resources}), do: map_size(resources) > 0
+
   @doc """
   Returns `true` when the metadata has all the given capabilities.
   """

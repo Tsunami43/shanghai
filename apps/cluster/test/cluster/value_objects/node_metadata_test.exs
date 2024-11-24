@@ -282,4 +282,15 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.has_resource?(md, :mem)
     assert NodeMetadata.delete_resource(md, :cpu) == md
   end
+
+  test "any_tags?/1 and any_resources?/1 reflect presence" do
+    refute NodeMetadata.any_tags?(NodeMetadata.new())
+    refute NodeMetadata.any_resources?(NodeMetadata.new())
+
+    tagged = NodeMetadata.new() |> NodeMetadata.put_tag(:region, "eu")
+    resourced = NodeMetadata.new() |> NodeMetadata.update_resources(%{cpu: 8})
+
+    assert NodeMetadata.any_tags?(tagged)
+    assert NodeMetadata.any_resources?(resourced)
+  end
 end
