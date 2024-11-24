@@ -248,6 +248,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when the cluster spans more than one distinct host — nodes are
+  distributed across multiple physical machines.
+  """
+  @spec multi_host?(t()) :: boolean()
+  def multi_host?(%__MODULE__{nodes: nodes}) do
+    nodes |> Map.values() |> Enum.map(& &1.host) |> Enum.uniq() |> length() > 1
+  end
+
+  @doc """
   Returns a map of `host => node_count` across the cluster — a quick view of how
   nodes are distributed across physical machines.
   """

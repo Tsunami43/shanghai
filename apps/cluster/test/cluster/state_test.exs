@@ -268,6 +268,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "multi_host?/1" do
+    test "detects nodes spread across hosts" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4002))
+      refute State.multi_host?(cluster)
+
+      {:ok, spread} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostB", 4003))
+      assert State.multi_host?(spread)
+    end
+  end
+
   describe "node_ids/1" do
     test "returns sorted node ids" do
       cluster =
