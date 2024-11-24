@@ -181,6 +181,17 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the number of tracked replicas that are behind the leader (lag greater
+  than `0`) across all groups.
+  """
+  @spec behind_count() :: non_neg_integer()
+  def behind_count do
+    all_groups()
+    |> Enum.flat_map(fn group -> Map.values(Map.get(group, :replicas, %{})) end)
+    |> Enum.count(&(Map.get(&1, :lag, 0) > 0))
+  end
+
+  @doc """
   Returns the fraction of tracked replicas that are fully caught up (0.0..1.0),
   or `1.0` when there are no replicas. A quick replication-health indicator.
   """

@@ -175,4 +175,18 @@ defmodule Replication.SummaryTest do
 
     assert is_list(Replication.unhealthy_group_ids())
   end
+
+  test "behind_count/0 counts replicas behind the leader" do
+    assert Replication.behind_count() >= 0
+
+    Replication.Monitor.record_leader_offset("bc-1", ReplicationOffset.new(100))
+
+    Replication.Monitor.record_follower_offset(
+      "bc-1",
+      NodeId.new("bc-f1"),
+      ReplicationOffset.new(10)
+    )
+
+    assert Replication.behind_count() >= 1
+  end
 end
