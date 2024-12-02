@@ -184,6 +184,24 @@ follow semantic versioning.
   (`overview/0`, `fully_replicated?/0`), `Storage`
   (`oldest_segment_id/0`, `avg_entry_bytes/0`), and `Observability.Metrics`
   (`domains/0`, `domain_event_counts/0`).
+- **Query iteration & predicates**: `each/1`, `map/1`, `all?/1`,
+  `exists_pair?/1`, `partition/1`, `transform_values/1`, `distinct_values/0`,
+  `max_by_value/0` / `min_by_value/0`, `count_existing/1`, and
+  `unique_prefix?/1`.
+- **Sequence/gap analysis**: `LogEntry.sort/1` / `contiguous?/1` / `from_node/2`,
+  `LogSequenceNumber.increasing?/1` / `span/1` / `positive?/1`, and
+  `ReplicationOffset.span/1` / `positive?/1` / `differ?/2`.
+- **Symmetry & predicates**: `Cluster.State` (`all_up?/1`, `degraded?/1`,
+  `available_nodes/1`, `node_ids_with_status/2`, `nodes_with_statuses/2`,
+  `multi_host?/1`, `pending_event_count/1`, `peek_events/1`), `Cluster`
+  (`degraded?/0`, `peers/0`, `up_count/0`, `quorum_shortfall/0`), `Node`
+  (`available?/1`, `status_in?/2`, `seen?/1`), `NodeMetadata`
+  (`resource_count/1`, `has_resource?/2`, `delete_resource/2`, `any_tags?/1`,
+  `any_resources?/1`), `NodeId.differ?/2`, and `Replication`
+  (`total_lag/0`, `behind_count/0`, `unhealthy_group_ids/0`).
+- **CLI formatting**: `Shanghaictl.Format` (`pad/2`, `kv/3`, `dash/1`,
+  `pluralize/3`, `yes_no/1`, `list/1`), `Storage.segment_span/0`, and
+  `ConsistencyLevel` `ordered/0` (both) plus `strongest_of/1` / `weakest_of/1`.
 - **CLI formatting**: a `Shanghaictl.Format` module (`bytes/1`, `count/1`,
   `percent/1`, `duration_ms/1`) now used to render human-readable sizes and
   ratios in `shanghaictl metrics`; `Options.int_option/3`.
