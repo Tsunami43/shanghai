@@ -1187,6 +1187,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns a map of `key => transformed_value`, applying `fun` to every stored
+  value. A read-only projection preserving keys. Scans the whole store.
+  """
+  @spec transform_values((term() -> term())) :: %{optional(term()) => term()}
+  def transform_values(fun) when is_function(fun, 1) do
+    Map.new(to_list(), fn {key, value} -> {key, fun.(value)} end)
+  end
+
+  @doc """
   Returns the store's `{key, value}` pairs converted via `fun`, in key order.
   A read-only projection over both key and value. Scans the whole store.
   """

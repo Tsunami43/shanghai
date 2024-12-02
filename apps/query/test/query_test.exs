@@ -845,4 +845,13 @@ defmodule QueryTest do
       assert small == [{"a", 1}, {"c", 2}]
     end
   end
+
+  describe "transform_values/1" do
+    test "maps values while preserving keys" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+
+      assert Query.transform_values(&(&1 * 10)) == %{"a" => 10, "b" => 20}
+    end
+  end
 end
