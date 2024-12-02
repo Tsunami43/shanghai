@@ -173,6 +173,11 @@ defmodule Cluster.Entities.Node do
   def never_seen?(%__MODULE__{last_seen_at: nil}), do: true
   def never_seen?(%__MODULE__{}), do: false
 
+  @doc "Returns `true` when the node has reported at least one heartbeat."
+  @spec seen?(t()) :: boolean()
+  def seen?(%__MODULE__{last_seen_at: nil}), do: false
+  def seen?(%__MODULE__{}), do: true
+
   @doc """
   Returns the age of the node's last heartbeat in milliseconds, or `nil` when it
   has never been seen.

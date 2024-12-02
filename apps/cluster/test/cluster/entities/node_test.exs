@@ -296,4 +296,15 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.status_in?(Node.mark_down(node), [:down])
     end
   end
+
+  describe "seen?/1" do
+    test "is the inverse of never_seen?/1" do
+      node = Node.new(NodeId.new("n1"), "h", 4000)
+      assert Node.seen?(node)
+
+      never = %{node | last_seen_at: nil}
+      refute Node.seen?(never)
+      assert Node.seen?(node) == not Node.never_seen?(node)
+    end
+  end
 end
