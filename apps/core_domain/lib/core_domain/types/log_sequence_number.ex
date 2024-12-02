@@ -211,6 +211,22 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   end
 
   @doc """
+  Returns `true` when a list of LSNs is strictly increasing (each greater than
+  the previous). An empty or single-element list is trivially increasing.
+  """
+  @spec increasing?([t()]) :: boolean()
+  def increasing?(lsns) when is_list(lsns) do
+    lsns
+    |> Enum.map(& &1.value)
+    |> strictly_increasing?()
+  end
+
+  defp strictly_increasing?([]), do: true
+  defp strictly_increasing?([_single]), do: true
+  defp strictly_increasing?([a, b | rest]) when b > a, do: strictly_increasing?([b | rest])
+  defp strictly_increasing?(_), do: false
+
+  @doc """
   Advances an LSN by `n` positions (`n >= 0`).
 
   ## Examples

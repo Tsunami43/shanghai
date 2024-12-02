@@ -144,4 +144,12 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert lo.value == 1
     assert hi.value == 7
   end
+
+  test "increasing?/1 detects a strictly increasing sequence" do
+    assert LSN.increasing?([LSN.new(1), LSN.new(2), LSN.new(5)])
+    refute LSN.increasing?([LSN.new(1), LSN.new(1)])
+    refute LSN.increasing?([LSN.new(3), LSN.new(2)])
+    assert LSN.increasing?([LSN.new(9)])
+    assert LSN.increasing?([])
+  end
 end
