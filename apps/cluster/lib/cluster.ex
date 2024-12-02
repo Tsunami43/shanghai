@@ -96,6 +96,10 @@ defmodule Cluster do
   @spec up_node_ids() :: [NodeId.t()]
   def up_node_ids, do: up_nodes() |> Enum.map(& &1.id) |> NodeId.sort()
 
+  @doc "Returns the number of nodes currently marked `:up`."
+  @spec up_count() :: non_neg_integer()
+  def up_count, do: State.status_count(cluster_state(), :up)
+
   @doc "Returns the nodes currently marked `:suspect`."
   @spec suspect_nodes() :: [Node.t()]
   def suspect_nodes, do: Enum.filter(nodes(), &Node.suspect?/1)
