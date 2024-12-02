@@ -252,4 +252,9 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert lo.value == 1
     assert hi.value == 7
   end
+
+  test "differ?/2 is the inverse of equal?/2" do
+    refute ReplicationOffset.differ?(ReplicationOffset.new(5), ReplicationOffset.new(5))
+    assert ReplicationOffset.differ?(ReplicationOffset.new(5), ReplicationOffset.new(6))
+  end
 end
