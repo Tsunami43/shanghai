@@ -1092,6 +1092,12 @@ defmodule Query do
   defdelegate count_prefix(prefix), to: Query.Store
 
   @doc """
+  Returns `true` when exactly one key starts with `prefix`.
+  """
+  @spec unique_prefix?(binary()) :: boolean()
+  def unique_prefix?(prefix) when is_binary(prefix), do: count_prefix(prefix) == 1
+
+  @doc """
   Returns the distinct prefixes obtained by splitting each key on `separator`
   and taking the first segment, sorted. Useful for discovering key namespaces.
   """

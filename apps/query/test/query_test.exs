@@ -854,4 +854,16 @@ defmodule QueryTest do
       assert Query.transform_values(&(&1 * 10)) == %{"a" => 10, "b" => 20}
     end
   end
+
+  describe "unique_prefix?/1" do
+    test "is true when exactly one key has the prefix" do
+      {:ok, _} = Query.write("only:1", 1)
+      {:ok, _} = Query.write("dup:1", 1)
+      {:ok, _} = Query.write("dup:2", 2)
+
+      assert Query.unique_prefix?("only:")
+      refute Query.unique_prefix?("dup:")
+      refute Query.unique_prefix?("none:")
+    end
+  end
 end
