@@ -211,6 +211,17 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the `host:port` addresses of the nodes with the given status, sorted.
+  """
+  @spec addresses_with_status(t(), atom()) :: [String.t()]
+  def addresses_with_status(%__MODULE__{} = cluster, status) do
+    cluster
+    |> nodes_with_status(status)
+    |> Enum.map(&Node.address/1)
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns the distinct hosts of all nodes, sorted. Useful for grouping nodes by
   physical machine.
   """

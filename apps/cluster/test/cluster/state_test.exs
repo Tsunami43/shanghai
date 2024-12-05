@@ -173,6 +173,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "addresses_with_status/2" do
+    test "returns sorted addresses for a status" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostB", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4002))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n2"))
+
+      assert State.addresses_with_status(cluster, :up) == ["hostB:4001"]
+      assert State.addresses_with_status(cluster, :down) == ["hostA:4002"]
+    end
+  end
+
   describe "node_addresses/1" do
     test "returns sorted host:port addresses" do
       cluster = State.new(NodeId.new("local"))
