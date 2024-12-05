@@ -104,4 +104,13 @@ defmodule Shanghaictl.FormatTest do
       assert Format.kv("A", 1) == "A: 1"
     end
   end
+
+  describe "count_label/3" do
+    test "shows none for zero and pluralizes otherwise" do
+      assert Format.count_label(0, "node") == "none"
+      assert Format.count_label(1, "node") == "1 node"
+      assert Format.count_label(2, "node") == "2 nodes"
+      assert Format.count_label(3, "entry", "entries") == "3 entries"
+    end
+  end
 end

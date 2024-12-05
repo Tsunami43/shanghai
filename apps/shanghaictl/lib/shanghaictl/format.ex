@@ -226,4 +226,21 @@ defmodule Shanghaictl.Format do
   def kv(key, value, width \\ 0) when is_binary(key) and is_integer(width) do
     "#{pad(key, width)}: #{value}"
   end
+
+  @doc """
+  Renders a `count` with a label, showing `"none"` when the count is zero.
+  Otherwise pluralizes the label via `pluralize/3`.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.count_label(0, "node")
+      "none"
+
+      iex> Shanghaictl.Format.count_label(2, "node")
+      "2 nodes"
+  """
+  @spec count_label(non_neg_integer(), String.t(), String.t() | nil) :: String.t()
+  def count_label(count, word, plural \\ nil)
+  def count_label(0, _word, _plural), do: "none"
+  def count_label(count, word, plural), do: pluralize(count, word, plural)
 end
