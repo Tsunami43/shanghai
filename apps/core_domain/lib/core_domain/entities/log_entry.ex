@@ -91,6 +91,18 @@ defmodule CoreDomain.Entities.LogEntry do
     Enum.filter(entries, &(&1.node_id == node_id))
   end
 
+  @doc """
+  Returns the distinct node ids that produced the entries in a list, sorted by
+  their string value.
+  """
+  @spec node_ids([t()]) :: [NodeId.t()]
+  def node_ids(entries) when is_list(entries) do
+    entries
+    |> Enum.map(& &1.node_id)
+    |> Enum.uniq_by(& &1.value)
+    |> Enum.sort_by(& &1.value)
+  end
+
   @doc "Returns `true` when the entry was produced by `node_id`."
   @spec from_node?(t(), NodeId.t()) :: boolean()
   def from_node?(%__MODULE__{node_id: node_id}, node_id), do: true

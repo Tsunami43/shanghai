@@ -214,4 +214,13 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert length(from_a) == 2
     assert Enum.all?(from_a, &(&1.node_id == a))
   end
+
+  test "node_ids/1 returns distinct sorted producing nodes" do
+    a = %NodeId{value: "a"}
+    b = %NodeId{value: "b"}
+    entry = fn n, id -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    entries = [entry.(1, b), entry.(2, a), entry.(3, b)]
+    assert Enum.map(LogEntry.node_ids(entries), & &1.value) == ["a", "b"]
+  end
 end
