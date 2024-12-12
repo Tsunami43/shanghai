@@ -866,4 +866,14 @@ defmodule QueryTest do
       refute Query.unique_prefix?("none:")
     end
   end
+
+  describe "sort_by_value/1" do
+    test "orders pairs by a value key" do
+      {:ok, _} = Query.write("a", 3)
+      {:ok, _} = Query.write("b", 1)
+      {:ok, _} = Query.write("c", 2)
+
+      assert Query.sort_by_value(& &1) == [{"b", 1}, {"c", 2}, {"a", 3}]
+    end
+  end
 end

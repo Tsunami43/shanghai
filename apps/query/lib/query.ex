@@ -1193,6 +1193,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the store's `{key, value}` pairs sorted by a value-derived key via
+  `fun`. A read-only view; ties keep key order. Scans the whole store.
+  """
+  @spec sort_by_value((term() -> term())) :: [{term(), term()}]
+  def sort_by_value(fun) when is_function(fun, 1) do
+    Enum.sort_by(to_list(), fn {_key, value} -> fun.(value) end)
+  end
+
+  @doc """
   Returns a map of `key => transformed_value`, applying `fun` to every stored
   value. A read-only projection preserving keys. Scans the whole store.
   """
