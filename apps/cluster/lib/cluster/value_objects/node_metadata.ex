@@ -179,6 +179,15 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec resources(t()) :: map()
   def resources(%__MODULE__{resources: resources}), do: resources
 
+  @doc "Returns the resource value for `key`, or the metadata's default when absent, coerced to an integer via `get_resource/3`."
+  @spec resource_or(t(), atom() | String.t(), integer()) :: integer()
+  def resource_or(%__MODULE__{} = metadata, key, default) when is_integer(default) do
+    case get_resource(metadata, key, default) do
+      value when is_integer(value) -> value
+      _ -> default
+    end
+  end
+
   @doc "Returns a copy of the metadata with its version set to `version`."
   @spec with_version(t(), String.t()) :: t()
   def with_version(%__MODULE__{} = metadata, version) when is_binary(version) do

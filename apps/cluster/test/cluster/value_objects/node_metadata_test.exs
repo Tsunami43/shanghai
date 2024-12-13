@@ -293,4 +293,13 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.any_tags?(tagged)
     assert NodeMetadata.any_resources?(resourced)
   end
+
+  test "resource_or/3 returns an integer resource or the default" do
+    md = NodeMetadata.new() |> NodeMetadata.update_resources(%{cpu: 8, name: "x"})
+
+    assert NodeMetadata.resource_or(md, :cpu, 0) == 8
+    assert NodeMetadata.resource_or(md, :mem, 4) == 4
+    # Non-integer resource falls back to the default.
+    assert NodeMetadata.resource_or(md, :name, 0) == 0
+  end
 end
