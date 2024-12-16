@@ -568,6 +568,10 @@ defmodule Cluster.State do
   @spec pending_event_count(t()) :: non_neg_integer()
   def pending_event_count(%__MODULE__{events: events}), do: length(events)
 
+  @doc "Clears any pending (uncommitted) domain events without returning them."
+  @spec clear_events(t()) :: t()
+  def clear_events(%__MODULE__{} = cluster), do: %{cluster | events: []}
+
   @doc """
   Returns the pending (uncommitted) domain events in occurrence order, without
   clearing them. A read-only peek; use `take_events/1` to consume.
