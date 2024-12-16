@@ -152,4 +152,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.increasing?([LSN.new(9)])
     assert LSN.increasing?([])
   end
+
+  test "both_initial?/2 is true only when both LSNs are zero" do
+    assert LSN.both_initial?(LSN.zero(), LSN.zero())
+    refute LSN.both_initial?(LSN.zero(), LSN.new(1))
+    refute LSN.both_initial?(LSN.new(1), LSN.new(1))
+  end
 end
