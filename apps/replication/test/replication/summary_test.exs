@@ -189,4 +189,18 @@ defmodule Replication.SummaryTest do
 
     assert Replication.behind_count() >= 1
   end
+
+  test "avg_lag/0 averages replica lag" do
+    assert Replication.avg_lag() >= 0.0
+
+    Replication.Monitor.record_leader_offset("al-1", ReplicationOffset.new(100))
+
+    Replication.Monitor.record_follower_offset(
+      "al-1",
+      NodeId.new("al-f1"),
+      ReplicationOffset.new(50)
+    )
+
+    assert Replication.avg_lag() >= 0.0
+  end
 end

@@ -192,6 +192,23 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the average replica lag (in offsets) across all tracked replicas, or
+  `0.0` when there are no replicas.
+  """
+  @spec avg_lag() :: float()
+  def avg_lag do
+    lags =
+      all_groups()
+      |> Enum.flat_map(fn group -> Map.values(Map.get(group, :replicas, %{})) end)
+      |> Enum.map(&Map.get(&1, :lag, 0))
+
+    case lags do
+      [] -> 0.0
+      _ -> Enum.sum(lags) / length(lags)
+    end
+  end
+
+  @doc """
   Returns the fraction of tracked replicas that are fully caught up (0.0..1.0),
   or `1.0` when there are no replicas. A quick replication-health indicator.
   """
