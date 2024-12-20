@@ -876,4 +876,16 @@ defmodule QueryTest do
       assert Query.sort_by_value(& &1) == [{"b", 1}, {"c", 2}, {"a", 3}]
     end
   end
+
+  describe "numeric_count/0" do
+    test "counts numeric values" do
+      assert Query.numeric_count() == 0
+
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2.5)
+      {:ok, _} = Query.write("c", "text")
+
+      assert Query.numeric_count() == 2
+    end
+  end
 end

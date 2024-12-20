@@ -1348,6 +1348,14 @@ defmodule Query do
   end
 
   @doc """
+  Returns the number of stored values that are numeric. Scans the whole store.
+  """
+  @spec numeric_count() :: non_neg_integer()
+  def numeric_count do
+    Enum.count(values(), &is_number/1)
+  end
+
+  @doc """
   Returns the average of all numeric values in the store, ignoring non-numeric
   ones. Returns `0.0` when there are no numeric values. Scans the whole store.
   """
