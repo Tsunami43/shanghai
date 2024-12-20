@@ -203,6 +203,13 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the ids of nodes that are available to serve traffic (status `:up`),
+  sorted by their string value.
+  """
+  @spec available_node_ids(t()) :: [NodeId.t()]
+  def available_node_ids(%__MODULE__{} = cluster), do: node_ids_with_status(cluster, :up)
+
+  @doc """
   Returns the `host:port` addresses of all nodes, sorted.
   """
   @spec node_addresses(t()) :: [String.t()]

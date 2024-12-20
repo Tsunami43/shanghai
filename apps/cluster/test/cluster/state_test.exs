@@ -292,6 +292,17 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "available_node_ids/1" do
+    test "returns sorted ids of up nodes" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "h", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n2"))
+
+      assert Enum.map(State.available_node_ids(cluster), & &1.value) == ["n1"]
+    end
+  end
+
   describe "node_ids/1" do
     test "returns sorted node ids" do
       cluster =
