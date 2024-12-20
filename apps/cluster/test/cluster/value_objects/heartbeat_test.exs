@@ -232,4 +232,15 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
     assert Heartbeat.metrics_empty?(Heartbeat.new(NodeId.new("n1"), 1))
     refute Heartbeat.metrics_empty?(Heartbeat.new(NodeId.new("n1"), 1, %{cpu: 0.5}))
   end
+
+  describe "without_metrics/1" do
+    test "strips all metrics" do
+      hb = Heartbeat.new(NodeId.new("n1"), 1, %{cpu: 0.5, mem: 0.7})
+      stripped = Heartbeat.without_metrics(hb)
+
+      assert Heartbeat.metrics_empty?(stripped)
+      assert stripped.node_id == hb.node_id
+      assert stripped.sequence == hb.sequence
+    end
+  end
 end

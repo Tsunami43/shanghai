@@ -150,6 +150,13 @@ defmodule Cluster.ValueObjects.Heartbeat do
   @spec metric_names(t()) :: [term()]
   def metric_names(%__MODULE__{metrics: metrics}), do: metrics |> Map.keys() |> Enum.sort()
 
+  @doc """
+  Returns a copy of the heartbeat with every metric removed. Useful when only
+  the liveness signal (node id + sequence + timestamp) is needed.
+  """
+  @spec without_metrics(t()) :: t()
+  def without_metrics(%__MODULE__{} = heartbeat), do: %{heartbeat | metrics: %{}}
+
   @doc "Returns the number of metrics carried by the heartbeat."
   @spec metric_count(t()) :: non_neg_integer()
   def metric_count(%__MODULE__{metrics: metrics}), do: map_size(metrics)
