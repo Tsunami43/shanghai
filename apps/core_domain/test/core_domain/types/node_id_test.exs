@@ -102,4 +102,9 @@ defmodule CoreDomain.Types.NodeIdTest do
     refute NodeId.differ?(NodeId.new("n"), NodeId.new("n"))
     assert NodeId.differ?(NodeId.new("n1"), NodeId.new("n2"))
   end
+
+  test "blank?/1 detects an empty id" do
+    assert NodeId.blank?(NodeId.new(""))
+    refute NodeId.blank?(NodeId.new("n1"))
+  end
 end

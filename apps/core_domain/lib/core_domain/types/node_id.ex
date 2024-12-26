@@ -95,6 +95,10 @@ defmodule CoreDomain.Types.NodeId do
   @spec length(t()) :: non_neg_integer()
   def length(%__MODULE__{value: value}), do: String.length(value)
 
+  @doc "Returns `true` when the NodeId's value is empty (invalid)."
+  @spec blank?(t()) :: boolean()
+  def blank?(%__MODULE__{value: value}), do: value == ""
+
   @doc """
   Builds a NodeId from an Erlang node name atom or string of the form
   `name@host`, taking the part before `@` as the id value. A name without `@` is
