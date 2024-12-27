@@ -68,6 +68,10 @@ defmodule Storage do
   @spec segment_count() :: non_neg_integer()
   def segment_count, do: SegmentManager.count()
 
+  @doc "Returns `true` when there are no active WAL segments."
+  @spec no_segments?() :: boolean()
+  def no_segments?, do: SegmentManager.count() == 0
+
   @doc "Returns the id of the most recent (highest-numbered) WAL segment, or `nil` when there are none."
   @spec latest_segment_id() :: non_neg_integer() | nil
   def latest_segment_id do

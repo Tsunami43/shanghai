@@ -34,6 +34,10 @@ defmodule StorageTest do
     assert Storage.latest_segment_id() == List.last(ids)
   end
 
+  test "no_segments?/0 reflects the segment count" do
+    assert Storage.no_segments?() == (Storage.segment_count() == 0)
+  end
+
   test "oldest_segment_id/0 is the lowest segment id" do
     assert Storage.oldest_segment_id() == List.first(Storage.segment_ids())
   end
