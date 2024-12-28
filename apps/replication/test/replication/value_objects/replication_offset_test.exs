@@ -257,4 +257,9 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     refute ReplicationOffset.differ?(ReplicationOffset.new(5), ReplicationOffset.new(5))
     assert ReplicationOffset.differ?(ReplicationOffset.new(5), ReplicationOffset.new(6))
   end
+
+  test "decrement/1 steps back by one, clamping at zero" do
+    assert ReplicationOffset.decrement(ReplicationOffset.new(5)).value == 4
+    assert ReplicationOffset.decrement(ReplicationOffset.zero()).value == 0
+  end
 end

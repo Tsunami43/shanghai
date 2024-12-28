@@ -38,6 +38,13 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   end
 
   @doc """
+  Decrements the offset by 1, clamping at `0` (offsets are non-negative).
+  """
+  @spec decrement(t()) :: t()
+  def decrement(%__MODULE__{value: 0}), do: %__MODULE__{value: 0}
+  def decrement(%__MODULE__{value: value}), do: %__MODULE__{value: value - 1}
+
+  @doc """
   Advances the offset by a given amount.
   """
   @spec advance(t(), non_neg_integer()) :: t()
