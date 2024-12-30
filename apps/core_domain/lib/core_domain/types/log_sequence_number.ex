@@ -61,6 +61,13 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   end
 
   @doc """
+  Decrements an LSN by 1, clamping at `0` (LSNs are non-negative).
+  """
+  @spec decrement(t()) :: t()
+  def decrement(%__MODULE__{value: 0}), do: new(0)
+  def decrement(%__MODULE__{value: v}), do: new(v - 1)
+
+  @doc """
   Returns the next LSN (alias for increment).
   """
   @spec next(t()) :: t()

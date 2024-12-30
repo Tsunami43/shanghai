@@ -158,4 +158,9 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     refute LSN.both_initial?(LSN.zero(), LSN.new(1))
     refute LSN.both_initial?(LSN.new(1), LSN.new(1))
   end
+
+  test "decrement/1 steps back by one, clamping at zero" do
+    assert LSN.decrement(LSN.new(5)).value == 4
+    assert LSN.decrement(LSN.zero()).value == 0
+  end
 end
