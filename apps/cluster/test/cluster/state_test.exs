@@ -303,6 +303,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "host_count/1" do
+    test "counts distinct hosts" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostB", 4003))
+
+      assert State.host_count(cluster) == 2
+      assert State.host_count(State.new(NodeId.new("solo"))) == 0
+    end
+  end
+
   describe "node_ids/1" do
     test "returns sorted node ids" do
       cluster =

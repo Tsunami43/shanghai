@@ -265,6 +265,12 @@ defmodule Cluster.State do
     Enum.count(Map.values(nodes), &(&1.host == host))
   end
 
+  @doc "Returns the number of distinct hosts the cluster's nodes run on."
+  @spec host_count(t()) :: non_neg_integer()
+  def host_count(%__MODULE__{nodes: nodes}) do
+    nodes |> Map.values() |> Enum.map(& &1.host) |> Enum.uniq() |> length()
+  end
+
   @doc """
   Returns `true` when the cluster spans more than one distinct host — nodes are
   distributed across multiple physical machines.
