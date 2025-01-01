@@ -888,4 +888,14 @@ defmodule QueryTest do
       assert Query.numeric_count() == 2
     end
   end
+
+  describe "value_counts/0" do
+    test "counts keys per distinct value" do
+      {:ok, _} = Query.write("a", :x)
+      {:ok, _} = Query.write("b", :x)
+      {:ok, _} = Query.write("c", :y)
+
+      assert Query.value_counts() == %{x: 2, y: 1}
+    end
+  end
 end

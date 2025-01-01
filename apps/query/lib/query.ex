@@ -1259,6 +1259,15 @@ defmodule Query do
   defdelegate values(), to: Query.Store
 
   @doc """
+  Returns a map of `value => key_count` — how many keys hold each distinct
+  value. Scans the whole store.
+  """
+  @spec value_counts() :: %{optional(term()) => non_neg_integer()}
+  def value_counts do
+    Enum.frequencies(values())
+  end
+
+  @doc """
   Returns the distinct stored values, sorted. Scans the whole store — useful for
   discovering the set of values in a small key space.
   """
