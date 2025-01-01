@@ -131,6 +131,11 @@ defmodule Cluster.Entities.Node do
   @spec address(t()) :: String.t()
   def address(%__MODULE__{host: host, port: port}), do: "#{host}:#{port}"
 
+  @doc "Returns `true` when the node listens on `port`."
+  @spec on_port?(t(), non_neg_integer()) :: boolean()
+  def on_port?(%__MODULE__{port: port}, port), do: true
+  def on_port?(%__MODULE__{}, _port), do: false
+
   @doc "Returns `true` when two nodes are on the same host."
   @spec same_host?(t(), t()) :: boolean()
   def same_host?(%__MODULE__{host: host}, %__MODULE__{host: host}), do: true

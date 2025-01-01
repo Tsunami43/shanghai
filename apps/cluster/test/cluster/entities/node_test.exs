@@ -307,4 +307,12 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.seen?(node) == not Node.never_seen?(node)
     end
   end
+
+  describe "on_port?/2" do
+    test "checks the node's port" do
+      node = Node.new(NodeId.new("n1"), "h", 4000)
+      assert Node.on_port?(node, 4000)
+      refute Node.on_port?(node, 4001)
+    end
+  end
 end
