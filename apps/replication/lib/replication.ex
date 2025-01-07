@@ -117,6 +117,10 @@ defmodule Replication do
     |> Enum.sort()
   end
 
+  @doc "Returns `true` when no replication groups are being tracked."
+  @spec no_groups?() :: boolean()
+  def no_groups?, do: all_groups() == []
+
   @doc """
   Returns the ids of replication groups that have at least one lagging or stale
   replica — the groups worth investigating. Sorted.

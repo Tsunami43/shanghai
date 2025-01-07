@@ -203,4 +203,11 @@ defmodule Replication.SummaryTest do
 
     assert Replication.avg_lag() >= 0.0
   end
+
+  test "no_groups?/0 reflects whether any group is tracked" do
+    assert is_boolean(Replication.no_groups?())
+
+    Replication.Monitor.record_leader_offset("ng-1", ReplicationOffset.new(1))
+    refute Replication.no_groups?()
+  end
 end
