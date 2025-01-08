@@ -223,4 +223,14 @@ defmodule CoreDomain.Entities.LogEntryTest do
     entries = [entry.(1, b), entry.(2, a), entry.(3, b)]
     assert Enum.map(LogEntry.node_ids(entries), & &1.value) == ["a", "b"]
   end
+
+  test "in_lsn_range/3 filters entries by LSN window" do
+    id = %NodeId{value: "n"}
+    entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    entries = [entry.(1), entry.(2), entry.(3), entry.(4)]
+    windowed = LogEntry.in_lsn_range(entries, LogSequenceNumber.new(2), LogSequenceNumber.new(3))
+
+    assert Enum.map(windowed, &LogEntry.lsn_value/1) == [2, 3]
+  end
 end

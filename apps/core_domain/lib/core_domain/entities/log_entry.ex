@@ -92,6 +92,15 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Returns the entries whose LSN falls within the inclusive range `[low, high]`,
+  in their given order.
+  """
+  @spec in_lsn_range([t()], LogSequenceNumber.t(), LogSequenceNumber.t()) :: [t()]
+  def in_lsn_range(entries, low, high) when is_list(entries) do
+    Enum.filter(entries, &LogSequenceNumber.between?(&1.lsn, low, high))
+  end
+
+  @doc """
   Returns the distinct node ids that produced the entries in a list, sorted by
   their string value.
   """
