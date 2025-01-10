@@ -1159,6 +1159,15 @@ defmodule Query do
   @spec keys() :: [term()]
   defdelegate keys(), to: Query.Store
 
+  @doc """
+  Returns the keys that satisfy `fun`, sorted. A read-only key-predicate scan
+  over the whole store.
+  """
+  @spec keys_matching((term() -> as_boolean(term()))) :: [term()]
+  def keys_matching(fun) when is_function(fun, 1) do
+    keys() |> Enum.filter(fun) |> Enum.sort()
+  end
+
   @doc "Returns the keys that start with `prefix`, sorted."
   @spec keys_prefix(binary()) :: [binary()]
   defdelegate keys_prefix(prefix), to: Query.Store

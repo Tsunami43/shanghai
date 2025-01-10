@@ -898,4 +898,14 @@ defmodule QueryTest do
       assert Query.value_counts() == %{x: 2, y: 1}
     end
   end
+
+  describe "keys_matching/1" do
+    test "returns sorted keys matching a predicate" do
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("user:2", 2)
+      {:ok, _} = Query.write("order:1", 3)
+
+      assert Query.keys_matching(&String.starts_with?(&1, "user:")) == ["user:1", "user:2"]
+    end
+  end
 end
