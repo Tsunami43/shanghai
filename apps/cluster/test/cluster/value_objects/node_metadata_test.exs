@@ -302,4 +302,16 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     # Non-integer resource falls back to the default.
     assert NodeMetadata.resource_or(md, :name, 0) == 0
   end
+
+  test "extra_capabilities/2 lists capabilities not in the other" do
+    a =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:storage)
+      |> NodeMetadata.add_capability(:query)
+
+    b = NodeMetadata.new() |> NodeMetadata.add_capability(:query)
+
+    assert NodeMetadata.extra_capabilities(a, b) == [:storage]
+    assert NodeMetadata.extra_capabilities(b, a) == []
+  end
 end

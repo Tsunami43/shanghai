@@ -76,6 +76,15 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec capabilities(t()) :: [atom()]
   def capabilities(%__MODULE__{capabilities: caps}), do: caps |> MapSet.to_list() |> Enum.sort()
 
+  @doc """
+  Returns the capabilities present in `metadata` but not in `other` (the extra
+  capabilities `metadata` advertises), as a sorted list.
+  """
+  @spec extra_capabilities(t(), t()) :: [atom()]
+  def extra_capabilities(%__MODULE__{capabilities: a}, %__MODULE__{capabilities: b}) do
+    a |> MapSet.difference(b) |> MapSet.to_list() |> Enum.sort()
+  end
+
   @doc "Returns the number of capabilities the node advertises."
   @spec capability_count(t()) :: non_neg_integer()
   def capability_count(%__MODULE__{capabilities: caps}), do: MapSet.size(caps)
