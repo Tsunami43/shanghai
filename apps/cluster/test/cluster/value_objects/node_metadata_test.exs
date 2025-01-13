@@ -314,4 +314,19 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.extra_capabilities(a, b) == [:storage]
     assert NodeMetadata.extra_capabilities(b, a) == []
   end
+
+  test "common_capabilities/2 lists shared capabilities" do
+    a =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:storage)
+      |> NodeMetadata.add_capability(:query)
+
+    b =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:query)
+      |> NodeMetadata.add_capability(:replication)
+
+    assert NodeMetadata.common_capabilities(a, b) == [:query]
+    assert NodeMetadata.common_capabilities(a, NodeMetadata.new()) == []
+  end
 end
