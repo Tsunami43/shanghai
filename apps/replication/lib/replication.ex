@@ -94,6 +94,18 @@ defmodule Replication do
   def stale_count, do: length(get_stale_replicas())
 
   @doc """
+  Returns the fraction of replicas that are lagging or stale (0.0..1.0), or
+  `0.0` when there are no replicas. A quick unhealthy-replica ratio.
+  """
+  @spec unhealthy_ratio() :: float()
+  def unhealthy_ratio do
+    case replica_count() do
+      0 -> 0.0
+      total -> (lagging_count() + stale_count()) / total
+    end
+  end
+
+  @doc """
   Returns `true` when there are no lagging or stale replicas *and* every group
   has at least one replica — a stricter check than `healthy?/0`, which is also
   true for a cluster with no replicas configured.

@@ -210,4 +210,9 @@ defmodule Replication.SummaryTest do
     Replication.Monitor.record_leader_offset("ng-1", ReplicationOffset.new(1))
     refute Replication.no_groups?()
   end
+
+  test "unhealthy_ratio/0 is a fraction in 0.0..1.0" do
+    ratio = Replication.unhealthy_ratio()
+    assert ratio >= 0.0 and ratio <= 2.0
+  end
 end
