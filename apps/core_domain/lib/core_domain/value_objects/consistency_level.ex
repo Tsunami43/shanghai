@@ -20,6 +20,23 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   def valid?(_), do: false
 
   @doc """
+  Parses a level and returns it, or raises `ArgumentError` for an invalid one.
+  The strict counterpart to `parse/1`.
+
+  ## Examples
+
+      iex> CoreDomain.ValueObjects.ConsistencyLevel.parse!("strong")
+      :strong
+  """
+  @spec parse!(String.t() | atom()) :: t()
+  def parse!(level) do
+    case parse(level) do
+      {:ok, parsed} -> parsed
+      {:error, _reason} -> raise ArgumentError, "invalid consistency level: #{inspect(level)}"
+    end
+  end
+
+  @doc """
   Returns all valid consistency levels.
   """
   @spec all() :: [t()]

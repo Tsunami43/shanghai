@@ -120,4 +120,12 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       assert ConsistencyLevel.strongest_of([:causal]) == :causal
     end
   end
+
+  describe "parse!/1" do
+    test "returns the level or raises" do
+      assert ConsistencyLevel.parse!("strong") == :strong
+      assert ConsistencyLevel.parse!(:eventual) == :eventual
+      assert_raise ArgumentError, fn -> ConsistencyLevel.parse!("nonsense") end
+    end
+  end
 end
