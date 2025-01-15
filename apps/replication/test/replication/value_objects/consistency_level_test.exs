@@ -207,4 +207,12 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
       assert Enum.map(ConsistencyLevel.ordered(), & &1.level) == [:local, :quorum, :leader]
     end
   end
+
+  describe "parse!/1" do
+    test "returns the level or raises" do
+      assert %ConsistencyLevel{level: :quorum} = ConsistencyLevel.parse!("quorum")
+      assert %ConsistencyLevel{level: :leader} = ConsistencyLevel.parse!(:leader)
+      assert_raise ArgumentError, fn -> ConsistencyLevel.parse!("nope") end
+    end
+  end
 end

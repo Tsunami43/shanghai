@@ -138,4 +138,16 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   end
 
   def parse(_), do: {:error, :invalid_consistency_level}
+
+  @doc """
+  Parses a level and returns it, or raises `ArgumentError` for an invalid one.
+  The strict counterpart to `parse/1`.
+  """
+  @spec parse!(String.t() | atom()) :: t()
+  def parse!(level) do
+    case parse(level) do
+      {:ok, parsed} -> parsed
+      {:error, _reason} -> raise ArgumentError, "invalid consistency level: #{inspect(level)}"
+    end
+  end
 end
