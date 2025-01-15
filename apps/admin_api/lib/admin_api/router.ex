@@ -25,6 +25,34 @@ defmodule AdminApi.Router do
     send_json(conn, 200, status)
   end
 
+  get "/api/v1/nodes" do
+    nodes = [
+      %{
+        id: "node-1",
+        status: "up",
+        address: "127.0.0.1:8001",
+        heartbeat_age_ms: 100,
+        last_seen: System.system_time(:second) - 1
+      },
+      %{
+        id: "node-2",
+        status: "up",
+        address: "127.0.0.1:8002",
+        heartbeat_age_ms: 150,
+        last_seen: System.system_time(:second) - 2
+      },
+      %{
+        id: "node-3",
+        status: "suspect",
+        address: "127.0.0.1:8003",
+        heartbeat_age_ms: 3000,
+        last_seen: System.system_time(:second) - 30
+      }
+    ]
+
+    send_json(conn, 200, %{nodes: nodes})
+  end
+
   match _ do
     send_resp(conn, 404, "Not found")
   end
