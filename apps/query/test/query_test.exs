@@ -908,4 +908,13 @@ defmodule QueryTest do
       assert Query.keys_matching(&String.starts_with?(&1, "user:")) == ["user:1", "user:2"]
     end
   end
+
+  describe "prefix_empty?/1" do
+    test "is true when no key has the prefix" do
+      {:ok, _} = Query.write("used:1", 1)
+
+      assert Query.prefix_empty?("free:")
+      refute Query.prefix_empty?("used:")
+    end
+  end
 end

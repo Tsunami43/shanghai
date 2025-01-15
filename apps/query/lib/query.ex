@@ -1092,6 +1092,12 @@ defmodule Query do
   defdelegate count_prefix(prefix), to: Query.Store
 
   @doc """
+  Returns `true` when no key starts with `prefix` — the whole namespace is empty.
+  """
+  @spec prefix_empty?(binary()) :: boolean()
+  def prefix_empty?(prefix) when is_binary(prefix), do: count_prefix(prefix) == 0
+
+  @doc """
   Returns `true` when exactly one key starts with `prefix`.
   """
   @spec unique_prefix?(binary()) :: boolean()
