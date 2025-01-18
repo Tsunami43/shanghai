@@ -53,6 +53,51 @@ defmodule AdminApi.Router do
     send_json(conn, 200, %{nodes: nodes})
   end
 
+  get "/api/v1/replicas" do
+    replicas = [
+      %{
+        group_id: "group-1",
+        leader_id: "node-1",
+        followers: [
+          %{
+            node_id: "node-2",
+            offset: 1500,
+            lag: 10,
+            status: "healthy"
+          },
+          %{
+            node_id: "node-3",
+            offset: 1200,
+            lag: 310,
+            status: "lagging"
+          }
+        ],
+        current_offset: 1510
+      },
+      %{
+        group_id: "group-2",
+        leader_id: "node-2",
+        followers: [
+          %{
+            node_id: "node-1",
+            offset: 890,
+            lag: 5,
+            status: "healthy"
+          },
+          %{
+            node_id: "node-3",
+            offset: 850,
+            lag: 45,
+            status: "healthy"
+          }
+        ],
+        current_offset: 895
+      }
+    ]
+
+    send_json(conn, 200, %{replicas: replicas})
+  end
+
   match _ do
     send_resp(conn, 404, "Not found")
   end
