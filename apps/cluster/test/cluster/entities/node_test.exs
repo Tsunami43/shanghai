@@ -315,4 +315,12 @@ defmodule Cluster.Entities.NodeTest do
       refute Node.on_port?(node, 4001)
     end
   end
+
+  describe "on_host?/2" do
+    test "checks the node's host" do
+      node = Node.new(NodeId.new("n1"), "hostA", 4000)
+      assert Node.on_host?(node, "hostA")
+      refute Node.on_host?(node, "hostB")
+    end
+  end
 end
