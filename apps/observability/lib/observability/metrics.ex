@@ -240,6 +240,10 @@ defmodule Observability.Metrics do
   @spec event_defined?([atom()]) :: boolean()
   def event_defined?(event) when is_list(event), do: event in event_names()
 
+  @doc "Returns `true` when the domain has at least one defined telemetry event."
+  @spec domain?(atom()) :: boolean()
+  def domain?(domain) when is_atom(domain), do: events_for_domain(domain) != []
+
   @doc "Returns the number of distinct telemetry events Shanghai emits."
   @spec event_count() :: non_neg_integer()
   def event_count, do: length(event_names())
