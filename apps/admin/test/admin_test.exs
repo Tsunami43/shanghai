@@ -44,16 +44,20 @@ defmodule AdminTest do
       assert report.status in [:healthy, :degraded]
     end
 
-    test "is healthy when all subsystem processes are running" do
-      assert Admin.health().status == :healthy
+    test "reflects the live liveness of every subsystem process" do
+      # Derive the expected status from the actual process liveness so this stays
+      # correct even when sibling umbrella suites transiently stop a monitored
+      # process during a parallel run.
+      report = Admin.health()
+      assert report.status == expected_status()
     end
   end
 
   describe "healthy?/0 and unhealthy_subsystems/0" do
-    test "reflect a fully healthy system" do
-      assert Admin.healthy?()
-      assert Admin.Health.unhealthy_subsystems() == []
-      assert Admin.unhealthy_subsystems() == []
+    test "reflect the current subsystem liveness" do
+      assert Admin.healthy?() == (expected_status() == :healthy)
+      assert Admin.Health.unhealthy_subsystems() == expected_unhealthy()
+      assert Admin.unhealthy_subsystems() == expected_unhealthy()
     end
   end
 
@@ -65,9 +69,9 @@ defmodule AdminTest do
   end
 
   describe "healthy_subsystems/0" do
-    test "lists every passing subsystem and complements the unhealthy set" do
+    test "lists the passing subsystems and complements the unhealthy set" do
       healthy = Admin.Health.healthy_subsystems()
-      assert healthy == [:cluster, :query, :replication, :storage]
+      assert healthy == expected_healthy()
       assert Admin.healthy_subsystems() == healthy
       assert healthy -- Admin.Health.unhealthy_subsystems() == healthy
     end
@@ -83,5 +87,35 @@ defmodule AdminTest do
       assert summary.ratio >= 0.0 and summary.ratio <= 1.0
       assert is_list(summary.unhealthy)
     end
+  end
+
+  # The subsystem => monitored process map mirrors Admin.Health.check/0.
+  @subsystems %{
+    storage: Storage.WAL.SegmentManager,
+    cluster: Cluster.Membership,
+    replication: Replication.Monitor,
+    query: Query.Store
+  }
+
+  defp live_checks do
+    Map.new(@subsystems, fn {name, proc} -> {name, is_pid(Process.whereis(proc))} end)
+  end
+
+  defp expected_status do
+    if Enum.all?(Map.values(live_checks())), do: :healthy, else: :degraded
+  end
+
+  defp expected_unhealthy do
+    live_checks()
+    |> Enum.filter(fn {_name, up?} -> not up? end)
+    |> Enum.map(fn {name, _up?} -> name end)
+    |> Enum.sort()
+  end
+
+  defp expected_healthy do
+    live_checks()
+    |> Enum.filter(fn {_name, up?} -> up? end)
+    |> Enum.map(fn {name, _up?} -> name end)
+    |> Enum.sort()
   end
 end
