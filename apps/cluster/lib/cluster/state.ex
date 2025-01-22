@@ -667,6 +667,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the number of peer nodes (every member except the local node).
+  """
+  @spec peer_count(t()) :: non_neg_integer()
+  def peer_count(%__MODULE__{local_node_id: local, nodes: nodes}) do
+    count = map_size(nodes)
+    if local && Map.has_key?(nodes, local), do: count - 1, else: count
+  end
+
+  @doc """
   Updates node metadata.
   """
   @spec update_node_metadata(t(), NodeId.t(), map()) :: {:ok, t()} | {:error, atom()}
