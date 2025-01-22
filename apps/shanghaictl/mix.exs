@@ -17,12 +17,13 @@ defmodule Shanghaictl.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :inets, :ssl]
     ]
   end
 
   defp deps do
     [
+      {:req, "~> 0.4"},
       {:cluster, in_umbrella: true},
       {:replication, in_umbrella: true}
     ]
