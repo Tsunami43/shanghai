@@ -917,4 +917,15 @@ defmodule QueryTest do
       refute Query.prefix_empty?("used:")
     end
   end
+
+  describe "group_by/1" do
+    test "groups pairs by a value function" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.group_by(fn v -> rem(v, 2) end) ==
+               %{0 => [{"b", 2}], 1 => [{"a", 1}, {"c", 3}]}
+    end
+  end
 end

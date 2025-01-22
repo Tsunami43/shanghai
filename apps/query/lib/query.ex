@@ -1274,6 +1274,18 @@ defmodule Query do
   defdelegate values(), to: Query.Store
 
   @doc """
+  Returns the store's `{key, value}` pairs grouped by the result of applying
+  `fun` to each value, as `%{group => [{key, value}]}`. Each group's list is
+  sorted by key. Scans the whole store.
+  """
+  @spec group_by((term() -> term())) :: %{optional(term()) => [{term(), term()}]}
+  def group_by(fun) when is_function(fun, 1) do
+    to_list()
+    |> Enum.group_by(fn {_key, value} -> fun.(value) end)
+    |> Map.new(fn {group, pairs} -> {group, Enum.sort_by(pairs, &elem(&1, 0))} end)
+  end
+
+  @doc """
   Returns a map of `value => key_count` — how many keys hold each distinct
   value. Scans the whole store.
   """
