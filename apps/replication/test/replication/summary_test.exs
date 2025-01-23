@@ -215,4 +215,18 @@ defmodule Replication.SummaryTest do
     ratio = Replication.unhealthy_ratio()
     assert ratio >= 0.0 and ratio <= 2.0
   end
+
+  test "avg_replicas_per_group/0 is a non-negative float" do
+    assert Replication.avg_replicas_per_group() >= 0.0
+
+    Replication.Monitor.record_leader_offset("ar-1", ReplicationOffset.new(1))
+
+    Replication.Monitor.record_follower_offset(
+      "ar-1",
+      NodeId.new("ar-f1"),
+      ReplicationOffset.new(1)
+    )
+
+    assert Replication.avg_replicas_per_group() > 0.0
+  end
 end

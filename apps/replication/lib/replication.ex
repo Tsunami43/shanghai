@@ -134,6 +134,18 @@ defmodule Replication do
   def no_groups?, do: all_groups() == []
 
   @doc """
+  Returns the average number of replicas per replication group, or `0.0` when
+  there are no groups.
+  """
+  @spec avg_replicas_per_group() :: float()
+  def avg_replicas_per_group do
+    case group_count() do
+      0 -> 0.0
+      groups -> replica_count() / groups
+    end
+  end
+
+  @doc """
   Returns the ids of replication groups that have at least one lagging or stale
   replica — the groups worth investigating. Sorted.
   """
