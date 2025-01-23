@@ -125,13 +125,15 @@ defmodule Query.CacheTest do
            name: :"cache_ttl_#{uniq}",
            table: :"qc_ttl_#{uniq}",
            lru: :"qc_ttl_lru_#{uniq}",
-           ttl_ms: 20}
+           ttl_ms: 200}
         )
 
       :ok = GenServer.call(cache, {:put, "k", "v"})
+      # A generous TTL window keeps the pre-expiry hit assertion stable under
+      # scheduler jitter, while the post-sleep gap still guarantees expiry.
       assert GenServer.call(cache, {:get, "k"}) == {:ok, "v"}
 
-      Process.sleep(40)
+      Process.sleep(300)
       assert GenServer.call(cache, {:get, "k"}) == :miss
     end
   end
