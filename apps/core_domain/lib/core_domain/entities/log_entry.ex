@@ -101,6 +101,24 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Returns the entry with the highest LSN in a non-empty list. Raises on an empty
+  list.
+  """
+  @spec max_by_lsn([t(), ...]) :: t()
+  def max_by_lsn([_ | _] = entries) do
+    Enum.max_by(entries, &LogSequenceNumber.to_integer(&1.lsn))
+  end
+
+  @doc """
+  Returns the entry with the lowest LSN in a non-empty list. Raises on an empty
+  list.
+  """
+  @spec min_by_lsn([t(), ...]) :: t()
+  def min_by_lsn([_ | _] = entries) do
+    Enum.min_by(entries, &LogSequenceNumber.to_integer(&1.lsn))
+  end
+
+  @doc """
   Returns the distinct node ids that produced the entries in a list, sorted by
   their string value.
   """

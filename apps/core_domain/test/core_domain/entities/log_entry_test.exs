@@ -233,4 +233,13 @@ defmodule CoreDomain.Entities.LogEntryTest do
 
     assert Enum.map(windowed, &LogEntry.lsn_value/1) == [2, 3]
   end
+
+  test "max_by_lsn/1 and min_by_lsn/1 pick the extreme entries" do
+    id = %NodeId{value: "n"}
+    entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    entries = [entry.(3), entry.(1), entry.(7), entry.(2)]
+    assert LogEntry.lsn_value(LogEntry.max_by_lsn(entries)) == 7
+    assert LogEntry.lsn_value(LogEntry.min_by_lsn(entries)) == 1
+  end
 end
