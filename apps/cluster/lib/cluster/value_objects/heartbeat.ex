@@ -62,6 +62,14 @@ defmodule Cluster.ValueObjects.Heartbeat do
   @spec newer_than?(t(), t()) :: boolean()
   def newer_than?(%__MODULE__{sequence: a}, %__MODULE__{sequence: b}), do: a > b
 
+  @doc "Returns `true` when `a` has a lower sequence number than `b`."
+  @spec older_than?(t(), t()) :: boolean()
+  def older_than?(%__MODULE__{sequence: a}, %__MODULE__{sequence: b}), do: a < b
+
+  @doc "Returns `true` when two heartbeats share the same sequence number."
+  @spec same_sequence?(t(), t()) :: boolean()
+  def same_sequence?(%__MODULE__{sequence: a}, %__MODULE__{sequence: b}), do: a == b
+
   @doc "Returns the age of the heartbeat in whole seconds."
   @spec age_seconds(t()) :: non_neg_integer()
   def age_seconds(%__MODULE__{timestamp: timestamp}) do

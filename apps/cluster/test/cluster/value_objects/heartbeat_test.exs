@@ -243,4 +243,17 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert stripped.sequence == hb.sequence
     end
   end
+
+  describe "older_than?/2 and same_sequence?/2" do
+    test "compare by sequence number" do
+      node = NodeId.new("node1")
+      a = Heartbeat.new(node, 1)
+      b = Heartbeat.new(node, 2)
+
+      assert Heartbeat.older_than?(a, b)
+      refute Heartbeat.older_than?(b, a)
+      assert Heartbeat.same_sequence?(a, Heartbeat.new(node, 1))
+      refute Heartbeat.same_sequence?(a, b)
+    end
+  end
 end
