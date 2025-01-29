@@ -928,4 +928,16 @@ defmodule QueryTest do
                %{0 => [{"b", 2}], 1 => [{"a", 1}, {"c", 3}]}
     end
   end
+
+  describe "single?/0" do
+    test "is true only with exactly one key" do
+      refute Query.single?()
+
+      {:ok, _} = Query.write("a", 1)
+      assert Query.single?()
+
+      {:ok, _} = Query.write("b", 2)
+      refute Query.single?()
+    end
+  end
 end

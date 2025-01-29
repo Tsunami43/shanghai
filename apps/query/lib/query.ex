@@ -1567,6 +1567,12 @@ defmodule Query do
   def empty?, do: Query.Store.count() == 0
 
   @doc """
+  Returns `true` when the store holds exactly one key.
+  """
+  @spec single?() :: boolean()
+  def single?, do: Query.Store.count() == 1
+
+  @doc """
   Returns `true` when the store has at least one key. The complement of
   `empty?/0`.
   """
