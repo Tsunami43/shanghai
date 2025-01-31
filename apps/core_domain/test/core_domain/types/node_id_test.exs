@@ -107,4 +107,11 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert NodeId.blank?(NodeId.new(""))
     refute NodeId.blank?(NodeId.new("n1"))
   end
+
+  test "parse/1 validates before building a NodeId" do
+    assert {:ok, %NodeId{value: "n1"}} = NodeId.parse("n1")
+    assert {:error, :invalid} = NodeId.parse("")
+    assert {:error, :invalid} = NodeId.parse(nil)
+    assert {:error, :invalid} = NodeId.parse(123)
+  end
 end

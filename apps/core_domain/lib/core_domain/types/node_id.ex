@@ -51,6 +51,15 @@ defmodule CoreDomain.Types.NodeId do
   def valid?(value), do: is_binary(value) and value != ""
 
   @doc """
+  Creates a NodeId only when `value` is a non-empty binary, returning
+  `{:ok, node_id}` or `{:error, :invalid}`. The validating counterpart to
+  `new/1`.
+  """
+  @spec parse(term()) :: {:ok, t()} | {:error, :invalid}
+  def parse(value) when is_binary(value) and value != "", do: {:ok, new(value)}
+  def parse(_value), do: {:error, :invalid}
+
+  @doc """
   Returns the underlying string value of a NodeId.
 
   ## Examples
