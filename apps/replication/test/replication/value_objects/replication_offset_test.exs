@@ -262,4 +262,10 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.decrement(ReplicationOffset.new(5)).value == 4
     assert ReplicationOffset.decrement(ReplicationOffset.zero()).value == 0
   end
+
+  test "parse/1 validates before building an offset" do
+    assert {:ok, %ReplicationOffset{value: 5}} = ReplicationOffset.parse(5)
+    assert {:error, :invalid} = ReplicationOffset.parse(-1)
+    assert {:error, :invalid} = ReplicationOffset.parse("x")
+  end
 end

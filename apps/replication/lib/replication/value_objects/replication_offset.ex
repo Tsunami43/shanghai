@@ -24,6 +24,15 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   end
 
   @doc """
+  Creates a ReplicationOffset only when `value` is a non-negative integer,
+  returning `{:ok, offset}` or `{:error, :invalid}`. The validating counterpart
+  to `new/1`.
+  """
+  @spec parse(term()) :: {:ok, t()} | {:error, :invalid}
+  def parse(value) when is_integer(value) and value >= 0, do: {:ok, new(value)}
+  def parse(_value), do: {:error, :invalid}
+
+  @doc """
   Returns the zero offset (start of replication).
   """
   @spec zero() :: t()
