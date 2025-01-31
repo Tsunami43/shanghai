@@ -789,6 +789,22 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "unavailable_ratio/1" do
+    test "is the complement of health_ratio" do
+      cluster =
+        Enum.reduce(1..4, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "h", 4000 + i))
+          next
+        end)
+
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n1"))
+
+      assert State.unavailable_ratio(cluster) == 0.25
+      assert State.unavailable_ratio(cluster) + State.health_ratio(cluster) == 1.0
+      assert State.unavailable_ratio(State.new(NodeId.new("solo"))) == 0.0
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))

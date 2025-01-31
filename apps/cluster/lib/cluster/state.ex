@@ -521,6 +521,19 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the fraction of nodes that are not `:up` (`:down` or `:suspect`),
+  0.0..1.0. The complement of `health_ratio/1`. Returns `0.0` for an empty
+  cluster.
+  """
+  @spec unavailable_ratio(t()) :: float()
+  def unavailable_ratio(%__MODULE__{} = cluster) do
+    case node_count(cluster) do
+      0 -> 0.0
+      total -> (status_count(cluster, :down) + status_count(cluster, :suspect)) / total
+    end
+  end
+
+  @doc """
   Returns `true` when at least one node is `:down` or `:suspect` — the cluster is
   degraded. Always `false` for an empty cluster.
   """
