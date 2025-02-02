@@ -30,6 +30,14 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   end
 
   @doc """
+  Creates an LSN only when `value` is a non-negative integer, returning
+  `{:ok, lsn}` or `{:error, :invalid}`. The validating counterpart to `new/1`.
+  """
+  @spec parse(term()) :: {:ok, t()} | {:error, :invalid}
+  def parse(value) when is_integer(value) and value >= 0, do: {:ok, new(value)}
+  def parse(_value), do: {:error, :invalid}
+
+  @doc """
   Returns the zero LSN — the starting point of a fresh log.
 
   ## Examples

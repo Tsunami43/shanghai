@@ -163,4 +163,11 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.decrement(LSN.new(5)).value == 4
     assert LSN.decrement(LSN.zero()).value == 0
   end
+
+  test "parse/1 validates before building an LSN" do
+    assert {:ok, lsn} = LSN.parse(7)
+    assert lsn.value == 7
+    assert {:error, :invalid} = LSN.parse(-1)
+    assert {:error, :invalid} = LSN.parse("x")
+  end
 end
