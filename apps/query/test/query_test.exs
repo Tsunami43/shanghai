@@ -940,4 +940,15 @@ defmodule QueryTest do
       refute Query.single?()
     end
   end
+
+  describe "pairs_with_value/1" do
+    test "returns pairs holding a specific value" do
+      {:ok, _} = Query.write("a", :x)
+      {:ok, _} = Query.write("b", :y)
+      {:ok, _} = Query.write("c", :x)
+
+      assert Query.pairs_with_value(:x) == [{"a", :x}, {"c", :x}]
+      assert Query.pairs_with_value(:z) == []
+    end
+  end
 end

@@ -1208,6 +1208,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the store's `{key, value}` pairs whose value equals `value`, sorted by
+  key. Scans the whole store.
+  """
+  @spec pairs_with_value(term()) :: [{term(), term()}]
+  def pairs_with_value(value) do
+    Enum.filter(to_list(), fn {_key, v} -> v == value end)
+  end
+
+  @doc """
   Returns the store's `{key, value}` pairs sorted by a value-derived key via
   `fun`. A read-only view; ties keep key order. Scans the whole store.
   """
