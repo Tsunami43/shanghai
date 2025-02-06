@@ -141,6 +141,12 @@ defmodule Cluster.Entities.Node do
   def on_host?(%__MODULE__{host: host}, host), do: true
   def on_host?(%__MODULE__{}, _host), do: false
 
+  @doc "Returns `true` when the node's address equals `address` (`host:port`)."
+  @spec at_address?(t(), String.t()) :: boolean()
+  def at_address?(%__MODULE__{} = node, address) when is_binary(address) do
+    address(node) == address
+  end
+
   @doc "Returns `true` when two nodes are on the same host."
   @spec same_host?(t(), t()) :: boolean()
   def same_host?(%__MODULE__{host: host}, %__MODULE__{host: host}), do: true

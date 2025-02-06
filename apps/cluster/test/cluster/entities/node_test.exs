@@ -323,4 +323,12 @@ defmodule Cluster.Entities.NodeTest do
       refute Node.on_host?(node, "hostB")
     end
   end
+
+  describe "at_address?/2" do
+    test "matches the node host:port address" do
+      node = Node.new(NodeId.new("n1"), "hostA", 4000)
+      assert Node.at_address?(node, "hostA:4000")
+      refute Node.at_address?(node, "hostA:4001")
+    end
+  end
 end
