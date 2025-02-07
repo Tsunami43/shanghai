@@ -399,6 +399,12 @@ defmodule Cluster.State do
   def single_node?(%__MODULE__{nodes: nodes}), do: map_size(nodes) == 1
 
   @doc """
+  Returns `true` when the cluster has more than one member node.
+  """
+  @spec multi_node?(t()) :: boolean()
+  def multi_node?(%__MODULE__{nodes: nodes}), do: map_size(nodes) > 1
+
+  @doc """
   Returns the number of nodes in the cluster.
   """
   @spec node_count(t()) :: non_neg_integer()

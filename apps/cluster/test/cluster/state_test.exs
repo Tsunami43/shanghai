@@ -255,6 +255,19 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "multi_node?/1" do
+    test "is true with more than one member" do
+      cluster = State.new(NodeId.new("local"))
+      refute State.multi_node?(cluster)
+
+      {:ok, one} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      refute State.multi_node?(one)
+
+      {:ok, two} = State.add_node(one, Node.new(NodeId.new("n2"), "h", 4002))
+      assert State.multi_node?(two)
+    end
+  end
+
   describe "single_node?/1" do
     test "detects a solo deployment" do
       cluster = State.new(NodeId.new("local"))
