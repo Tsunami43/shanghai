@@ -228,6 +228,14 @@ defmodule Storage do
   @spec total_bytes() :: non_neg_integer()
   def total_bytes, do: wal_stats().bytes
 
+  @doc "Returns `true` when at least one persisted snapshot exists."
+  @spec has_snapshots?() :: boolean()
+  def has_snapshots?, do: list_snapshots() != []
+
+  @doc "Returns the number of persisted snapshots."
+  @spec snapshot_count() :: non_neg_integer()
+  def snapshot_count, do: length(list_snapshots())
+
   @doc """
   Returns the average number of bytes per WAL entry across all active segments,
   or `0` when there are no entries. A rough indicator of record size.

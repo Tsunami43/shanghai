@@ -65,6 +65,11 @@ defmodule StorageTest do
     assert Storage.total_bytes() == stats.bytes
   end
 
+  test "has_snapshots?/0 and snapshot_count/0 agree with list_snapshots/0" do
+    assert Storage.snapshot_count() == length(Storage.list_snapshots())
+    assert Storage.has_snapshots?() == Storage.snapshot_count() > 0
+  end
+
   test "avg_entry_bytes/0 is a non-negative integer" do
     assert is_integer(Storage.avg_entry_bytes())
     assert Storage.avg_entry_bytes() >= 0
