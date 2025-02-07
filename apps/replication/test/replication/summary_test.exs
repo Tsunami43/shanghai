@@ -229,4 +229,8 @@ defmodule Replication.SummaryTest do
 
     assert Replication.avg_replicas_per_group() > 0.0
   end
+
+  test "any_unhealthy?/0 reflects lagging or stale replicas" do
+    assert Replication.any_unhealthy?() == not Replication.healthy?()
+  end
 end

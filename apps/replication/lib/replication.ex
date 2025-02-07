@@ -94,6 +94,12 @@ defmodule Replication do
   def stale_count, do: length(get_stale_replicas())
 
   @doc """
+  Returns `true` when any replica across all groups is lagging or stale.
+  """
+  @spec any_unhealthy?() :: boolean()
+  def any_unhealthy?, do: lagging_count() > 0 or stale_count() > 0
+
+  @doc """
   Returns the fraction of replicas that are lagging or stale (0.0..1.0), or
   `0.0` when there are no replicas. A quick unhealthy-replica ratio.
   """
