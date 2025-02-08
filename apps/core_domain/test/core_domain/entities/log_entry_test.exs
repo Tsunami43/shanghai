@@ -242,4 +242,10 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.lsn_value(LogEntry.max_by_lsn(entries)) == 7
     assert LogEntry.lsn_value(LogEntry.min_by_lsn(entries)) == 1
   end
+
+  test "node_id_value/1 returns the producing node id string" do
+    id = %NodeId{value: "node-7"}
+    entry = LogEntry.new(LogSequenceNumber.new(1), "d", id)
+    assert LogEntry.node_id_value(entry) == "node-7"
+  end
 end

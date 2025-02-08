@@ -159,6 +159,10 @@ defmodule CoreDomain.Entities.LogEntry do
   @spec lsn_value(t()) :: non_neg_integer()
   def lsn_value(%__MODULE__{lsn: lsn}), do: LogSequenceNumber.to_integer(lsn)
 
+  @doc "Returns the entry's producing node id as its string value."
+  @spec node_id_value(t()) :: String.t()
+  def node_id_value(%__MODULE__{node_id: node_id}), do: NodeId.to_string(node_id)
+
   @doc """
   Returns a compact human-readable description of the entry in the form
   `LSN(n) from <node_id>`. Useful for logs.
