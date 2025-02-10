@@ -1582,6 +1582,18 @@ defmodule Query do
   def single?, do: Query.Store.count() == 1
 
   @doc """
+  Returns the single stored `{key, value}` pair, or `nil` unless the store holds
+  exactly one key.
+  """
+  @spec only() :: {term(), term()} | nil
+  def only do
+    case to_list() do
+      [pair] -> pair
+      _ -> nil
+    end
+  end
+
+  @doc """
   Returns `true` when the store has at least one key. The complement of
   `empty?/0`.
   """

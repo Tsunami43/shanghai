@@ -951,4 +951,16 @@ defmodule QueryTest do
       assert Query.pairs_with_value(:z) == []
     end
   end
+
+  describe "only/0" do
+    test "returns the single pair or nil" do
+      assert Query.only() == nil
+
+      {:ok, _} = Query.write("k", 1)
+      assert Query.only() == {"k", 1}
+
+      {:ok, _} = Query.write("k2", 2)
+      assert Query.only() == nil
+    end
+  end
 end
