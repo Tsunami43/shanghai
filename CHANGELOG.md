@@ -202,6 +202,29 @@ follow semantic versioning.
 - **CLI formatting**: `Shanghaictl.Format` (`pad/2`, `kv/3`, `dash/1`,
   `pluralize/3`, `yes_no/1`, `list/1`), `Storage.segment_span/0`, and
   `ConsistencyLevel` `ordered/0` (both) plus `strongest_of/1` / `weakest_of/1`.
+- **Validating constructors**: `parse/1` for `NodeId`, `LogSequenceNumber`, and
+  `ReplicationOffset` (`{:ok, _}` | `{:error, :invalid}`), plus `parse!/1` for
+  both `ConsistencyLevel` modules.
+- **More Query views**: `map/1`, `group_by/1`, `sort_by_value/1`,
+  `pairs_with_value/1`, `keys_matching/1`, `value_counts/0`, `numeric_count/0`,
+  `distinct_values/0`, `transform_values/1`, `only/0`, `single?/0`,
+  `prefix_empty?/1`, and `unique_prefix?/1`.
+- **Increment/decrement & extras**: `decrement/1` for `LogSequenceNumber` and
+  `ReplicationOffset`, `LogEntry` (`max_by_lsn/1`, `min_by_lsn/1`,
+  `in_lsn_range/3`, `node_ids/1`, `node_id_value/1`), `Heartbeat`
+  (`older_than?/2`, `same_sequence?/2`, `without_metrics/1`), and `NodeMetadata`
+  (`extra_capabilities/2`, `common_capabilities/2`, `same_version?/2`,
+  `resource_or/3`).
+- **More cluster/replication/storage introspection**: `Cluster.State`
+  (`unavailable_ratio/1`, `addresses_with_status/2`, `available_node_ids/1`,
+  `peer_count/1`, `host_count/1`, `multi_host?/1`, `multi_node?/1`,
+  `clear_events/1`), `Node` (`on_port?/2`, `on_host?/2`, `at_address?/2`,
+  `seen?/1`), `Replication` (`avg_lag/0`, `unhealthy_ratio/0`, `no_groups?/0`,
+  `avg_replicas_per_group/0`, `any_unhealthy?/0`), and `Storage`
+  (`no_segments?/0`, `has_snapshots?/0`, `snapshot_count/0`).
+- **CLI formatting**: `Shanghaictl.Format.count_label/3`; and a fix for umbrella
+  test flakiness (admin health tests derive expectations from live process
+  state; the cache-TTL expiry test uses a wider TTL window).
 - **CLI formatting**: a `Shanghaictl.Format` module (`bytes/1`, `count/1`,
   `percent/1`, `duration_ms/1`) now used to render human-readable sizes and
   ratios in `shanghaictl metrics`; `Options.int_option/3`.
