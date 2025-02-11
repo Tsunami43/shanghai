@@ -329,4 +329,13 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.common_capabilities(a, b) == [:query]
     assert NodeMetadata.common_capabilities(a, NodeMetadata.new()) == []
   end
+
+  test "same_version?/2 compares versions" do
+    a = NodeMetadata.new(version: "1.0.0")
+    b = NodeMetadata.new(version: "1.0.0")
+    c = NodeMetadata.new(version: "2.0.0")
+
+    assert NodeMetadata.same_version?(a, b)
+    refute NodeMetadata.same_version?(a, c)
+  end
 end

@@ -212,6 +212,12 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   end
 
   @doc """
+  Returns `true` when the two metadata values share the same version string.
+  """
+  @spec same_version?(t(), t()) :: boolean()
+  def same_version?(%__MODULE__{version: a}, %__MODULE__{version: b}), do: a == b
+
+  @doc """
   Returns `true` when the metadata satisfies a placement requirement: it has
   every capability in `:capabilities` and every `key => value` in `:tags`. Both
   requirement keys are optional and default to empty.
