@@ -62,6 +62,14 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   end
 
   @doc """
+  Rewinds the offset by `amount` positions (`amount >= 0`), clamping at `0`.
+  """
+  @spec rewind(t(), non_neg_integer()) :: t()
+  def rewind(%__MODULE__{value: value}, amount) when is_integer(amount) and amount >= 0 do
+    %__MODULE__{value: max(value - amount, 0)}
+  end
+
+  @doc """
   Returns the inclusive list of offsets from `first` to `last`. Empty when
   `last` precedes `first`. Useful for enumerating a replica catch-up window.
   """

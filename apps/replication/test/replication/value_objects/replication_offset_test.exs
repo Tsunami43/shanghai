@@ -268,4 +268,9 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert {:error, :invalid} = ReplicationOffset.parse(-1)
     assert {:error, :invalid} = ReplicationOffset.parse("x")
   end
+
+  test "rewind/2 steps back by amount, clamping at zero" do
+    assert ReplicationOffset.rewind(ReplicationOffset.new(10), 3).value == 7
+    assert ReplicationOffset.rewind(ReplicationOffset.new(10), 99).value == 0
+  end
 end
