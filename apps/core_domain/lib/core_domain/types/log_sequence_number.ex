@@ -261,6 +261,22 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   end
 
   @doc """
+  Rewinds an LSN by `n` positions (`n >= 0`), clamping at `0`.
+
+  ## Examples
+
+      iex> lsn = CoreDomain.Types.LogSequenceNumber.new(10)
+      iex> CoreDomain.Types.LogSequenceNumber.rewind(lsn, 3).value
+      7
+      iex> CoreDomain.Types.LogSequenceNumber.rewind(lsn, 99).value
+      0
+  """
+  @spec rewind(t(), non_neg_integer()) :: t()
+  def rewind(%__MODULE__{value: v}, n) when is_integer(n) and n >= 0 do
+    new(max(v - n, 0))
+  end
+
+  @doc """
   Returns the inclusive list of LSNs from `first` to `last`. Empty when `last`
   precedes `first`.
 

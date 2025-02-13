@@ -170,4 +170,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert {:error, :invalid} = LSN.parse(-1)
     assert {:error, :invalid} = LSN.parse("x")
   end
+
+  test "rewind/2 steps back by n, clamping at zero" do
+    assert LSN.rewind(LSN.new(10), 3).value == 7
+    assert LSN.rewind(LSN.new(10), 99).value == 0
+    assert LSN.rewind(LSN.new(5), 0).value == 5
+  end
 end
