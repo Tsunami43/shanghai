@@ -1393,6 +1393,20 @@ defmodule Query do
   end
 
   @doc """
+  Returns the sum of the numeric values for `keys` (missing or non-numeric
+  values contribute `0`).
+  """
+  @spec sum_of([String.t()]) :: number()
+  def sum_of(keys) when is_list(keys) do
+    Enum.reduce(keys, 0, fn key, acc ->
+      case get(key) do
+        value when is_number(value) -> acc + value
+        _ -> acc
+      end
+    end)
+  end
+
+  @doc """
   Returns the number of stored values that are numeric. Scans the whole store.
   """
   @spec numeric_count() :: non_neg_integer()

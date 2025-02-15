@@ -963,4 +963,15 @@ defmodule QueryTest do
       assert Query.only() == nil
     end
   end
+
+  describe "sum_of/1" do
+    test "sums numeric values for the given keys" do
+      {:ok, _} = Query.write("a", 10)
+      {:ok, _} = Query.write("b", 5)
+      {:ok, _} = Query.write("c", "skip")
+
+      assert Query.sum_of(["a", "b", "c", "missing"]) == 15
+      assert Query.sum_of([]) == 0
+    end
+  end
 end
