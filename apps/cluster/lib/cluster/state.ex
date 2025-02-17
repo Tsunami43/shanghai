@@ -423,6 +423,14 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when the cluster has at least one node with the given status.
+  """
+  @spec any_with_status?(t(), atom()) :: boolean()
+  def any_with_status?(%__MODULE__{} = cluster, status) do
+    status_count(cluster, status) > 0
+  end
+
+  @doc """
   Returns the fraction of nodes with the given status (0.0..1.0). Returns `0.0`
   for an empty cluster.
   """

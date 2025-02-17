@@ -818,6 +818,19 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "any_with_status?/2" do
+    test "detects presence of a status" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+
+      assert State.any_with_status?(cluster, :up)
+      refute State.any_with_status?(cluster, :down)
+
+      {:ok, down} = State.mark_node_down(cluster, NodeId.new("n1"))
+      assert State.any_with_status?(down, :down)
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))
