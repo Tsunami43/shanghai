@@ -177,6 +177,18 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the number of replicas tracked in `group_id`, or `0` when the group is
+  unknown.
+  """
+  @spec group_replica_count(String.t()) :: non_neg_integer()
+  def group_replica_count(group_id) do
+    case get_group_metrics(group_id) do
+      {:ok, group} -> map_size(Map.get(group, :replicas, %{}))
+      {:error, :not_found} -> 0
+    end
+  end
+
+  @doc """
   Returns the maximum replica lag (in offsets) across all groups, or `0` when
   there are no tracked replicas. A quick worst-case staleness indicator.
   """

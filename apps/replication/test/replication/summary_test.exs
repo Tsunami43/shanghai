@@ -233,4 +233,18 @@ defmodule Replication.SummaryTest do
   test "any_unhealthy?/0 reflects lagging or stale replicas" do
     assert Replication.any_unhealthy?() == not Replication.healthy?()
   end
+
+  test "group_replica_count/0 counts replicas in a group" do
+    assert Replication.group_replica_count("grc-missing") == 0
+
+    Replication.Monitor.record_leader_offset("grc-1", ReplicationOffset.new(1))
+
+    Replication.Monitor.record_follower_offset(
+      "grc-1",
+      NodeId.new("grc-f1"),
+      ReplicationOffset.new(1)
+    )
+
+    assert Replication.group_replica_count("grc-1") >= 1
+  end
 end
