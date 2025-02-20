@@ -256,4 +256,14 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       refute Heartbeat.same_sequence?(a, b)
     end
   end
+
+  describe "within_age?/2" do
+    test "is an alias for fresh?/2" do
+      hb = Heartbeat.new(NodeId.new("node1"), 1)
+      assert Heartbeat.within_age?(hb, 5_000)
+
+      old = %{hb | timestamp: DateTime.add(DateTime.utc_now(), -100, :second)}
+      refute Heartbeat.within_age?(old, 1_000)
+    end
+  end
 end

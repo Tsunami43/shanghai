@@ -76,6 +76,12 @@ defmodule Cluster.ValueObjects.Heartbeat do
     DateTime.diff(DateTime.utc_now(), timestamp, :second)
   end
 
+  @doc "Returns `true` when the heartbeat's age is at most `max_age_ms` (still fresh)."
+  @spec within_age?(t(), non_neg_integer()) :: boolean()
+  def within_age?(%__MODULE__{} = heartbeat, max_age_ms) do
+    fresh?(heartbeat, max_age_ms)
+  end
+
   @doc """
   Returns a compact human-readable description of the heartbeat in the form
   `<node_id> seq=<sequence>`. Useful for logs.
