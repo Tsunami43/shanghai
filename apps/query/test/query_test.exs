@@ -974,4 +974,16 @@ defmodule QueryTest do
       assert Query.sum_of([]) == 0
     end
   end
+
+  describe "all_keys?/1" do
+    test "checks a predicate over every key" do
+      assert Query.all_keys?(fn _k -> false end)
+
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("user:2", 2)
+
+      assert Query.all_keys?(&String.starts_with?(&1, "user:"))
+      refute Query.all_keys?(&String.starts_with?(&1, "admin:"))
+    end
+  end
 end

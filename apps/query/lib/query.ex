@@ -1166,6 +1166,15 @@ defmodule Query do
   defdelegate keys(), to: Query.Store
 
   @doc """
+  Returns `true` when every key satisfies `fun`. Vacuously `true` for an empty
+  store. A read-only key-predicate check over the whole store.
+  """
+  @spec all_keys?((term() -> as_boolean(term()))) :: boolean()
+  def all_keys?(fun) when is_function(fun, 1) do
+    Enum.all?(keys(), fun)
+  end
+
+  @doc """
   Returns the keys that satisfy `fun`, sorted. A read-only key-predicate scan
   over the whole store.
   """
