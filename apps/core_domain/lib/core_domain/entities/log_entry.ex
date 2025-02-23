@@ -52,6 +52,14 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Sorts a list of log entries by LSN in descending order (newest first).
+  """
+  @spec sort_desc([t()]) :: [t()]
+  def sort_desc(entries) when is_list(entries) do
+    Enum.sort_by(entries, &LogSequenceNumber.to_integer(&1.lsn), :desc)
+  end
+
+  @doc """
   Returns `true` when a list of entries is contiguous by LSN (no gaps): each
   entry's LSN is exactly one greater than the previous, in the given order. An
   empty or single-entry list is trivially contiguous.

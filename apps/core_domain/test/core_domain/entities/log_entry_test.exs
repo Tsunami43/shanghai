@@ -248,4 +248,12 @@ defmodule CoreDomain.Entities.LogEntryTest do
     entry = LogEntry.new(LogSequenceNumber.new(1), "d", id)
     assert LogEntry.node_id_value(entry) == "node-7"
   end
+
+  test "sort_desc/1 orders entries by descending LSN" do
+    id = %NodeId{value: "n"}
+    entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    sorted = LogEntry.sort_desc([entry.(1), entry.(3), entry.(2)])
+    assert Enum.map(sorted, &LogEntry.lsn_value/1) == [3, 2, 1]
+  end
 end
