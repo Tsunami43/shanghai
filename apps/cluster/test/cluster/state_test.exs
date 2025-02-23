@@ -268,6 +268,17 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "any_nodes?/1" do
+    test "is the complement of empty?/1" do
+      cluster = State.new(NodeId.new("local"))
+      refute State.any_nodes?(cluster)
+
+      {:ok, one} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      assert State.any_nodes?(one)
+      assert State.any_nodes?(one) == not State.empty?(one)
+    end
+  end
+
   describe "single_node?/1" do
     test "detects a solo deployment" do
       cluster = State.new(NodeId.new("local"))
