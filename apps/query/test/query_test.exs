@@ -986,4 +986,14 @@ defmodule QueryTest do
       refute Query.all_keys?(&String.starts_with?(&1, "admin:"))
     end
   end
+
+  describe "keys_desc/0" do
+    test "returns keys in descending order" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+      {:ok, _} = Query.write("b", 2)
+
+      assert Query.keys_desc() == ["c", "b", "a"]
+    end
+  end
 end

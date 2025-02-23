@@ -1505,6 +1505,12 @@ defmodule Query do
   @spec min_key() :: term() | nil
   defdelegate min_key(), to: Query.Store
 
+  @doc """
+  Returns the stored keys in descending order. The reverse of `keys() |> sort`.
+  """
+  @spec keys_desc() :: [term()]
+  def keys_desc, do: keys() |> Enum.sort(:desc)
+
   @doc "Returns the largest stored key, or `nil` when empty."
   @spec max_key() :: term() | nil
   defdelegate max_key(), to: Query.Store
