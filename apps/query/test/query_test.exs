@@ -996,4 +996,16 @@ defmodule QueryTest do
       assert Query.keys_desc() == ["c", "b", "a"]
     end
   end
+
+  describe "distinct_value_count/0" do
+    test "counts unique values" do
+      assert Query.distinct_value_count() == 0
+
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 1)
+      {:ok, _} = Query.write("c", 2)
+
+      assert Query.distinct_value_count() == 2
+    end
+  end
 end

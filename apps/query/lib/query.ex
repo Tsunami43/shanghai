@@ -1217,6 +1217,14 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the number of distinct values stored. Scans the whole store.
+  """
+  @spec distinct_value_count() :: non_neg_integer()
+  def distinct_value_count do
+    values() |> Enum.uniq() |> length()
+  end
+
+  @doc """
   Returns the store's `{key, value}` pairs whose value equals `value`, sorted by
   key. Scans the whole store.
   """
