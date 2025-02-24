@@ -112,6 +112,17 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   end
 
   @doc """
+  Returns the required capabilities that the metadata is missing, as a sorted
+  list. Empty when all are present.
+  """
+  @spec missing_capabilities(t(), [atom()]) :: [atom()]
+  def missing_capabilities(%__MODULE__{capabilities: caps}, required) when is_list(required) do
+    required
+    |> Enum.reject(&MapSet.member?(caps, &1))
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns `true` when the metadata has any of the given capabilities.
   """
   @spec has_any_capability?(t(), [atom()]) :: boolean()

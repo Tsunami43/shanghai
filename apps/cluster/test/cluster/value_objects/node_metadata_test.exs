@@ -338,4 +338,14 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.same_version?(a, b)
     refute NodeMetadata.same_version?(a, c)
   end
+
+  test "missing_capabilities/2 lists required capabilities that are absent" do
+    md = NodeMetadata.new() |> NodeMetadata.add_capability(:storage)
+
+    assert NodeMetadata.missing_capabilities(md, [:storage, :query, :replication]) ==
+             [:query, :replication]
+
+    assert NodeMetadata.missing_capabilities(md, [:storage]) == []
+    assert NodeMetadata.missing_capabilities(md, []) == []
+  end
 end
