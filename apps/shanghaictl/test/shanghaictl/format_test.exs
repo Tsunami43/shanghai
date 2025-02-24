@@ -113,4 +113,11 @@ defmodule Shanghaictl.FormatTest do
       assert Format.count_label(3, "entry", "entries") == "3 entries"
     end
   end
+
+  describe "check/1" do
+    test "renders check and cross glyphs" do
+      assert Format.check(true) == "✓"
+      assert Format.check(false) == "✗"
+    end
+  end
 end

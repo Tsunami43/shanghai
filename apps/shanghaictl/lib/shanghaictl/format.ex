@@ -196,6 +196,22 @@ defmodule Shanghaictl.Format do
   def dash(value), do: to_string(value)
 
   @doc """
+  Renders a boolean as a check/cross glyph: `"✓"` for true, `"✗"` for false.
+  Handy for compact status columns.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.check(true)
+      "✓"
+
+      iex> Shanghaictl.Format.check(false)
+      "✗"
+  """
+  @spec check(boolean()) :: String.t()
+  def check(true), do: "✓"
+  def check(false), do: "✗"
+
+  @doc """
   Right-pads `value` (rendered via `to_string/1`) with spaces to at least
   `width` characters, for simple column alignment. Values already at or beyond
   `width` are returned unchanged.
