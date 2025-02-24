@@ -126,6 +126,20 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   @spec to_integer(t()) :: non_neg_integer()
   def to_integer(%__MODULE__{value: value}), do: value
 
+  @doc """
+  Returns `true` when this offset is at or before `target` (has not yet passed
+  it).
+  """
+  @spec at_or_before?(t(), t()) :: boolean()
+  def at_or_before?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a <= b
+
+  @doc """
+  Returns `true` when this offset is at or after `target` (has reached or passed
+  it).
+  """
+  @spec at_or_after?(t(), t()) :: boolean()
+  def at_or_after?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a >= b
+
   @doc "Returns `true` when the offset is past the start (value greater than 0)."
   @spec positive?(t()) :: boolean()
   def positive?(%__MODULE__{value: 0}), do: false

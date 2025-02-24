@@ -273,4 +273,16 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.rewind(ReplicationOffset.new(10), 3).value == 7
     assert ReplicationOffset.rewind(ReplicationOffset.new(10), 99).value == 0
   end
+
+  test "at_or_before?/2 and at_or_after?/2 are inclusive comparisons" do
+    a = ReplicationOffset.new(5)
+
+    assert ReplicationOffset.at_or_before?(a, ReplicationOffset.new(5))
+    assert ReplicationOffset.at_or_before?(a, ReplicationOffset.new(6))
+    refute ReplicationOffset.at_or_before?(a, ReplicationOffset.new(4))
+
+    assert ReplicationOffset.at_or_after?(a, ReplicationOffset.new(5))
+    assert ReplicationOffset.at_or_after?(a, ReplicationOffset.new(4))
+    refute ReplicationOffset.at_or_after?(a, ReplicationOffset.new(6))
+  end
 end
