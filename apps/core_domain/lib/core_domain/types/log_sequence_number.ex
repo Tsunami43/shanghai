@@ -87,6 +87,14 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec after?(t(), t()) :: boolean()
   def after?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a > b
 
+  @doc "Returns `true` when the LSN is at or after another (`>=`)."
+  @spec at_or_after?(t(), t()) :: boolean()
+  def at_or_after?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a >= b
+
+  @doc "Returns `true` when the LSN is at or before another (`<=`)."
+  @spec at_or_before?(t(), t()) :: boolean()
+  def at_or_before?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a <= b
+
   @doc """
   Returns `true` when the LSN is less than another (strictly before it).
   """

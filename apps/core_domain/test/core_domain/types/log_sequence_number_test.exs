@@ -176,4 +176,16 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.rewind(LSN.new(10), 99).value == 0
     assert LSN.rewind(LSN.new(5), 0).value == 5
   end
+
+  test "at_or_after?/2 and at_or_before?/2 are inclusive comparisons" do
+    a = LSN.new(5)
+
+    assert LSN.at_or_after?(a, LSN.new(5))
+    assert LSN.at_or_after?(a, LSN.new(4))
+    refute LSN.at_or_after?(a, LSN.new(6))
+
+    assert LSN.at_or_before?(a, LSN.new(5))
+    assert LSN.at_or_before?(a, LSN.new(6))
+    refute LSN.at_or_before?(a, LSN.new(4))
+  end
 end
