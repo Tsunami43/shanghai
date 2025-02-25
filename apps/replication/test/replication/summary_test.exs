@@ -251,4 +251,8 @@ defmodule Replication.SummaryTest do
   test "any_lagging?/0 reflects the lagging count" do
     assert Replication.any_lagging?() == Replication.lagging_count() > 0
   end
+
+  test "any_stale?/0 reflects the stale count" do
+    assert Replication.any_stale?() == Replication.stale_count() > 0
+  end
 end

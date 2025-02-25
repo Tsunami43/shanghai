@@ -100,6 +100,12 @@ defmodule Replication do
   def stale_count, do: length(get_stale_replicas())
 
   @doc """
+  Returns `true` when at least one replica is stale (hasn't reported recently).
+  """
+  @spec any_stale?() :: boolean()
+  def any_stale?, do: get_stale_replicas() != []
+
+  @doc """
   Returns `true` when any replica across all groups is lagging or stale.
   """
   @spec any_unhealthy?() :: boolean()
