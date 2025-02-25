@@ -247,4 +247,8 @@ defmodule Replication.SummaryTest do
 
     assert Replication.group_replica_count("grc-1") >= 1
   end
+
+  test "any_lagging?/0 reflects the lagging count" do
+    assert Replication.any_lagging?() == Replication.lagging_count() > 0
+  end
 end

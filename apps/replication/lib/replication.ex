@@ -89,6 +89,12 @@ defmodule Replication do
   @spec lagging_count() :: non_neg_integer()
   def lagging_count, do: length(get_lagging_replicas())
 
+  @doc """
+  Returns `true` when at least one replica is lagging behind its leader.
+  """
+  @spec any_lagging?() :: boolean()
+  def any_lagging?, do: get_lagging_replicas() != []
+
   @doc "Returns the number of stale replicas across all groups."
   @spec stale_count() :: non_neg_integer()
   def stale_count, do: length(get_stale_replicas())
