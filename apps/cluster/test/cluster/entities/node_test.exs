@@ -331,4 +331,16 @@ defmodule Cluster.Entities.NodeTest do
       refute Node.at_address?(node, "hostA:4001")
     end
   end
+
+  describe "same_id?/2" do
+    test "compares nodes by id" do
+      id = NodeId.new("n1")
+      a = Node.new(id, "hostA", 4001)
+      b = %{Node.new(id, "hostB", 4002) | status: :down}
+      c = Node.new(NodeId.new("n2"), "hostA", 4001)
+
+      assert Node.same_id?(a, b)
+      refute Node.same_id?(a, c)
+    end
+  end
 end

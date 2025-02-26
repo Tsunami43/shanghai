@@ -156,6 +156,11 @@ defmodule Cluster.Entities.Node do
   @spec same_address?(t(), t()) :: boolean()
   def same_address?(%__MODULE__{} = a, %__MODULE__{} = b), do: address(a) == address(b)
 
+  @doc "Returns `true` when the two nodes have the same id."
+  @spec same_id?(t(), t()) :: boolean()
+  def same_id?(%__MODULE__{id: id}, %__MODULE__{id: id}), do: true
+  def same_id?(%__MODULE__{}, %__MODULE__{}), do: false
+
   @doc """
   Returns a compact human-readable description of the node in the form
   `id@host:port (status)`. Useful for logs and CLI output.
