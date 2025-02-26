@@ -339,6 +339,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "co_located?/1" do
+    test "detects multiple nodes sharing a host" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostB", 4002))
+      refute State.co_located?(cluster)
+
+      {:ok, shared} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostA", 4003))
+      assert State.co_located?(shared)
+    end
+  end
+
   describe "node_ids/1" do
     test "returns sorted node ids" do
       cluster =

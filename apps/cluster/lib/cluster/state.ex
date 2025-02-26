@@ -272,6 +272,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when the cluster has more nodes than distinct hosts — at least
+  one host runs multiple nodes (co-located).
+  """
+  @spec co_located?(t()) :: boolean()
+  def co_located?(%__MODULE__{} = cluster) do
+    node_count(cluster) > host_count(cluster)
+  end
+
+  @doc """
   Returns `true` when the cluster spans more than one distinct host — nodes are
   distributed across multiple physical machines.
   """
