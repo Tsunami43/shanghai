@@ -1008,4 +1008,15 @@ defmodule QueryTest do
       assert Query.distinct_value_count() == 2
     end
   end
+
+  describe "count_keys/1" do
+    test "counts keys matching a predicate" do
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("user:2", 2)
+      {:ok, _} = Query.write("order:1", 3)
+
+      assert Query.count_keys(&String.starts_with?(&1, "user:")) == 2
+      assert Query.count_keys(fn _ -> false end) == 0
+    end
+  end
 end

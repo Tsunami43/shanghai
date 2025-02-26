@@ -1166,6 +1166,15 @@ defmodule Query do
   defdelegate keys(), to: Query.Store
 
   @doc """
+  Returns the number of keys that satisfy `fun`. A read-only key-predicate count
+  over the whole store.
+  """
+  @spec count_keys((term() -> as_boolean(term()))) :: non_neg_integer()
+  def count_keys(fun) when is_function(fun, 1) do
+    Enum.count(keys(), fun)
+  end
+
+  @doc """
   Returns `true` when every key satisfies `fun`. Vacuously `true` for an empty
   store. A read-only key-predicate check over the whole store.
   """
