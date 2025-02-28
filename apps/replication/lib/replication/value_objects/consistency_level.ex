@@ -102,6 +102,14 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   def local?(%__MODULE__{level: _}), do: false
 
   @doc """
+  Returns `true` when this level waits for peers before acknowledging a write —
+  anything other than `:local`.
+  """
+  @spec waits_for_peers?(t()) :: boolean()
+  def waits_for_peers?(%__MODULE__{level: :local}), do: false
+  def waits_for_peers?(%__MODULE__{level: _}), do: true
+
+  @doc """
   Calculates required acknowledgments for a given replica count.
 
   Returns the number of replicas that must acknowledge a write.

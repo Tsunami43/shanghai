@@ -215,4 +215,12 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
       assert_raise ArgumentError, fn -> ConsistencyLevel.parse!("nope") end
     end
   end
+
+  describe "waits_for_peers?/1" do
+    test "is false only for local" do
+      refute ConsistencyLevel.waits_for_peers?(ConsistencyLevel.new(:local))
+      assert ConsistencyLevel.waits_for_peers?(ConsistencyLevel.new(:quorum))
+      assert ConsistencyLevel.waits_for_peers?(ConsistencyLevel.new(:leader))
+    end
+  end
 end
