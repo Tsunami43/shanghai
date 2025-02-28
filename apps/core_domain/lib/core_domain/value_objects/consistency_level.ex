@@ -80,6 +80,14 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   @spec strongest() :: t()
   def strongest, do: :strong
 
+  @doc """
+  Returns `true` when `level` requires cross-node coordination (`:strong` or
+  `:causal`), i.e. it is not purely local (`:eventual`).
+  """
+  @spec requires_coordination?(t()) :: boolean()
+  def requires_coordination?(:eventual), do: false
+  def requires_coordination?(level) when level in @valid_levels, do: true
+
   @doc "Returns the weakest consistency level (`:eventual`)."
   @spec weakest() :: t()
   def weakest, do: :eventual

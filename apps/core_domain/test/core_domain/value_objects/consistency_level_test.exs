@@ -128,4 +128,12 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       assert_raise ArgumentError, fn -> ConsistencyLevel.parse!("nonsense") end
     end
   end
+
+  describe "requires_coordination?/1" do
+    test "is false only for eventual" do
+      assert ConsistencyLevel.requires_coordination?(:strong)
+      assert ConsistencyLevel.requires_coordination?(:causal)
+      refute ConsistencyLevel.requires_coordination?(:eventual)
+    end
+  end
 end
