@@ -65,6 +65,11 @@ defmodule StorageTest do
     assert Storage.total_bytes() == stats.bytes
   end
 
+  test "entries_until/1 is the non-negative gap to a target" do
+    assert Storage.entries_until(Storage.total_entries()) == 0
+    assert Storage.entries_until(Storage.total_entries() + 5) == 5
+  end
+
   test "has_snapshots?/0 and snapshot_count/0 agree with list_snapshots/0" do
     assert Storage.snapshot_count() == length(Storage.list_snapshots())
     assert Storage.has_snapshots?() == Storage.snapshot_count() > 0

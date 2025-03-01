@@ -224,6 +224,15 @@ defmodule Storage do
   @spec total_entries() :: non_neg_integer()
   def total_entries, do: wal_stats().entries
 
+  @doc """
+  Returns the number of entries the newest segment would need to reach the given
+  `target` entry count, or `0` when already at or beyond it. A rough sizing aid.
+  """
+  @spec entries_until(non_neg_integer()) :: non_neg_integer()
+  def entries_until(target) when is_integer(target) and target >= 0 do
+    max(target - total_entries(), 0)
+  end
+
   @doc "Returns the total on-disk size in bytes across all active WAL segments."
   @spec total_bytes() :: non_neg_integer()
   def total_bytes, do: wal_stats().bytes
