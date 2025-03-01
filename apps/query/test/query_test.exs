@@ -1019,4 +1019,13 @@ defmodule QueryTest do
       assert Query.count_keys(fn _ -> false end) == 0
     end
   end
+
+  describe "has_value?/1" do
+    test "detects whether any key holds a value" do
+      {:ok, _} = Query.write("a", :x)
+
+      assert Query.has_value?(:x)
+      refute Query.has_value?(:y)
+    end
+  end
 end

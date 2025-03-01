@@ -1309,6 +1309,13 @@ defmodule Query do
   defdelegate values(), to: Query.Store
 
   @doc """
+  Returns `true` when at least one stored value equals `value`. Scans the whole
+  store.
+  """
+  @spec has_value?(term()) :: boolean()
+  def has_value?(value), do: Enum.any?(values(), &(&1 == value))
+
+  @doc """
   Returns the store's `{key, value}` pairs grouped by the result of applying
   `fun` to each value, as `%{group => [{key, value}]}`. Each group's list is
   sorted by key. Scans the whole store.
