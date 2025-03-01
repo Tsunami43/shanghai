@@ -1028,4 +1028,15 @@ defmodule QueryTest do
       refute Query.has_value?(:y)
     end
   end
+
+  describe "keys_for_value/1" do
+    test "returns the keys holding a value, sorted" do
+      {:ok, _} = Query.write("a", :x)
+      {:ok, _} = Query.write("c", :x)
+      {:ok, _} = Query.write("b", :y)
+
+      assert Query.keys_for_value(:x) == ["a", "c"]
+      assert Query.keys_for_value(:z) == []
+    end
+  end
 end

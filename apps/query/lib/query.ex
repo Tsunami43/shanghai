@@ -1316,6 +1316,14 @@ defmodule Query do
   def has_value?(value), do: Enum.any?(values(), &(&1 == value))
 
   @doc """
+  Returns the keys that hold `value`, sorted. Scans the whole store.
+  """
+  @spec keys_for_value(term()) :: [term()]
+  def keys_for_value(value) do
+    for({key, v} <- to_list(), v == value, do: key)
+  end
+
+  @doc """
   Returns the store's `{key, value}` pairs grouped by the result of applying
   `fun` to each value, as `%{group => [{key, value}]}`. Each group's list is
   sorted by key. Scans the whole store.
