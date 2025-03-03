@@ -175,6 +175,13 @@ defmodule Cluster.ValueObjects.Heartbeat do
   @spec metric_count(t()) :: non_neg_integer()
   def metric_count(%__MODULE__{metrics: metrics}), do: map_size(metrics)
 
+  @doc """
+  Returns the heartbeat with the higher sequence number of a non-empty list (the
+  most recent). Raises on an empty list.
+  """
+  @spec latest_of([t(), ...]) :: t()
+  def latest_of([first | rest]), do: Enum.reduce(rest, first, &latest/2)
+
   @doc "Returns `true` when the heartbeat carries no metrics."
   @spec metrics_empty?(t()) :: boolean()
   def metrics_empty?(%__MODULE__{metrics: metrics}), do: map_size(metrics) == 0

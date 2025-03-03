@@ -266,4 +266,13 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       refute Heartbeat.within_age?(old, 1_000)
     end
   end
+
+  describe "latest_of/1" do
+    test "returns the highest-sequence heartbeat" do
+      node = NodeId.new("node1")
+      hbs = [Heartbeat.new(node, 3), Heartbeat.new(node, 7), Heartbeat.new(node, 2)]
+
+      assert Heartbeat.latest_of(hbs).sequence == 7
+    end
+  end
 end
