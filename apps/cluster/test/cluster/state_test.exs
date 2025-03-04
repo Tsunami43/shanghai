@@ -391,6 +391,27 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "nodes_seen_within/2" do
+    test "returns recently-seen nodes, excluding never-seen ones" do
+      cluster = State.new(NodeId.new("local"))
+      fresh = Node.new(NodeId.new("fresh"), "h", 4001)
+
+      old = %{
+        Node.new(NodeId.new("old"), "h", 4002)
+        | last_seen_at: DateTime.add(DateTime.utc_now(), -100, :second)
+      }
+
+      never = %{Node.new(NodeId.new("never"), "h", 4003) | last_seen_at: nil}
+
+      {:ok, cluster} = State.add_node(cluster, fresh)
+      {:ok, cluster} = State.add_node(cluster, old)
+      {:ok, cluster} = State.add_node(cluster, never)
+
+      recent = State.nodes_seen_within(cluster, 60_000)
+      assert Enum.map(recent, & &1.id.value) == ["fresh"]
+    end
+  end
+
   describe "stalest_node/1" do
     test "returns nil for an empty cluster" do
       assert State.stalest_node(State.new(NodeId.new("local"))) == nil

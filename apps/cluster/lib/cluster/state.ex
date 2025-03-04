@@ -319,6 +319,21 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the nodes whose last heartbeat is within `max_age_ms` (recently seen),
+  sorted by node id. Never-seen nodes are excluded.
+  """
+  @spec nodes_seen_within(t(), non_neg_integer()) :: [Node.t()]
+  def nodes_seen_within(%__MODULE__{} = cluster, max_age_ms) do
+    cluster
+    |> all_nodes()
+    |> Enum.filter(fn node ->
+      age = Node.last_seen_age_ms(node)
+      is_integer(age) and age <= max_age_ms
+    end)
+    |> Enum.sort_by(& &1.id.value)
+  end
+
+  @doc """
   Returns the node whose last heartbeat is oldest (the most likely failed), or
   `nil` for an empty cluster. Never-seen nodes rank as stalest; ties break by
   node id for determinism.
