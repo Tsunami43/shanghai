@@ -152,6 +152,20 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Returns the entry with the highest LSN of a non-empty list (the most recent).
+  Raises on an empty list.
+  """
+  @spec latest_of([t(), ...]) :: t()
+  def latest_of([first | rest]), do: Enum.reduce(rest, first, &latest/2)
+
+  @doc """
+  Returns the entry with the lowest LSN of a non-empty list (the earliest).
+  Raises on an empty list.
+  """
+  @spec earliest_of([t(), ...]) :: t()
+  def earliest_of([first | rest]), do: Enum.reduce(rest, first, &earliest/2)
+
+  @doc """
   Returns the entry with the lower LSN (the earlier of the two).
   """
   @spec earliest(t(), t()) :: t()

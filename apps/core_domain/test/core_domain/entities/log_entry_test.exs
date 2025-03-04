@@ -256,4 +256,13 @@ defmodule CoreDomain.Entities.LogEntryTest do
     sorted = LogEntry.sort_desc([entry.(1), entry.(3), entry.(2)])
     assert Enum.map(sorted, &LogEntry.lsn_value/1) == [3, 2, 1]
   end
+
+  test "latest_of/1 and earliest_of/1 reduce a list to the extreme entry" do
+    id = %NodeId{value: "n"}
+    entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    entries = [entry.(3), entry.(1), entry.(7), entry.(2)]
+    assert LogEntry.lsn_value(LogEntry.latest_of(entries)) == 7
+    assert LogEntry.lsn_value(LogEntry.earliest_of(entries)) == 1
+  end
 end
