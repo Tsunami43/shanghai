@@ -285,4 +285,12 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.at_or_after?(a, ReplicationOffset.new(4))
     refute ReplicationOffset.at_or_after?(a, ReplicationOffset.new(6))
   end
+
+  test "midpoint/2 bisects two offsets" do
+    assert ReplicationOffset.midpoint(ReplicationOffset.new(2), ReplicationOffset.new(8)).value ==
+             5
+
+    assert ReplicationOffset.midpoint(ReplicationOffset.new(3), ReplicationOffset.new(4)).value ==
+             3
+  end
 end

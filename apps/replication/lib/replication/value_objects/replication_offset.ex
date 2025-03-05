@@ -226,6 +226,13 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   end
 
   @doc """
+  Returns the midpoint offset between two offsets (integer division). Useful for
+  bisecting a replication window.
+  """
+  @spec midpoint(t(), t()) :: t()
+  def midpoint(%__MODULE__{value: a}, %__MODULE__{value: b}), do: new(div(a + b, 2))
+
+  @doc """
   Returns the arithmetic difference `later - earlier` of the two offsets as an
   offset, regardless of argument order (always non-negative).
   """
