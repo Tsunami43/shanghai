@@ -100,6 +100,14 @@ defmodule Cluster do
   @spec up_count() :: non_neg_integer()
   def up_count, do: State.status_count(cluster_state(), :up)
 
+  @doc "Returns the number of nodes currently marked `:down`."
+  @spec down_count() :: non_neg_integer()
+  def down_count, do: State.status_count(cluster_state(), :down)
+
+  @doc "Returns the number of nodes currently marked `:suspect`."
+  @spec suspect_count() :: non_neg_integer()
+  def suspect_count, do: State.status_count(cluster_state(), :suspect)
+
   @doc "Returns the total number of nodes in the cluster."
   @spec node_count() :: non_neg_integer()
   def node_count, do: State.node_count(cluster_state())
