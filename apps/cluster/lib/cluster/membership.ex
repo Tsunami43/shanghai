@@ -131,6 +131,15 @@ defmodule Cluster.Membership do
       {:ok, updated_cluster} ->
         {events, cluster_with_no_events} = State.take_events(updated_cluster)
         broadcast_events(events, state.subscribers)
+
+        # Emit telemetry metric for membership change
+        node_count = State.node_count(cluster_with_no_events)
+        Observability.Metrics.cluster_membership_changed(
+          node_count,
+          :node_joined,
+          node.id.value
+        )
+
         Logger.info("Node joined: #{node.id.value}")
         {:reply, :ok, %{state | cluster: cluster_with_no_events}}
 
@@ -146,6 +155,15 @@ defmodule Cluster.Membership do
       {:ok, updated_cluster} ->
         {events, cluster_with_no_events} = State.take_events(updated_cluster)
         broadcast_events(events, state.subscribers)
+
+        # Emit telemetry metric for membership change
+        node_count = State.node_count(cluster_with_no_events)
+        Observability.Metrics.cluster_membership_changed(
+          node_count,
+          :node_left,
+          node_id.value
+        )
+
         Logger.info("Node left: #{node_id.value} (reason: #{reason})")
         {:reply, :ok, %{state | cluster: cluster_with_no_events}}
 
@@ -208,6 +226,15 @@ defmodule Cluster.Membership do
       {:ok, updated_cluster} ->
         {events, cluster_with_no_events} = State.take_events(updated_cluster)
         broadcast_events(events, state.subscribers)
+
+        # Emit telemetry metric for membership change
+        node_count = State.node_count(cluster_with_no_events)
+        Observability.Metrics.cluster_membership_changed(
+          node_count,
+          :node_down,
+          node_id.value
+        )
+
         Logger.warning("Node marked down: #{node_id.value} (#{detection_method})")
         {:noreply, %{state | cluster: cluster_with_no_events}}
 
