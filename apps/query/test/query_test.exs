@@ -1039,4 +1039,16 @@ defmodule QueryTest do
       assert Query.keys_for_value(:z) == []
     end
   end
+
+  describe "keys_in_namespace/2" do
+    test "returns sorted keys under a namespace" do
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("user:2", 2)
+      {:ok, _} = Query.write("order:1", 3)
+      {:ok, _} = Query.write("user", 4)
+
+      assert Query.keys_in_namespace("user") == ["user:1", "user:2"]
+      assert Query.keys_in_namespace("none") == []
+    end
+  end
 end

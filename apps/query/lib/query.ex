@@ -1166,6 +1166,19 @@ defmodule Query do
   defdelegate keys(), to: Query.Store
 
   @doc """
+  Returns the stored keys, in key order, that share the common prefix up to the
+  first occurrence of `separator`. A read-only view for namespace inspection.
+  """
+  @spec keys_in_namespace(binary(), binary()) :: [binary()]
+  def keys_in_namespace(namespace, separator \\ ":") when is_binary(namespace) do
+    prefix = namespace <> separator
+
+    keys()
+    |> Enum.filter(fn key -> is_binary(key) and String.starts_with?(key, prefix) end)
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns the number of keys that satisfy `fun`. A read-only key-predicate count
   over the whole store.
   """
