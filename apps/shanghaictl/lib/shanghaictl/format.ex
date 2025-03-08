@@ -212,6 +212,20 @@ defmodule Shanghaictl.Format do
   def check(false), do: "✗"
 
   @doc """
+  Renders a health status atom as a label: `:healthy` → `"healthy"`,
+  `:degraded` → `"degraded"`, anything else via `to_string/1`.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.status(:healthy)
+      "healthy"
+  """
+  @spec status(atom()) :: String.t()
+  def status(:healthy), do: "healthy"
+  def status(:degraded), do: "degraded"
+  def status(other), do: to_string(other)
+
+  @doc """
   Right-pads `value` (rendered via `to_string/1`) with spaces to at least
   `width` characters, for simple column alignment. Values already at or beyond
   `width` are returned unchanged.

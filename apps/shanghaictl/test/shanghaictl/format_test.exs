@@ -120,4 +120,12 @@ defmodule Shanghaictl.FormatTest do
       assert Format.check(false) == "✗"
     end
   end
+
+  describe "status/1" do
+    test "renders known statuses and falls back to to_string" do
+      assert Format.status(:healthy) == "healthy"
+      assert Format.status(:degraded) == "degraded"
+      assert Format.status(:unavailable) == "unavailable"
+    end
+  end
 end
