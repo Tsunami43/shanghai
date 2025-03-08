@@ -239,6 +239,13 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   end
 
   @doc """
+  Returns the midpoint LSN between two LSNs (integer division). Useful for
+  bisecting a WAL range during recovery or search.
+  """
+  @spec midpoint(t(), t()) :: t()
+  def midpoint(%__MODULE__{value: a}, %__MODULE__{value: b}), do: new(div(a + b, 2))
+
+  @doc """
   Returns `true` when a list of LSNs is strictly increasing (each greater than
   the previous). An empty or single-element list is trivially increasing.
   """

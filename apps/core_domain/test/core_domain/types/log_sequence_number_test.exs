@@ -188,4 +188,9 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.at_or_before?(a, LSN.new(6))
     refute LSN.at_or_before?(a, LSN.new(4))
   end
+
+  test "midpoint/2 bisects two LSNs" do
+    assert LSN.midpoint(LSN.new(2), LSN.new(8)).value == 5
+    assert LSN.midpoint(LSN.new(3), LSN.new(4)).value == 3
+  end
 end
