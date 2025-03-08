@@ -161,6 +161,10 @@ defmodule Cluster.Entities.Node do
   def same_id?(%__MODULE__{id: id}, %__MODULE__{id: id}), do: true
   def same_id?(%__MODULE__{}, %__MODULE__{}), do: false
 
+  @doc "Returns the node's id as its string value."
+  @spec id_value(t()) :: String.t()
+  def id_value(%__MODULE__{id: %NodeId{value: value}}), do: value
+
   @doc """
   Returns a compact human-readable description of the node in the form
   `id@host:port (status)`. Useful for logs and CLI output.

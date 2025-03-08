@@ -343,4 +343,11 @@ defmodule Cluster.Entities.NodeTest do
       refute Node.same_id?(a, c)
     end
   end
+
+  describe "id_value/1" do
+    test "returns the id string" do
+      node = Node.new(NodeId.new("node-9"), "h", 4000)
+      assert Node.id_value(node) == "node-9"
+    end
+  end
 end
