@@ -1239,6 +1239,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the store as a list of `%{key: k, value: v}` maps, sorted by key. A
+  serialization-friendly view (e.g. for JSON export).
+  """
+  @spec to_entries() :: [%{key: term(), value: term()}]
+  def to_entries do
+    for {key, value} <- to_list(), do: %{key: key, value: value}
+  end
+
+  @doc """
   Returns the number of distinct values stored. Scans the whole store.
   """
   @spec distinct_value_count() :: non_neg_integer()

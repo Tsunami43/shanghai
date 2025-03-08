@@ -1051,4 +1051,13 @@ defmodule QueryTest do
       assert Query.keys_in_namespace("none") == []
     end
   end
+
+  describe "to_entries/0" do
+    test "returns key/value maps sorted by key" do
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("a", 1)
+
+      assert Query.to_entries() == [%{key: "a", value: 1}, %{key: "b", value: 2}]
+    end
+  end
 end
