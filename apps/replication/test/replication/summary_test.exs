@@ -255,4 +255,8 @@ defmodule Replication.SummaryTest do
   test "any_stale?/0 reflects the stale count" do
     assert Replication.any_stale?() == Replication.stale_count() > 0
   end
+
+  test "no_replicas?/0 reflects the replica count" do
+    assert Replication.no_replicas?() == (Replication.replica_count() == 0)
+  end
 end

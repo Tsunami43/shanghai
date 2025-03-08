@@ -85,6 +85,10 @@ defmodule Replication do
     end)
   end
 
+  @doc "Returns `true` when no replicas are tracked across any group."
+  @spec no_replicas?() :: boolean()
+  def no_replicas?, do: replica_count() == 0
+
   @doc "Returns the number of lagging replicas across all groups."
   @spec lagging_count() :: non_neg_integer()
   def lagging_count, do: length(get_lagging_replicas())
