@@ -875,6 +875,24 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "quorum_lost?/1" do
+    test "is the inverse of quorum_available?/1" do
+      cluster =
+        Enum.reduce(1..3, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "h", 4000 + i))
+          next
+        end)
+
+      refute State.quorum_lost?(cluster)
+
+      {:ok, one_down} = State.mark_node_down(cluster, NodeId.new("n1"))
+      {:ok, two_down} = State.mark_node_down(one_down, NodeId.new("n2"))
+      assert State.quorum_lost?(two_down)
+
+      assert State.quorum_lost?(State.new(NodeId.new("solo")))
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))

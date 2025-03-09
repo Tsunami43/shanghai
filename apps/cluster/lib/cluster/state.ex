@@ -553,6 +553,14 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when quorum is unavailable — fewer than a strict majority of
+  nodes are `:up`. Also true for an empty cluster. The inverse of
+  `quorum_available?/1`.
+  """
+  @spec quorum_lost?(t()) :: boolean()
+  def quorum_lost?(%__MODULE__{} = cluster), do: not quorum_available?(cluster)
+
+  @doc """
   Returns the health ratio: the fraction of nodes that are `:up` (0.0..1.0).
   Returns `0.0` for an empty cluster.
   """
