@@ -409,12 +409,35 @@ defmodule Storage.WAL.Segment do
       # Get current offset before write
       write_offset = state.current_offset
 
+      # Measure write time
+      write_start = System.monotonic_time(:millisecond)
+
       # Write to file
       case :file.pwrite(state.file, write_offset, entry_bytes) do
         :ok ->
+          write_duration = System.monotonic_time(:millisecond) - write_start
+
+          # Emit write metric
+          Observability.Metrics.wal_write_completed(
+            write_duration,
+            byte_size(entry_bytes),
+            state.segment_id
+          )
+
+          # Measure sync time
+          sync_start = System.monotonic_time(:millisecond)
+
           # Sync to disk
           case FileBackend.sync_file(state.file) do
             :ok ->
+              sync_duration = System.monotonic_time(:millisecond) - sync_start
+
+              # Emit sync metric
+              Observability.Metrics.wal_sync_completed(
+                sync_duration,
+                state.segment_id
+              )
+
               new_state = %{
                 state
                 | current_offset: write_offset + byte_size(entry_bytes),
