@@ -201,6 +201,13 @@ defmodule Cluster do
   def quorum_available?, do: State.quorum_available?(cluster_state())
 
   @doc """
+  Returns `true` when quorum is unavailable (fewer than a strict majority of
+  nodes are `:up`). See `Cluster.State.quorum_lost?/1`.
+  """
+  @spec quorum_lost?() :: boolean()
+  def quorum_lost?, do: State.quorum_lost?(cluster_state())
+
+  @doc """
   Returns how many more `:up` nodes are needed to reach a majority quorum, or
   `0` when quorum is available. See `Cluster.State.quorum_shortfall/1`.
   """
