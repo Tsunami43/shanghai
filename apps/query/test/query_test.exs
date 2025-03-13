@@ -1060,4 +1060,14 @@ defmodule QueryTest do
       assert Query.to_entries() == [%{key: "a", value: 1}, %{key: "b", value: 2}]
     end
   end
+
+  describe "values_desc/0" do
+    test "returns values in descending key order" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+      {:ok, _} = Query.write("b", 2)
+
+      assert Query.values_desc() == [3, 2, 1]
+    end
+  end
 end

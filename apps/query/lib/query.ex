@@ -1331,6 +1331,14 @@ defmodule Query do
   defdelegate values(), to: Query.Store
 
   @doc """
+  Returns the store's values in descending key order.
+  """
+  @spec values_desc() :: [term()]
+  def values_desc do
+    to_list() |> Enum.sort_by(&elem(&1, 0), :desc) |> Enum.map(&elem(&1, 1))
+  end
+
+  @doc """
   Returns `true` when at least one stored value equals `value`. Scans the whole
   store.
   """
