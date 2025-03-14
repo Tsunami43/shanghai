@@ -348,4 +348,14 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.missing_capabilities(md, [:storage]) == []
     assert NodeMetadata.missing_capabilities(md, []) == []
   end
+
+  test "tag_values/3 maps tag keys to values with a default" do
+    md =
+      NodeMetadata.new()
+      |> NodeMetadata.put_tag(:region, "eu")
+      |> NodeMetadata.put_tag(:zone, "a")
+
+    assert NodeMetadata.tag_values(md, [:region, :zone]) == ["eu", "a"]
+    assert NodeMetadata.tag_values(md, [:region, :missing], "?") == ["eu", "?"]
+  end
 end

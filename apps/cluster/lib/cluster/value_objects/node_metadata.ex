@@ -162,6 +162,15 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec tags(t()) :: map()
   def tags(%__MODULE__{tags: tags}), do: tags
 
+  @doc """
+  Returns the tag values for the given tag keys, in key order, using `default`
+  for absent keys.
+  """
+  @spec tag_values(t(), [atom() | String.t()], any()) :: [any()]
+  def tag_values(%__MODULE__{tags: tags}, keys, default \\ nil) when is_list(keys) do
+    Enum.map(keys, &Map.get(tags, &1, default))
+  end
+
   @doc "Returns the tag keys, sorted."
   @spec tag_keys(t()) :: [atom() | String.t()]
   def tag_keys(%__MODULE__{tags: tags}), do: tags |> Map.keys() |> Enum.sort()
