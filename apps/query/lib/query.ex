@@ -1239,6 +1239,16 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the store's keys partitioned into `{matching, rest}` by the key
+  predicate `fun`, each sorted. Scans the whole store.
+  """
+  @spec partition_keys((term() -> as_boolean(term()))) :: {[term()], [term()]}
+  def partition_keys(fun) when is_function(fun, 1) do
+    {matching, rest} = Enum.split_with(keys(), fun)
+    {Enum.sort(matching), Enum.sort(rest)}
+  end
+
+  @doc """
   Returns the store as a list of `%{key: k, value: v}` maps, sorted by key. A
   serialization-friendly view (e.g. for JSON export).
   """

@@ -1070,4 +1070,16 @@ defmodule QueryTest do
       assert Query.values_desc() == [3, 2, 1]
     end
   end
+
+  describe "partition_keys/1" do
+    test "splits keys by a predicate, each sorted" do
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("order:1", 2)
+      {:ok, _} = Query.write("user:2", 3)
+
+      {users, rest} = Query.partition_keys(&String.starts_with?(&1, "user:"))
+      assert users == ["user:1", "user:2"]
+      assert rest == ["order:1"]
+    end
+  end
 end
