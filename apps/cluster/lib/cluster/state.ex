@@ -377,6 +377,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns all nodes not in `:up` status (`:down` or `:suspect`), sorted by node
+  id — those that need attention.
+  """
+  @spec unavailable_nodes(t()) :: [Node.t()]
+  def unavailable_nodes(%__MODULE__{} = cluster) do
+    cluster
+    |> all_nodes()
+    |> Enum.filter(&Node.unavailable?/1)
+    |> Enum.sort_by(& &1.id.value)
+  end
+
+  @doc """
   Returns all nodes whose status is one of `statuses`.
   """
   @spec nodes_with_statuses(t(), [atom()]) :: [Node.t()]

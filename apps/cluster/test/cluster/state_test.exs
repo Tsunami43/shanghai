@@ -482,6 +482,19 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "unavailable_nodes/1" do
+    test "returns down and suspect nodes sorted by id" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "h", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n3"), "h", 4003))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n2"))
+      {:ok, cluster} = State.mark_node_suspect(cluster, NodeId.new("n3"))
+
+      assert Enum.map(State.unavailable_nodes(cluster), & &1.id.value) == ["n2", "n3"]
+    end
+  end
+
   describe "nodes_with_status/2" do
     test "returns only nodes with specified status" do
       local_id = NodeId.new("local")
