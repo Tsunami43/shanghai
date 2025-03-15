@@ -265,4 +265,15 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.lsn_value(LogEntry.latest_of(entries)) == 7
     assert LogEntry.lsn_value(LogEntry.earliest_of(entries)) == 1
   end
+
+  test "with_lsn/2 filters entries by exact LSN" do
+    id = %NodeId{value: "n"}
+    entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    entries = [entry.(1), entry.(2), entry.(2), entry.(3)]
+    matched = LogEntry.with_lsn(entries, LogSequenceNumber.new(2))
+
+    assert length(matched) == 2
+    assert Enum.all?(matched, &(LogEntry.lsn_value(&1) == 2))
+  end
 end

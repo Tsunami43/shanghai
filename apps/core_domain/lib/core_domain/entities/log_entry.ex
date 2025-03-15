@@ -89,6 +89,14 @@ defmodule CoreDomain.Entities.LogEntry do
   @spec same_lsn?(t(), t()) :: boolean()
   def same_lsn?(entry, other), do: compare(entry, other) == :eq
 
+  @doc """
+  Returns the entries with a given LSN from a list, in their given order.
+  """
+  @spec with_lsn([t()], LogSequenceNumber.t()) :: [t()]
+  def with_lsn(entries, lsn) when is_list(entries) do
+    Enum.filter(entries, &(LogSequenceNumber.compare(&1.lsn, lsn) == :eq))
+  end
+
   @doc "Returns `true` when two entries were produced by the same node."
   @spec same_node?(t(), t()) :: boolean()
   def same_node?(%__MODULE__{node_id: a}, %__MODULE__{node_id: b}), do: a == b
