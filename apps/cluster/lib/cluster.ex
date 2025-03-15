@@ -118,14 +118,10 @@ defmodule Cluster do
 
   @doc """
   Returns the nodes that are not `:up` (`:down` or `:suspect`) — those needing
-  attention. Sorted by node id.
+  attention. Sorted by node id. See `Cluster.State.unavailable_nodes/1`.
   """
   @spec unavailable_nodes() :: [Node.t()]
-  def unavailable_nodes do
-    nodes()
-    |> Enum.filter(&Node.unavailable?/1)
-    |> Enum.sort_by(& &1.id.value)
-  end
+  def unavailable_nodes, do: State.unavailable_nodes(cluster_state())
 
   @doc """
   Returns the health ratio of the cluster: the fraction of nodes that are `:up`
