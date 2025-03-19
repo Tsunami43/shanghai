@@ -199,6 +199,15 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     Enum.reduce(rest, first, &later/2)
   end
 
+  @doc """
+  Returns the sum of a list of offset values as a raw integer. Empty list sums
+  to `0`.
+  """
+  @spec sum([t()]) :: non_neg_integer()
+  def sum(offsets) when is_list(offsets) do
+    Enum.reduce(offsets, 0, fn %__MODULE__{value: v}, acc -> acc + v end)
+  end
+
   @doc "Sorts a list of offsets in ascending order."
   @spec sort([t()]) :: [t()]
   def sort(offsets) when is_list(offsets), do: Enum.sort_by(offsets, & &1.value)

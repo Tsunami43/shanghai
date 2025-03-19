@@ -293,4 +293,14 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.midpoint(ReplicationOffset.new(3), ReplicationOffset.new(4)).value ==
              3
   end
+
+  test "sum/1 adds up offset values" do
+    assert ReplicationOffset.sum([
+             ReplicationOffset.new(2),
+             ReplicationOffset.new(3),
+             ReplicationOffset.new(5)
+           ]) == 10
+
+    assert ReplicationOffset.sum([]) == 0
+  end
 end
