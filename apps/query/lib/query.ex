@@ -1341,6 +1341,18 @@ defmodule Query do
   defdelegate values(), to: Query.Store
 
   @doc """
+  Returns the minimum and maximum keys as `{min, max}`, or `nil` when the store
+  is empty. A cheap key-range probe.
+  """
+  @spec key_range() :: {term(), term()} | nil
+  def key_range do
+    case min_key() do
+      nil -> nil
+      min -> {min, max_key()}
+    end
+  end
+
+  @doc """
   Returns the store's values in descending key order.
   """
   @spec values_desc() :: [term()]

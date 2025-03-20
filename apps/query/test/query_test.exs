@@ -1082,4 +1082,16 @@ defmodule QueryTest do
       assert rest == ["order:1"]
     end
   end
+
+  describe "key_range/0" do
+    test "returns the min and max keys or nil" do
+      assert Query.key_range() == nil
+
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.key_range() == {"a", "c"}
+    end
+  end
 end
