@@ -161,6 +161,15 @@ defmodule Cluster.Entities.Node do
   def same_id?(%__MODULE__{id: id}, %__MODULE__{id: id}), do: true
   def same_id?(%__MODULE__{}, %__MODULE__{}), do: false
 
+  @doc """
+  Returns `true` when the node's id string starts with `prefix`. Useful for
+  filtering nodes by an id namespace.
+  """
+  @spec id_starts_with?(t(), String.t()) :: boolean()
+  def id_starts_with?(%__MODULE__{id: %NodeId{value: value}}, prefix) when is_binary(prefix) do
+    String.starts_with?(value, prefix)
+  end
+
   @doc "Returns the node's id as its string value."
   @spec id_value(t()) :: String.t()
   def id_value(%__MODULE__{id: %NodeId{value: value}}), do: value

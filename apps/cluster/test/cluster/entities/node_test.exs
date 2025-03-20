@@ -350,4 +350,12 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.id_value(node) == "node-9"
     end
   end
+
+  describe "id_starts_with?/2" do
+    test "matches an id prefix" do
+      node = Node.new(NodeId.new("eu-node-1"), "h", 4000)
+      assert Node.id_starts_with?(node, "eu-")
+      refute Node.id_starts_with?(node, "us-")
+    end
+  end
 end
