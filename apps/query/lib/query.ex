@@ -1341,6 +1341,15 @@ defmodule Query do
   defdelegate values(), to: Query.Store
 
   @doc """
+  Returns the number of stored values that satisfy `fun`. A read-only
+  value-predicate count over the whole store.
+  """
+  @spec count_values((term() -> as_boolean(term()))) :: non_neg_integer()
+  def count_values(fun) when is_function(fun, 1) do
+    Enum.count(values(), fun)
+  end
+
+  @doc """
   Returns the minimum and maximum keys as `{min, max}`, or `nil` when the store
   is empty. A cheap key-range probe.
   """

@@ -1094,4 +1094,15 @@ defmodule QueryTest do
       assert Query.key_range() == {"a", "c"}
     end
   end
+
+  describe "count_values/1" do
+    test "counts values matching a predicate" do
+      {:ok, _} = Query.write("a", 10)
+      {:ok, _} = Query.write("b", 20)
+      {:ok, _} = Query.write("c", 5)
+
+      assert Query.count_values(fn v -> v >= 10 end) == 2
+      assert Query.count_values(fn _ -> false end) == 0
+    end
+  end
 end
