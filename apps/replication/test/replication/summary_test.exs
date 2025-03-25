@@ -259,4 +259,18 @@ defmodule Replication.SummaryTest do
   test "no_replicas?/0 reflects the replica count" do
     assert Replication.no_replicas?() == (Replication.replica_count() == 0)
   end
+
+  test "healthy_replica_count/0 counts healthy replicas" do
+    assert Replication.healthy_replica_count() >= 0
+
+    Replication.Monitor.record_leader_offset("hr-1", ReplicationOffset.new(10))
+
+    Replication.Monitor.record_follower_offset(
+      "hr-1",
+      NodeId.new("hr-f1"),
+      ReplicationOffset.new(10)
+    )
+
+    assert Replication.healthy_replica_count() >= 1
+  end
 end

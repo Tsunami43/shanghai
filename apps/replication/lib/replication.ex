@@ -104,6 +104,17 @@ defmodule Replication do
   def stale_count, do: length(get_stale_replicas())
 
   @doc """
+  Returns the number of replicas that are healthy (neither lagging nor stale)
+  across all groups.
+  """
+  @spec healthy_replica_count() :: non_neg_integer()
+  def healthy_replica_count do
+    all_groups()
+    |> Enum.flat_map(fn group -> Map.values(Map.get(group, :replicas, %{})) end)
+    |> Enum.count(&(Map.get(&1, :status, :healthy) == :healthy))
+  end
+
+  @doc """
   Returns `true` when at least one replica is stale (hasn't reported recently).
   """
   @spec any_stale?() :: boolean()
