@@ -351,6 +351,22 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "nodes_with_id_prefix/2" do
+    test "returns nodes whose id starts with the prefix" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("eu-1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("eu-2"), "h", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("us-1"), "h", 4003))
+
+      assert Enum.map(State.nodes_with_id_prefix(cluster, "eu-"), & &1.id.value) == [
+               "eu-1",
+               "eu-2"
+             ]
+
+      assert State.nodes_with_id_prefix(cluster, "ap-") == []
+    end
+  end
+
   describe "node_ids/1" do
     test "returns sorted node ids" do
       cluster =

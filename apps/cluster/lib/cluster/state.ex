@@ -192,6 +192,17 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the nodes whose id string starts with `prefix`, sorted by node id.
+  """
+  @spec nodes_with_id_prefix(t(), String.t()) :: [Node.t()]
+  def nodes_with_id_prefix(%__MODULE__{} = cluster, prefix) when is_binary(prefix) do
+    cluster
+    |> all_nodes()
+    |> Enum.filter(&Node.id_starts_with?(&1, prefix))
+    |> Enum.sort_by(& &1.id.value)
+  end
+
+  @doc """
   Returns the ids of nodes with the given status, sorted by their string value.
   """
   @spec node_ids_with_status(t(), atom()) :: [NodeId.t()]
