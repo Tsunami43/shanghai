@@ -104,6 +104,23 @@ defmodule CoreDomain.Types.NodeId do
   @spec length(t()) :: non_neg_integer()
   def length(%__MODULE__{value: value}), do: String.length(value)
 
+  @doc """
+  Returns the namespace of the id: the segment before the first occurrence of
+  `separator`, or the whole value when the separator is absent.
+
+  ## Examples
+
+      iex> CoreDomain.Types.NodeId.namespace(CoreDomain.Types.NodeId.new("eu-1"))
+      "eu"
+
+      iex> CoreDomain.Types.NodeId.namespace(CoreDomain.Types.NodeId.new("plain"))
+      "plain"
+  """
+  @spec namespace(t(), String.t()) :: String.t()
+  def namespace(%__MODULE__{value: value}, separator \\ "-") when is_binary(separator) do
+    value |> String.split(separator, parts: 2) |> hd()
+  end
+
   @doc "Returns `true` when the NodeId's value is empty (invalid)."
   @spec blank?(t()) :: boolean()
   def blank?(%__MODULE__{value: value}), do: value == ""

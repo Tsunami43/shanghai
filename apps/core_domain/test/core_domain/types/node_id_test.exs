@@ -114,4 +114,10 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert {:error, :invalid} = NodeId.parse(nil)
     assert {:error, :invalid} = NodeId.parse(123)
   end
+
+  test "namespace/2 returns the id segment before the separator" do
+    assert NodeId.namespace(NodeId.new("eu-node-1")) == "eu"
+    assert NodeId.namespace(NodeId.new("plain")) == "plain"
+    assert NodeId.namespace(NodeId.new("a:b"), ":") == "a"
+  end
 end
