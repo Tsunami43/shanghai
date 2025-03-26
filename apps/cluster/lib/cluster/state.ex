@@ -283,6 +283,17 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns a map of `namespace => node_count`, grouping nodes by their id
+  namespace (the segment before the first `-`). Useful for region/rack views.
+  """
+  @spec namespace_counts(t()) :: %{optional(String.t()) => non_neg_integer()}
+  def namespace_counts(%__MODULE__{nodes: nodes}) do
+    nodes
+    |> Map.keys()
+    |> Enum.frequencies_by(&NodeId.namespace/1)
+  end
+
+  @doc """
   Returns `true` when the cluster has more nodes than distinct hosts — at least
   one host runs multiple nodes (co-located).
   """
