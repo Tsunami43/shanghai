@@ -1105,4 +1105,18 @@ defmodule QueryTest do
       assert Query.count_values(fn _ -> false end) == 0
     end
   end
+
+  describe "to_keyword/0" do
+    test "converts string keys with existing atoms to a keyword list" do
+      # Ensure the atoms exist.
+      _ = [:kw_a, :kw_b]
+      {:ok, _} = Query.write("kw_a", 1)
+      {:ok, _} = Query.write("kw_b", 2)
+      {:ok, _} = Query.write("kw_no_such_atom_xyz", 3)
+
+      kw = Query.to_keyword()
+      assert kw[:kw_a] == 1
+      assert kw[:kw_b] == 2
+    end
+  end
 end

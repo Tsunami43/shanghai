@@ -1341,6 +1341,24 @@ defmodule Query do
   defdelegate values(), to: Query.Store
 
   @doc """
+  Returns the store's `{key, value}` pairs as a keyword-like list of
+  `{atom_key, value}` — only for string keys convertible to existing atoms;
+  keys without a matching atom are skipped. Read-only, for config-style export.
+  """
+  @spec to_keyword() :: [{atom(), term()}]
+  def to_keyword do
+    for {key, value} <- to_list(), is_binary(key), reduce: [] do
+      acc ->
+        try do
+          [{String.to_existing_atom(key), value} | acc]
+        rescue
+          ArgumentError -> acc
+        end
+    end
+    |> Enum.reverse()
+  end
+
+  @doc """
   Returns the number of stored values that satisfy `fun`. A read-only
   value-predicate count over the whole store.
   """
