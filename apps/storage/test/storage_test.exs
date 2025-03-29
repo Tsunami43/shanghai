@@ -65,6 +65,11 @@ defmodule StorageTest do
     assert Storage.total_bytes() == stats.bytes
   end
 
+  test "fill_ratio/1 is total_bytes over capacity" do
+    assert Storage.fill_ratio(0) == 0.0
+    assert Storage.fill_ratio(1_000_000) == Storage.total_bytes() / 1_000_000
+  end
+
   test "entries_until/1 is the non-negative gap to a target" do
     assert Storage.entries_until(Storage.total_entries()) == 0
     assert Storage.entries_until(Storage.total_entries() + 5) == 5

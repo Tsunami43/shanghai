@@ -225,6 +225,18 @@ defmodule Storage do
   def total_entries, do: wal_stats().entries
 
   @doc """
+  Returns the fill ratio of the WAL toward `capacity_bytes` (0.0..1.0+), or
+  `0.0` when `capacity_bytes` is zero. A rough capacity-planning signal.
+  """
+  @spec fill_ratio(non_neg_integer()) :: float()
+  def fill_ratio(capacity_bytes) when is_integer(capacity_bytes) and capacity_bytes >= 0 do
+    case capacity_bytes do
+      0 -> 0.0
+      cap -> total_bytes() / cap
+    end
+  end
+
+  @doc """
   Returns the number of entries the newest segment would need to reach the given
   `target` entry count, or `0` when already at or beyond it. A rough sizing aid.
   """
