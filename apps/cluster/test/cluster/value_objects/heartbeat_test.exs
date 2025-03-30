@@ -275,4 +275,13 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.latest_of(hbs).sequence == 7
     end
   end
+
+  describe "earliest_of/1" do
+    test "returns the lowest-sequence heartbeat" do
+      node = NodeId.new("node1")
+      hbs = [Heartbeat.new(node, 3), Heartbeat.new(node, 1), Heartbeat.new(node, 5)]
+
+      assert Heartbeat.earliest_of(hbs).sequence == 1
+    end
+  end
 end

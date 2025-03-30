@@ -176,6 +176,15 @@ defmodule Cluster.ValueObjects.Heartbeat do
   def metric_count(%__MODULE__{metrics: metrics}), do: map_size(metrics)
 
   @doc """
+  Returns the earliest (lowest-sequence) heartbeat of a non-empty list. Raises on
+  an empty list.
+  """
+  @spec earliest_of([t(), ...]) :: t()
+  def earliest_of([first | rest]) do
+    Enum.reduce(rest, first, fn hb, acc -> if hb.sequence < acc.sequence, do: hb, else: acc end)
+  end
+
+  @doc """
   Returns the heartbeat with the higher sequence number of a non-empty list (the
   most recent). Raises on an empty list.
   """
