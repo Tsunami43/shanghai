@@ -1119,4 +1119,15 @@ defmodule QueryTest do
       assert kw[:kw_b] == 2
     end
   end
+
+  describe "find_key/1" do
+    test "returns the first pair whose key matches" do
+      {:ok, _} = Query.write("a:1", 1)
+      {:ok, _} = Query.write("b:1", 2)
+      {:ok, _} = Query.write("b:2", 3)
+
+      assert Query.find_key(&String.starts_with?(&1, "b:")) == {"b:1", 2}
+      assert Query.find_key(&String.starts_with?(&1, "z:")) == nil
+    end
+  end
 end

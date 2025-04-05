@@ -1239,6 +1239,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the `{key, value}` pair whose key is the smallest satisfying `fun`, or
+  `nil` when none match. Scans the whole store in key order.
+  """
+  @spec find_key((term() -> as_boolean(term()))) :: {term(), term()} | nil
+  def find_key(fun) when is_function(fun, 1) do
+    Enum.find(to_list(), fn {key, _value} -> fun.(key) end)
+  end
+
+  @doc """
   Returns the store's keys partitioned into `{matching, rest}` by the key
   predicate `fun`, each sorted. Scans the whole store.
   """
