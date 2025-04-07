@@ -214,6 +214,17 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the ids of the nodes that are not `:up` (`:down` or `:suspect`),
+  sorted by their string value.
+  """
+  @spec unavailable_node_ids(t()) :: [NodeId.t()]
+  def unavailable_node_ids(%__MODULE__{} = cluster) do
+    cluster
+    |> unavailable_nodes()
+    |> Enum.map(& &1.id)
+  end
+
+  @doc """
   Returns the ids of nodes that are available to serve traffic (status `:up`),
   sorted by their string value.
   """
