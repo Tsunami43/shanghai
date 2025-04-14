@@ -196,6 +196,13 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the number of replication groups with at least one lagging or stale
+  replica.
+  """
+  @spec unhealthy_group_count() :: non_neg_integer()
+  def unhealthy_group_count, do: length(unhealthy_group_ids())
+
+  @doc """
   Returns `true` when a replication group with `group_id` is being tracked.
   """
   @spec has_group?(String.t()) :: boolean()
