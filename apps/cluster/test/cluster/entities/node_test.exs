@@ -27,15 +27,20 @@ defmodule Cluster.Entities.NodeTest do
   end
 
   describe "mark_up/1" do
-    test "marks a down node as up" do
+    test "marks a down node as up and refreshes last_seen_at" do
       node_id = NodeId.new("node1")
       node = Node.new(node_id, "localhost", 4000)
-      down_node = Node.mark_down(node)
+
+      # Pin the down node's timestamp to the past so the refresh is observable
+      # regardless of wall-clock resolution (two utc_now/0 calls can otherwise
+      # land in the same microsecond).
+      old_seen = DateTime.add(DateTime.utc_now(), -60, :second)
+      down_node = %{Node.mark_down(node) | last_seen_at: old_seen}
 
       up_node = Node.mark_up(down_node)
 
       assert up_node.status == :up
-      assert up_node.last_seen_at != down_node.last_seen_at
+      assert DateTime.compare(up_node.last_seen_at, old_seen) == :gt
     end
   end
 
