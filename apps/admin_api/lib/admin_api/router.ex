@@ -90,46 +90,8 @@ defmodule AdminApi.Router do
   end
 
   get "/api/v1/replicas" do
-    replicas = [
-      %{
-        group_id: "group-1",
-        leader_id: "node-1",
-        followers: [
-          %{
-            node_id: "node-2",
-            offset: 1500,
-            lag: 10,
-            status: "healthy"
-          },
-          %{
-            node_id: "node-3",
-            offset: 1200,
-            lag: 310,
-            status: "lagging"
-          }
-        ],
-        current_offset: 1510
-      },
-      %{
-        group_id: "group-2",
-        leader_id: "node-2",
-        followers: [
-          %{
-            node_id: "node-1",
-            offset: 890,
-            lag: 5,
-            status: "healthy"
-          },
-          %{
-            node_id: "node-3",
-            offset: 850,
-            lag: 45,
-            status: "healthy"
-          }
-        ],
-        current_offset: 895
-      }
-    ]
+    groups = Replication.all_groups()
+    replicas = Enum.map(groups, &serialize_replication_group/1)
 
     send_json(conn, 200, %{replicas: replicas})
   end
@@ -238,6 +200,27 @@ defmodule AdminApi.Router do
       heartbeat_age_ms: heartbeat_age_ms,
       last_seen: last_seen_unix,
       metadata: node.metadata
+    }
+  end
+
+  defp serialize_replication_group(group) do
+    followers =
+      group.replicas
+      |> Map.values()
+      |> Enum.map(fn replica ->
+        %{
+          node_id: replica.node_id.value,
+          offset: replica.offset.value,
+          lag: replica.lag,
+          status: Atom.to_string(replica.status)
+        }
+      end)
+
+    %{
+      group_id: group.group_id,
+      leader_offset: group.leader_offset.value,
+      followers: followers,
+      current_offset: group.leader_offset.value
     }
   end
 
