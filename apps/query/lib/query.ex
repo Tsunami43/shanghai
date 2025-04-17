@@ -1350,6 +1350,15 @@ defmodule Query do
   defdelegate values(), to: Query.Store
 
   @doc """
+  Returns `true` when every stored value satisfies `fun`. Vacuously `true` for
+  an empty store. Scans the whole store.
+  """
+  @spec all_values?((term() -> as_boolean(term()))) :: boolean()
+  def all_values?(fun) when is_function(fun, 1) do
+    Enum.all?(values(), fun)
+  end
+
+  @doc """
   Returns the store's `{key, value}` pairs as a keyword-like list of
   `{atom_key, value}` — only for string keys convertible to existing atoms;
   keys without a matching atom are skipped. Read-only, for config-style export.

@@ -1130,4 +1130,16 @@ defmodule QueryTest do
       assert Query.find_key(&String.starts_with?(&1, "z:")) == nil
     end
   end
+
+  describe "all_values?/1" do
+    test "checks a predicate over every value" do
+      assert Query.all_values?(fn _v -> false end)
+
+      {:ok, _} = Query.write("a", 2)
+      {:ok, _} = Query.write("b", 4)
+
+      assert Query.all_values?(fn v -> rem(v, 2) == 0 end)
+      refute Query.all_values?(fn v -> v > 3 end)
+    end
+  end
 end
