@@ -294,6 +294,19 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the distinct id namespaces present in the cluster (the segment before
+  the first `-`), sorted.
+  """
+  @spec namespaces(t()) :: [String.t()]
+  def namespaces(%__MODULE__{nodes: nodes}) do
+    nodes
+    |> Map.keys()
+    |> Enum.map(&NodeId.namespace/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns a map of `namespace => node_count`, grouping nodes by their id
   namespace (the segment before the first `-`). Useful for region/rack views.
   """
