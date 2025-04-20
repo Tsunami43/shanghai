@@ -93,6 +93,13 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   def weakest, do: :eventual
 
   @doc """
+  Returns `true` when reads at `level` may return stale data (only `:eventual`).
+  """
+  @spec allows_stale_reads?(t()) :: boolean()
+  def allows_stale_reads?(:eventual), do: true
+  def allows_stale_reads?(level) when level in @valid_levels, do: false
+
+  @doc """
   Checks if a level is stronger than another.
   """
   @spec stronger_than?(t(), t()) :: boolean()

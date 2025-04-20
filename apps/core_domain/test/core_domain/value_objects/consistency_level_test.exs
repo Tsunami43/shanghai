@@ -136,4 +136,12 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       refute ConsistencyLevel.requires_coordination?(:eventual)
     end
   end
+
+  describe "allows_stale_reads?/1" do
+    test "is true only for eventual" do
+      assert ConsistencyLevel.allows_stale_reads?(:eventual)
+      refute ConsistencyLevel.allows_stale_reads?(:strong)
+      refute ConsistencyLevel.allows_stale_reads?(:causal)
+    end
+  end
 end
