@@ -223,4 +223,12 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
       assert ConsistencyLevel.waits_for_peers?(ConsistencyLevel.new(:leader))
     end
   end
+
+  describe "durable?/1" do
+    test "is false only for local" do
+      refute ConsistencyLevel.durable?(ConsistencyLevel.new(:local))
+      assert ConsistencyLevel.durable?(ConsistencyLevel.new(:quorum))
+      assert ConsistencyLevel.durable?(ConsistencyLevel.new(:leader))
+    end
+  end
 end

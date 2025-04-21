@@ -95,6 +95,14 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   def requires_leader_only?(%__MODULE__{level: _}), do: false
 
   @doc """
+  Returns `true` when writes at this level are durable beyond a single node —
+  anything other than `:local`.
+  """
+  @spec durable?(t()) :: boolean()
+  def durable?(%__MODULE__{level: :local}), do: false
+  def durable?(%__MODULE__{level: _}), do: true
+
+  @doc """
   Returns true if this level is local only (no replication wait).
   """
   @spec local?(t()) :: boolean()
