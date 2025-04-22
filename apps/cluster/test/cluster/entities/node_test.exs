@@ -363,4 +363,11 @@ defmodule Cluster.Entities.NodeTest do
       refute Node.id_starts_with?(node, "us-")
     end
   end
+
+  describe "namespace/1" do
+    test "returns the id namespace" do
+      node = Node.new(NodeId.new("eu-node-1"), "h", 4000)
+      assert Node.namespace(node) == "eu"
+    end
+  end
 end

@@ -175,6 +175,13 @@ defmodule Cluster.Entities.Node do
   def id_value(%__MODULE__{id: %NodeId{value: value}}), do: value
 
   @doc """
+  Returns the node's id namespace (the segment before the first `-` in its id
+  value). See `CoreDomain.Types.NodeId.namespace/2`.
+  """
+  @spec namespace(t()) :: String.t()
+  def namespace(%__MODULE__{id: id}), do: NodeId.namespace(id)
+
+  @doc """
   Returns a compact human-readable description of the node in the form
   `id@host:port (status)`. Useful for logs and CLI output.
 
