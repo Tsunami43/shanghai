@@ -277,4 +277,9 @@ defmodule Replication.SummaryTest do
   test "unhealthy_group_count/0 matches unhealthy_group_ids/0" do
     assert Replication.unhealthy_group_count() == length(Replication.unhealthy_group_ids())
   end
+
+  test "healthy_group_ratio/0 is a fraction in 0.0..1.0" do
+    ratio = Replication.healthy_group_ratio()
+    assert ratio >= 0.0 and ratio <= 1.0
+  end
 end

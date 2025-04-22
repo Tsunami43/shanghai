@@ -301,6 +301,18 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the fraction of replication groups that are fully healthy (no lagging
+  or stale replica), 0.0..1.0. Returns `1.0` when there are no groups.
+  """
+  @spec healthy_group_ratio() :: float()
+  def healthy_group_ratio do
+    case group_count() do
+      0 -> 1.0
+      total -> (total - unhealthy_group_count()) / total
+    end
+  end
+
+  @doc """
   Returns a compact one-call replication overview: group and replica counts,
   in-sync count, sync ratio, max lag, and overall health.
   """
