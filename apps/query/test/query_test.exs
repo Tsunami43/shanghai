@@ -1142,4 +1142,15 @@ defmodule QueryTest do
       refute Query.all_values?(fn v -> v > 3 end)
     end
   end
+
+  describe "first_key_where/1" do
+    test "returns the smallest key whose value matches" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 5)
+      {:ok, _} = Query.write("c", 9)
+
+      assert Query.first_key_where(fn v -> v >= 5 end) == "b"
+      assert Query.first_key_where(fn v -> v > 100 end) == nil
+    end
+  end
 end
