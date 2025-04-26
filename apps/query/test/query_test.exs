@@ -1153,4 +1153,15 @@ defmodule QueryTest do
       assert Query.first_key_where(fn v -> v > 100 end) == nil
     end
   end
+
+  describe "slice/1" do
+    test "projects the store onto a key set" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.slice(["a", "c", "missing"]) == [{"a", 1}, {"c", 3}]
+      assert Query.slice([]) == []
+    end
+  end
 end

@@ -1239,6 +1239,16 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the `{key, value}` pairs whose key is in `keys`, sorted by key, for the
+  keys that exist. A projection of the store onto a key set.
+  """
+  @spec slice([term()]) :: [{term(), term()}]
+  def slice(keys) when is_list(keys) do
+    set = MapSet.new(keys)
+    Enum.filter(to_list(), fn {key, _value} -> MapSet.member?(set, key) end)
+  end
+
+  @doc """
   Returns the smallest key whose value satisfies `fun`, or `nil` when none
   match. Scans the whole store in key order.
   """
