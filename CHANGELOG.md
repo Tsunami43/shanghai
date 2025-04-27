@@ -225,6 +225,35 @@ follow semantic versioning.
 - **CLI formatting**: `Shanghaictl.Format.count_label/3`; and a fix for umbrella
   test flakiness (admin health tests derive expectations from live process
   state; the cache-TTL expiry test uses a wider TTL window).
+- **Namespace-aware helpers**: `NodeId.namespace/2`, `Node.namespace/1` /
+  `id_starts_with?/2`, `Cluster.State` (`namespaces/1`, `namespace_counts/1`,
+  `nodes_with_id_prefix/2`), and `Query` (`namespaces/1`, `namespace_counts/1`,
+  `keys_in_namespace/2`).
+- **More Query predicates & views**: `all_keys?/1`, `all_values?/1`,
+  `count_keys/1`, `count_values/1`, `has_value?/1`, `keys_for_value/1`,
+  `find_key/1`, `first_key_where/1`, `partition_keys/1`, `slice/1`,
+  `key_range/0`, `keys_desc/0`, `values_desc/0`, `to_entries/0`, `to_keyword/0`,
+  `sum_of/1`, `single?/0`, `only/0`, `any?/0`, and `distinct_value_count/0`.
+- **Value-object ranges & bisection**: `midpoint/2` and `rewind/2` for
+  `LogSequenceNumber` and `ReplicationOffset`; `at_or_before?/2` /
+  `at_or_after?/2` (both); `ReplicationOffset` (`sum/1`, `differ?/2`,
+  `decrement/1`), `LogSequenceNumber` (`decrement/1`, `both_initial?/2`,
+  `increasing?/1`, `span/1`); `ConsistencyLevel` (`parse!/1` both,
+  `requires_coordination?/1`, `allows_stale_reads?/1`, `waits_for_peers?/1`,
+  `durable?/1`); and `LogEntry` (`sort_desc/1`, `with_lsn/2`, `in_lsn_range/3`,
+  `latest_of/1`, `earliest_of/1`, `group_by_node/1`, `node_ids/1`).
+- **More cluster/replication/storage introspection**: `Cluster.State`
+  (`quorum_lost?/1`, `any_nodes?/1`, `multi_node?/1`, `co_located?/1`,
+  `any_with_status?/2`, `nodes_seen_within/2`, `unavailable_node_ids/1`,
+  `peer_count/1`), `Cluster` (`quorum_lost?/0`, `node_count/0`, `down_count/0`,
+  `suspect_count/0`, `up_count/0`), `Heartbeat` (`latest_of/1`, `earliest_of/1`,
+  `within_age?/2`), `Replication` (`healthy_replica_count/0`,
+  `unhealthy_group_count/0`, `healthy_group_ratio/0`, `any_lagging?/0`,
+  `any_stale?/0`, `no_replicas?/0`, `group_replica_count/1`), and `Storage`
+  (`fill_ratio/1`, `entries_until/1`).
+- **Test stability**: fixed a real flaky in the `Node.mark_up/1` timestamp
+  assertion (two `utc_now/0` calls could coincide) by pinning the prior
+  timestamp and asserting the refresh advanced it.
 - **CLI formatting**: a `Shanghaictl.Format` module (`bytes/1`, `count/1`,
   `percent/1`, `duration_ms/1`) now used to render human-readable sizes and
   ratios in `shanghaictl metrics`; `Options.int_option/3`.
