@@ -276,4 +276,15 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert length(matched) == 2
     assert Enum.all?(matched, &(LogEntry.lsn_value(&1) == 2))
   end
+
+  test "group_by_node/1 groups entries by producing node" do
+    a = %NodeId{value: "a"}
+    b = %NodeId{value: "b"}
+    entry = fn n, id -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    grouped = LogEntry.group_by_node([entry.(1, a), entry.(2, b), entry.(3, a)])
+
+    assert length(grouped[a]) == 2
+    assert length(grouped[b]) == 1
+  end
 end

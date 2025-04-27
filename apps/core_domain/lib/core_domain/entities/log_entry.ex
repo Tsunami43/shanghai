@@ -108,6 +108,15 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Groups a list of entries by their producing node id, returning
+  `%{node_id => [entries]}`. Each group preserves the input order.
+  """
+  @spec group_by_node([t()]) :: %{optional(NodeId.t()) => [t()]}
+  def group_by_node(entries) when is_list(entries) do
+    Enum.group_by(entries, & &1.node_id)
+  end
+
+  @doc """
   Returns the entries whose LSN falls within the inclusive range `[low, high]`,
   in their given order.
   """
