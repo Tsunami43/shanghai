@@ -1239,6 +1239,24 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Renames every key by applying `fun` to it, as one atomic transaction. Keys for
+  which `fun` returns the same value are left in place; collisions resolve to the
+  last write. Returns `{:ok, :committed}`.
+  """
+  @spec rekey((term() -> term())) :: {:ok, :committed} | {:error, term()}
+  def rekey(fun) when is_function(fun, 1) do
+    ops =
+      Enum.flat_map(to_list(), fn {key, value} ->
+        case fun.(key) do
+          ^key -> []
+          new_key -> [{:delete, key}, {:write, new_key, value}]
+        end
+      end)
+
+    transact(ops)
+  end
+
+  @doc """
   Returns the `{key, value}` pairs whose key is in `keys`, sorted by key, for the
   keys that exist. A projection of the store onto a key set.
   """

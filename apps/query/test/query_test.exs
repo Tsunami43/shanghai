@@ -1164,4 +1164,18 @@ defmodule QueryTest do
       assert Query.slice([]) == []
     end
   end
+
+  describe "rekey/1" do
+    test "renames keys via a function atomically" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+
+      assert {:ok, :committed} = Query.rekey(fn key -> "x:" <> key end)
+
+      assert Query.get("x:a") == 1
+      assert Query.get("x:b") == 2
+      refute Query.exists?("a")
+      refute Query.exists?("b")
+    end
+  end
 end
