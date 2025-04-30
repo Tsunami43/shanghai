@@ -293,6 +293,10 @@ defmodule Cluster.State do
     nodes |> Map.values() |> Enum.map(& &1.host) |> Enum.uniq() |> length()
   end
 
+  @doc "Returns the number of distinct id namespaces present in the cluster."
+  @spec namespace_count(t()) :: non_neg_integer()
+  def namespace_count(%__MODULE__{} = cluster), do: length(namespaces(cluster))
+
   @doc """
   Returns the distinct id namespaces present in the cluster (the segment before
   the first `-`), sorted.
