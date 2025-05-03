@@ -96,6 +96,15 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def at_or_before?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a <= b
 
   @doc """
+  Clamps an LSN to be at least `floor` — returns `floor` when below it, otherwise
+  the LSN unchanged.
+  """
+  @spec at_least(t(), t()) :: t()
+  def at_least(%__MODULE__{value: v} = lsn, %__MODULE__{value: floor}) do
+    if v < floor, do: new(floor), else: lsn
+  end
+
+  @doc """
   Returns `true` when the LSN is less than another (strictly before it).
   """
   @spec before?(t(), t()) :: boolean()

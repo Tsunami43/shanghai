@@ -193,4 +193,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.midpoint(LSN.new(2), LSN.new(8)).value == 5
     assert LSN.midpoint(LSN.new(3), LSN.new(4)).value == 3
   end
+
+  test "at_least/2 raises an LSN to a floor" do
+    assert LSN.at_least(LSN.new(3), LSN.new(5)).value == 5
+    assert LSN.at_least(LSN.new(7), LSN.new(5)).value == 7
+    assert LSN.at_least(LSN.new(5), LSN.new(5)).value == 5
+  end
 end
