@@ -90,6 +90,15 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   def capability_count(%__MODULE__{capabilities: caps}), do: MapSet.size(caps)
 
   @doc """
+  Returns `true` when the metadata's capabilities are a superset of the given
+  required capabilities (it can satisfy every one).
+  """
+  @spec superset_of?(t(), [atom()]) :: boolean()
+  def superset_of?(%__MODULE__{capabilities: caps}, required) when is_list(required) do
+    MapSet.subset?(MapSet.new(required), caps)
+  end
+
+  @doc """
   Returns `true` when the metadata advertises any capability at all.
   """
   @spec any_capabilities?(t()) :: boolean()

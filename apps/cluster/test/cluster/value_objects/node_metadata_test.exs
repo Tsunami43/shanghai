@@ -358,4 +358,16 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.tag_values(md, [:region, :zone]) == ["eu", "a"]
     assert NodeMetadata.tag_values(md, [:region, :missing], "?") == ["eu", "?"]
   end
+
+  test "superset_of?/2 checks capability coverage" do
+    md =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:storage)
+      |> NodeMetadata.add_capability(:query)
+
+    assert NodeMetadata.superset_of?(md, [:storage])
+    assert NodeMetadata.superset_of?(md, [:storage, :query])
+    assert NodeMetadata.superset_of?(md, [])
+    refute NodeMetadata.superset_of?(md, [:storage, :replication])
+  end
 end
