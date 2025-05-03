@@ -1178,4 +1178,17 @@ defmodule QueryTest do
       refute Query.exists?("b")
     end
   end
+
+  describe "group_by_namespace/1" do
+    test "nests keys by namespace" do
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("user:2", 2)
+      {:ok, _} = Query.write("order:1", 3)
+
+      assert Query.group_by_namespace() == %{
+               "user" => %{"user:1" => 1, "user:2" => 2},
+               "order" => %{"order:1" => 3}
+             }
+    end
+  end
 end

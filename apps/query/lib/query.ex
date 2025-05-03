@@ -1239,6 +1239,19 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the store as a nested map grouped by key namespace (the segment before
+  the first `separator`), where each namespace maps to `%{key => value}` for its
+  keys. Only string keys are grouped; others are ignored.
+  """
+  @spec group_by_namespace(binary()) :: %{optional(binary()) => %{optional(binary()) => term()}}
+  def group_by_namespace(separator \\ ":") when is_binary(separator) do
+    to_list()
+    |> Enum.filter(fn {key, _value} -> is_binary(key) end)
+    |> Enum.group_by(fn {key, _value} -> key |> String.split(separator, parts: 2) |> hd() end)
+    |> Map.new(fn {namespace, pairs} -> {namespace, Map.new(pairs)} end)
+  end
+
+  @doc """
   Renames every key by applying `fun` to it, as one atomic transaction. Keys for
   which `fun` returns the same value are left in place; collisions resolve to the
   last write. Returns `{:ok, :committed}`.
