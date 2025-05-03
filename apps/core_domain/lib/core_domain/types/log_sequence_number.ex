@@ -91,6 +91,15 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec at_or_after?(t(), t()) :: boolean()
   def at_or_after?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a >= b
 
+  @doc """
+  Clamps an LSN to be at most `ceiling` — returns `ceiling` when above it,
+  otherwise the LSN unchanged.
+  """
+  @spec at_most(t(), t()) :: t()
+  def at_most(%__MODULE__{value: v} = lsn, %__MODULE__{value: ceiling}) do
+    if v > ceiling, do: new(ceiling), else: lsn
+  end
+
   @doc "Returns `true` when the LSN is at or before another (`<=`)."
   @spec at_or_before?(t(), t()) :: boolean()
   def at_or_before?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a <= b

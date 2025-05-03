@@ -199,4 +199,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.at_least(LSN.new(7), LSN.new(5)).value == 7
     assert LSN.at_least(LSN.new(5), LSN.new(5)).value == 5
   end
+
+  test "at_most/2 caps an LSN to a ceiling" do
+    assert LSN.at_most(LSN.new(7), LSN.new(5)).value == 5
+    assert LSN.at_most(LSN.new(3), LSN.new(5)).value == 3
+    assert LSN.at_most(LSN.new(5), LSN.new(5)).value == 5
+  end
 end
