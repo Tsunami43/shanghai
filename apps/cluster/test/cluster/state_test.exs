@@ -965,6 +965,23 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "meets_availability?/2" do
+    test "checks the up-node fraction against a threshold" do
+      cluster =
+        Enum.reduce(1..4, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "h", 4000 + i))
+          next
+        end)
+
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n1"))
+
+      # 3/4 up = 0.75
+      assert State.meets_availability?(cluster, 0.75)
+      assert State.meets_availability?(cluster, 0.5)
+      refute State.meets_availability?(cluster, 0.9)
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))

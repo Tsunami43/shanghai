@@ -535,6 +535,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when the fraction of `:up` nodes is at least `threshold`
+  (0.0..1.0). Useful for a configurable availability SLO check.
+  """
+  @spec meets_availability?(t(), float()) :: boolean()
+  def meets_availability?(%__MODULE__{} = cluster, threshold)
+      when is_float(threshold) do
+    health_ratio(cluster) >= threshold
+  end
+
+  @doc """
   Returns the number of nodes required for a majority quorum (`⌊n/2⌋ + 1`), or
   `0` for an empty cluster.
   """
