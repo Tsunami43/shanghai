@@ -234,6 +234,18 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     if a <= b, do: off_a, else: off_b
   end
 
+  @doc "Clamps an offset to be at least `floor`."
+  @spec at_least(t(), t()) :: t()
+  def at_least(%__MODULE__{value: v} = off, %__MODULE__{value: floor}) do
+    if v < floor, do: new(floor), else: off
+  end
+
+  @doc "Clamps an offset to be at most `ceiling`."
+  @spec at_most(t(), t()) :: t()
+  def at_most(%__MODULE__{value: v} = off, %__MODULE__{value: ceiling}) do
+    if v > ceiling, do: new(ceiling), else: off
+  end
+
   @doc """
   Returns the midpoint offset between two offsets (integer division). Useful for
   bisecting a replication window.

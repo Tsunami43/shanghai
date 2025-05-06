@@ -303,4 +303,18 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
 
     assert ReplicationOffset.sum([]) == 0
   end
+
+  test "at_least/2 and at_most/2 clamp an offset" do
+    assert ReplicationOffset.at_least(ReplicationOffset.new(3), ReplicationOffset.new(5)).value ==
+             5
+
+    assert ReplicationOffset.at_least(ReplicationOffset.new(7), ReplicationOffset.new(5)).value ==
+             7
+
+    assert ReplicationOffset.at_most(ReplicationOffset.new(7), ReplicationOffset.new(5)).value ==
+             5
+
+    assert ReplicationOffset.at_most(ReplicationOffset.new(3), ReplicationOffset.new(5)).value ==
+             3
+  end
 end
