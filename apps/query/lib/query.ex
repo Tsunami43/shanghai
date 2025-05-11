@@ -1239,6 +1239,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the number of keys under `namespace` (keys starting with `namespace`
+  followed by `separator`).
+  """
+  @spec count_in_namespace(binary(), binary()) :: non_neg_integer()
+  def count_in_namespace(namespace, separator \\ ":") when is_binary(namespace) do
+    count_prefix(namespace <> separator)
+  end
+
+  @doc """
   Returns the store as a nested map grouped by key namespace (the segment before
   the first `separator`), where each namespace maps to `%{key => value}` for its
   keys. Only string keys are grouped; others are ignored.

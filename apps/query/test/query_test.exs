@@ -1191,4 +1191,15 @@ defmodule QueryTest do
              }
     end
   end
+
+  describe "count_in_namespace/2" do
+    test "counts keys under a namespace" do
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("user:2", 2)
+      {:ok, _} = Query.write("order:1", 3)
+
+      assert Query.count_in_namespace("user") == 2
+      assert Query.count_in_namespace("none") == 0
+    end
+  end
 end
