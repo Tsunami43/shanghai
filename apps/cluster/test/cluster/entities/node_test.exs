@@ -370,4 +370,17 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.namespace(node) == "eu"
     end
   end
+
+  describe "fresh?/2" do
+    test "reflects heartbeat recency; never-seen is not fresh" do
+      node = Node.new(NodeId.new("n1"), "h", 4000)
+      assert Node.fresh?(node, 60_000)
+
+      old = %{node | last_seen_at: DateTime.add(DateTime.utc_now(), -100, :second)}
+      refute Node.fresh?(old, 1_000)
+
+      never = %{node | last_seen_at: nil}
+      refute Node.fresh?(never, 60_000)
+    end
+  end
 end

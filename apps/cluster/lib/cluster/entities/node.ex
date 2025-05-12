@@ -231,6 +231,17 @@ defmodule Cluster.Entities.Node do
   end
 
   @doc """
+  Returns `true` when the node's last heartbeat is recent (age at most
+  `max_age_ms`). A never-seen node is not fresh.
+  """
+  @spec fresh?(t(), non_neg_integer()) :: boolean()
+  def fresh?(%__MODULE__{last_seen_at: nil}, _max_age_ms), do: false
+
+  def fresh?(%__MODULE__{} = node, max_age_ms) when is_integer(max_age_ms) do
+    last_seen_age_ms(node) <= max_age_ms
+  end
+
+  @doc """
   Returns the age of the node's last heartbeat in whole seconds, or `nil` when
   it has never been seen.
   """
