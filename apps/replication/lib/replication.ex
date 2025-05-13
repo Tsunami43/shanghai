@@ -238,6 +238,21 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the minimum replica lag (in offsets) across all groups — the most
+  caught-up replica. `0` when there are no tracked replicas.
+  """
+  @spec min_lag() :: non_neg_integer()
+  def min_lag do
+    all_groups()
+    |> Enum.flat_map(fn group -> Map.values(Map.get(group, :replicas, %{})) end)
+    |> Enum.map(&Map.get(&1, :lag, 0))
+    |> case do
+      [] -> 0
+      lags -> Enum.min(lags)
+    end
+  end
+
+  @doc """
   Returns the total replica lag (sum of offsets) across all groups — a rough
   aggregate backlog indicator. `0` when there are no tracked replicas.
   """

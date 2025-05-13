@@ -282,4 +282,9 @@ defmodule Replication.SummaryTest do
     ratio = Replication.healthy_group_ratio()
     assert ratio >= 0.0 and ratio <= 1.0
   end
+
+  test "min_lag/0 is at most max_lag/0" do
+    assert Replication.min_lag() >= 0
+    assert Replication.min_lag() <= max(Replication.max_lag(), 0)
+  end
 end
