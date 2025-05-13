@@ -450,6 +450,19 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "count_seen_within/2" do
+    test "counts recently-seen nodes" do
+      cluster = State.new(NodeId.new("local"))
+      fresh = Node.new(NodeId.new("fresh"), "h", 4001)
+      never = %{Node.new(NodeId.new("never"), "h", 4002) | last_seen_at: nil}
+
+      {:ok, cluster} = State.add_node(cluster, fresh)
+      {:ok, cluster} = State.add_node(cluster, never)
+
+      assert State.count_seen_within(cluster, 60_000) == 1
+    end
+  end
+
   describe "nodes_seen_within/2" do
     test "returns recently-seen nodes, excluding never-seen ones" do
       cluster = State.new(NodeId.new("local"))

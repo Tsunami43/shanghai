@@ -384,6 +384,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the number of nodes whose last heartbeat is within `max_age_ms`
+  (recently seen). Never-seen nodes are excluded.
+  """
+  @spec count_seen_within(t(), non_neg_integer()) :: non_neg_integer()
+  def count_seen_within(%__MODULE__{} = cluster, max_age_ms) do
+    length(nodes_seen_within(cluster, max_age_ms))
+  end
+
+  @doc """
   Returns the node whose last heartbeat is oldest (the most likely failed), or
   `nil` for an empty cluster. Never-seen nodes rank as stalest; ties break by
   node id for determinism.
