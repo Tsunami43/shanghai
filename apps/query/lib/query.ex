@@ -1239,6 +1239,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns `true` when the store contains exactly the given `keys` (as a set),
+  no more and no fewer.
+  """
+  @spec has_exactly?([term()]) :: boolean()
+  def has_exactly?(keys) when is_list(keys) do
+    MapSet.new(keys()) == MapSet.new(keys)
+  end
+
+  @doc """
   Returns the number of keys under `namespace` (keys starting with `namespace`
   followed by `separator`).
   """

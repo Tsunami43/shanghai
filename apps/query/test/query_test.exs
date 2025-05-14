@@ -1202,4 +1202,16 @@ defmodule QueryTest do
       assert Query.count_in_namespace("none") == 0
     end
   end
+
+  describe "has_exactly?/1" do
+    test "checks the exact key set" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+
+      assert Query.has_exactly?(["a", "b"])
+      assert Query.has_exactly?(["b", "a"])
+      refute Query.has_exactly?(["a"])
+      refute Query.has_exactly?(["a", "b", "c"])
+    end
+  end
 end
