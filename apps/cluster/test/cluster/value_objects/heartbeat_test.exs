@@ -284,4 +284,14 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.earliest_of(hbs).sequence == 1
     end
   end
+
+  describe "metric_as_float/3" do
+    test "reads a numeric metric as a float or a default" do
+      hb = Heartbeat.new(NodeId.new("n1"), 1, %{cpu: 1, label: "x"})
+
+      assert Heartbeat.metric_as_float(hb, :cpu) == 1.0
+      assert Heartbeat.metric_as_float(hb, :label, -1.0) == -1.0
+      assert Heartbeat.metric_as_float(hb, :missing, 0.5) == 0.5
+    end
+  end
 end

@@ -176,6 +176,18 @@ defmodule Cluster.ValueObjects.Heartbeat do
   def metric_count(%__MODULE__{metrics: metrics}), do: map_size(metrics)
 
   @doc """
+  Returns the numeric metric `key` as a float, or `default` when the metric is
+  absent or non-numeric. Useful for reading health gauges.
+  """
+  @spec metric_as_float(t(), term(), float()) :: float()
+  def metric_as_float(%__MODULE__{metrics: metrics}, key, default \\ 0.0) do
+    case Map.get(metrics, key) do
+      value when is_number(value) -> value / 1
+      _ -> default
+    end
+  end
+
+  @doc """
   Returns the earliest (lowest-sequence) heartbeat of a non-empty list. Raises on
   an empty list.
   """
