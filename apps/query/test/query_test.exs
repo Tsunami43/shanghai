@@ -1214,4 +1214,16 @@ defmodule QueryTest do
       refute Query.has_exactly?(["a", "b", "c"])
     end
   end
+
+  describe "string_keys?/0" do
+    test "is true when all keys are binaries" do
+      assert Query.string_keys?()
+
+      {:ok, _} = Query.write("a", 1)
+      assert Query.string_keys?()
+
+      {:ok, _} = Query.write(:atom_key, 2)
+      refute Query.string_keys?()
+    end
+  end
 end

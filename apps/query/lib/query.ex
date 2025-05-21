@@ -1239,6 +1239,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns `true` when the store's keys are all binaries. Useful before running
+  prefix/namespace operations that assume string keys.
+  """
+  @spec string_keys?() :: boolean()
+  def string_keys? do
+    Enum.all?(keys(), &is_binary/1)
+  end
+
+  @doc """
   Returns `true` when the store contains exactly the given `keys` (as a set),
   no more and no fewer.
   """
