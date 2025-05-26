@@ -287,4 +287,12 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert length(grouped[a]) == 2
     assert length(grouped[b]) == 1
   end
+
+  test "metadata_count/1 counts metadata entries" do
+    id = %NodeId{value: "n"}
+    entry = LogEntry.new(LogSequenceNumber.new(1), "d", id, %{a: 1, b: 2})
+
+    assert LogEntry.metadata_count(entry) == 2
+    assert LogEntry.metadata_count(LogEntry.new(LogSequenceNumber.new(1), "d", id)) == 0
+  end
 end

@@ -265,6 +265,10 @@ defmodule CoreDomain.Entities.LogEntry do
   @spec has_metadata?(t(), term()) :: boolean()
   def has_metadata?(%__MODULE__{metadata: metadata}, key), do: Map.has_key?(metadata, key)
 
+  @doc "Returns the number of metadata entries on the log entry."
+  @spec metadata_count(t()) :: non_neg_integer()
+  def metadata_count(%__MODULE__{metadata: metadata}), do: map_size(metadata)
+
   @doc """
   Returns a plain-map view of the entry for serialization, with the LSN as a raw
   integer and the node id as its string value.
