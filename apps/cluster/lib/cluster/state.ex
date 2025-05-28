@@ -566,6 +566,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the number of `:up` nodes beyond the quorum threshold — the extra
+  votes available above a bare majority, or `0` when quorum is not met.
+  """
+  @spec quorum_surplus(t()) :: non_neg_integer()
+  def quorum_surplus(%__MODULE__{} = cluster) do
+    max(status_count(cluster, :up) - quorum_size(cluster), 0)
+  end
+
+  @doc """
   Returns the number of additional `:up` nodes required to reach a majority
   quorum, or `0` when quorum is already available.
   """

@@ -995,6 +995,28 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "quorum_surplus/1" do
+    test "reports up nodes beyond the quorum threshold" do
+      cluster =
+        Enum.reduce(1..5, State.new(NodeId.new("local")), fn i, acc ->
+          {:ok, next} = State.add_node(acc, Node.new(NodeId.new("n#{i}"), "h", 4000 + i))
+          next
+        end)
+
+      # 5 up, quorum 3 -> surplus 2
+      assert State.quorum_surplus(cluster) == 2
+
+      {:ok, three_down} =
+        [1, 2, 3]
+        |> Enum.reduce({:ok, cluster}, fn i, {:ok, acc} ->
+          State.mark_node_down(acc, NodeId.new("n#{i}"))
+        end)
+
+      # 2 up, quorum 3 -> surplus 0
+      assert State.quorum_surplus(three_down) == 0
+    end
+  end
+
   describe "quorum_available?/1" do
     test "is false for an empty cluster" do
       refute State.quorum_available?(State.new(NodeId.new("local")))
