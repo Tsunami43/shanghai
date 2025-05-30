@@ -1239,6 +1239,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the store's `{key, value}` pairs where the value is a numeric number,
+  sorted by key. A read-only projection to the numeric subset.
+  """
+  @spec numeric_pairs() :: [{term(), number()}]
+  def numeric_pairs do
+    Enum.filter(to_list(), fn {_key, value} -> is_number(value) end)
+  end
+
+  @doc """
   Returns `true` when the store's keys are all binaries. Useful before running
   prefix/namespace operations that assume string keys.
   """

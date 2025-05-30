@@ -1226,4 +1226,14 @@ defmodule QueryTest do
       refute Query.string_keys?()
     end
   end
+
+  describe "numeric_pairs/0" do
+    test "returns only numeric-valued pairs, sorted" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", "text")
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.numeric_pairs() == [{"a", 1}, {"c", 3}]
+    end
+  end
 end
