@@ -112,6 +112,15 @@ defmodule Cluster do
   @spec node_count() :: non_neg_integer()
   def node_count, do: State.node_count(cluster_state())
 
+  @doc """
+  Returns `true` when the fraction of `:up` nodes is at least `threshold`
+  (0.0..1.0). See `Cluster.State.meets_availability?/2`.
+  """
+  @spec meets_availability?(float()) :: boolean()
+  def meets_availability?(threshold) when is_float(threshold) do
+    State.meets_availability?(cluster_state(), threshold)
+  end
+
   @doc "Returns the nodes currently marked `:suspect`."
   @spec suspect_nodes() :: [Node.t()]
   def suspect_nodes, do: Enum.filter(nodes(), &Node.suspect?/1)

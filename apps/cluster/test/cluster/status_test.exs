@@ -40,6 +40,8 @@ defmodule Cluster.StatusTest do
     assert is_boolean(Cluster.single_node?())
     assert is_float(Cluster.health_ratio())
     assert Cluster.health_ratio() >= 0.0 and Cluster.health_ratio() <= 1.0
+    assert Cluster.meets_availability?(0.0)
+    assert Cluster.meets_availability?(Cluster.health_ratio())
     assert is_list(Cluster.node_ids())
     assert is_list(Cluster.node_addresses())
     assert is_list(Cluster.peer_ids())
