@@ -265,6 +265,20 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the ids of replicas that are lagging or stale, as `{group_id, node_id}`
+  tuples, sorted. Useful for targeted catch-up scheduling.
+  """
+  @spec unhealthy_replicas() :: [{String.t(), CoreDomain.Types.NodeId.t()}]
+  def unhealthy_replicas do
+    for group <- all_groups(),
+        {node_id, replica} <- Map.get(group, :replicas, %{}),
+        Map.get(replica, :status, :healthy) != :healthy do
+      {group.group_id, node_id}
+    end
+    |> Enum.sort_by(fn {group_id, node_id} -> {group_id, node_id.value} end)
+  end
+
+  @doc """
   Returns the total number of tracked replicas that are fully caught up (lag of
   `0`) across all groups.
   """

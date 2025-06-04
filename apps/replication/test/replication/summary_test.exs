@@ -287,4 +287,20 @@ defmodule Replication.SummaryTest do
     assert Replication.min_lag() >= 0
     assert Replication.min_lag() <= max(Replication.max_lag(), 0)
   end
+
+  test "unhealthy_replicas/0 lists lagging or stale replicas" do
+    assert is_list(Replication.unhealthy_replicas())
+
+    Replication.Monitor.record_leader_offset("ur-1", ReplicationOffset.new(1000))
+
+    Replication.Monitor.record_follower_offset(
+      "ur-1",
+      NodeId.new("ur-f1"),
+      ReplicationOffset.new(1)
+    )
+
+    assert Enum.all?(Replication.unhealthy_replicas(), fn {gid, nid} ->
+             is_binary(gid) and match?(%NodeId{}, nid)
+           end)
+  end
 end
