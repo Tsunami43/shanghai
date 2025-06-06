@@ -1239,6 +1239,17 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the largest `n` `{key, value}` pairs by numeric value, in descending
+  value order. Non-numeric values are ignored. Scans the whole store.
+  """
+  @spec top_n(non_neg_integer()) :: [{term(), number()}]
+  def top_n(n) when is_integer(n) and n >= 0 do
+    numeric_pairs()
+    |> Enum.sort_by(&elem(&1, 1), :desc)
+    |> Enum.take(n)
+  end
+
+  @doc """
   Returns the store's `{key, value}` pairs where the value is a numeric number,
   sorted by key. A read-only projection to the numeric subset.
   """

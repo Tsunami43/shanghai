@@ -1236,4 +1236,16 @@ defmodule QueryTest do
       assert Query.numeric_pairs() == [{"a", 1}, {"c", 3}]
     end
   end
+
+  describe "top_n/1" do
+    test "returns the largest numeric pairs" do
+      {:ok, _} = Query.write("a", 5)
+      {:ok, _} = Query.write("b", 20)
+      {:ok, _} = Query.write("c", 10)
+      {:ok, _} = Query.write("d", "skip")
+
+      assert Query.top_n(2) == [{"b", 20}, {"c", 10}]
+      assert Query.top_n(0) == []
+    end
+  end
 end
