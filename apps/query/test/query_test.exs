@@ -1248,4 +1248,15 @@ defmodule QueryTest do
       assert Query.top_n(0) == []
     end
   end
+
+  describe "bottom_n/1" do
+    test "returns the smallest numeric pairs" do
+      {:ok, _} = Query.write("a", 5)
+      {:ok, _} = Query.write("b", 20)
+      {:ok, _} = Query.write("c", 10)
+
+      assert Query.bottom_n(2) == [{"a", 5}, {"c", 10}]
+      assert Query.bottom_n(0) == []
+    end
+  end
 end

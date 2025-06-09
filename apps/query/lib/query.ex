@@ -1250,6 +1250,17 @@ defmodule Query do
   end
 
   @doc """
+  Returns the smallest `n` `{key, value}` pairs by numeric value, in ascending
+  value order. Non-numeric values are ignored. Scans the whole store.
+  """
+  @spec bottom_n(non_neg_integer()) :: [{term(), number()}]
+  def bottom_n(n) when is_integer(n) and n >= 0 do
+    numeric_pairs()
+    |> Enum.sort_by(&elem(&1, 1))
+    |> Enum.take(n)
+  end
+
+  @doc """
   Returns the store's `{key, value}` pairs where the value is a numeric number,
   sorted by key. A read-only projection to the numeric subset.
   """
