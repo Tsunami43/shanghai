@@ -383,4 +383,17 @@ defmodule Cluster.Entities.NodeTest do
       refute Node.fresh?(never, 60_000)
     end
   end
+
+  describe "routable?/2" do
+    test "requires up status and a fresh heartbeat" do
+      node = Node.new(NodeId.new("n1"), "h", 4000)
+      assert Node.routable?(node, 60_000)
+
+      down = Node.mark_down(node)
+      refute Node.routable?(down, 60_000)
+
+      stale = %{node | last_seen_at: DateTime.add(DateTime.utc_now(), -100, :second)}
+      refute Node.routable?(stale, 1_000)
+    end
+  end
 end

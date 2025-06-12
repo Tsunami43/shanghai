@@ -90,6 +90,15 @@ defmodule Cluster.Entities.Node do
   def up?(%__MODULE__{}), do: false
 
   @doc """
+  Returns `true` when the node is available (`:up`) and its last heartbeat is
+  fresh (age at most `max_age_ms`). Combines status and liveness for routing.
+  """
+  @spec routable?(t(), non_neg_integer()) :: boolean()
+  def routable?(%__MODULE__{} = node, max_age_ms) do
+    up?(node) and fresh?(node, max_age_ms)
+  end
+
+  @doc """
   Returns true if the node is currently down.
   """
   @spec down?(t()) :: boolean()
