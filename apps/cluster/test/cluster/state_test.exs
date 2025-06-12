@@ -422,6 +422,24 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "routable_nodes/2" do
+    test "returns up nodes with a fresh heartbeat" do
+      cluster = State.new(NodeId.new("local"))
+      fresh = Node.new(NodeId.new("fresh"), "h", 4001)
+
+      stale =
+        %{
+          Node.new(NodeId.new("stale"), "h", 4002)
+          | last_seen_at: DateTime.add(DateTime.utc_now(), -100, :second)
+        }
+
+      {:ok, cluster} = State.add_node(cluster, fresh)
+      {:ok, cluster} = State.add_node(cluster, stale)
+
+      assert Enum.map(State.routable_nodes(cluster, 1_000), & &1.id.value) == ["fresh"]
+    end
+  end
+
   describe "available_nodes/1" do
     test "returns up nodes sorted by id" do
       cluster = State.new(NodeId.new("local"))

@@ -369,6 +369,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the nodes that are routable — `:up` and with a heartbeat within
+  `max_age_ms` — sorted by node id.
+  """
+  @spec routable_nodes(t(), non_neg_integer()) :: [Node.t()]
+  def routable_nodes(%__MODULE__{} = cluster, max_age_ms) do
+    cluster
+    |> all_nodes()
+    |> Enum.filter(&Node.routable?(&1, max_age_ms))
+    |> Enum.sort_by(& &1.id.value)
+  end
+
+  @doc """
   Returns the nodes whose last heartbeat is within `max_age_ms` (recently seen),
   sorted by node id. Never-seen nodes are excluded.
   """
