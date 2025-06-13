@@ -298,6 +298,13 @@ defmodule Cluster.State do
   def namespace_count(%__MODULE__{} = cluster), do: length(namespaces(cluster))
 
   @doc """
+  Returns `true` when the cluster spans more than one distinct id namespace —
+  nodes are drawn from multiple regions/racks.
+  """
+  @spec multi_namespace?(t()) :: boolean()
+  def multi_namespace?(%__MODULE__{} = cluster), do: namespace_count(cluster) > 1
+
+  @doc """
   Returns the distinct id namespaces present in the cluster (the segment before
   the first `-`), sorted.
   """

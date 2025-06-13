@@ -399,6 +399,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "multi_namespace?/1" do
+    test "detects nodes across multiple namespaces" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("eu-1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("eu-2"), "h", 4002))
+      refute State.multi_namespace?(cluster)
+
+      {:ok, spread} = State.add_node(cluster, Node.new(NodeId.new("us-1"), "h", 4003))
+      assert State.multi_namespace?(spread)
+    end
+  end
+
   describe "namespaces/1" do
     test "returns distinct sorted id namespaces" do
       cluster = State.new(NodeId.new("local"))
