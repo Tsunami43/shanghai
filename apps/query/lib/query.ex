@@ -1239,6 +1239,16 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the stored `{key, value}` pairs paginated: skips `offset` pairs (in key
+  order) and returns up to `limit`. A read-only page over the whole store.
+  """
+  @spec page(non_neg_integer(), non_neg_integer()) :: [{term(), term()}]
+  def page(offset, limit)
+      when is_integer(offset) and offset >= 0 and is_integer(limit) and limit >= 0 do
+    to_list() |> Enum.drop(offset) |> Enum.take(limit)
+  end
+
+  @doc """
   Returns the largest `n` `{key, value}` pairs by numeric value, in descending
   value order. Non-numeric values are ignored. Scans the whole store.
   """

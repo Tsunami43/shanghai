@@ -1259,4 +1259,15 @@ defmodule QueryTest do
       assert Query.bottom_n(0) == []
     end
   end
+
+  describe "page/2" do
+    test "returns a page of pairs by offset and limit" do
+      for k <- ["a", "b", "c", "d", "e"], do: {:ok, _} = Query.write(k, k)
+
+      assert Query.page(0, 2) == [{"a", "a"}, {"b", "b"}]
+      assert Query.page(2, 2) == [{"c", "c"}, {"d", "d"}]
+      assert Query.page(4, 10) == [{"e", "e"}]
+      assert Query.page(10, 5) == []
+    end
+  end
 end
