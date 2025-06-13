@@ -184,6 +184,16 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   def initial?(%__MODULE__{value: 0}), do: true
   def initial?(%__MODULE__{}), do: false
 
+  @doc """
+  Returns the average of a non-empty list of offsets as an offset (integer
+  division). Raises on an empty list.
+  """
+  @spec average([t(), ...]) :: t()
+  def average([_ | _] = offsets) do
+    total = Enum.reduce(offsets, 0, fn %__MODULE__{value: v}, acc -> acc + v end)
+    new(div(total, length(offsets)))
+  end
+
   @doc "Returns the later (greater) of two offsets."
   @spec later(t(), t()) :: t()
   def later(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do

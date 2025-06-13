@@ -317,4 +317,12 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.at_most(ReplicationOffset.new(3), ReplicationOffset.new(5)).value ==
              3
   end
+
+  test "average/1 returns the mean offset (integer)" do
+    offsets = [ReplicationOffset.new(2), ReplicationOffset.new(4), ReplicationOffset.new(6)]
+    assert ReplicationOffset.average(offsets).value == 4
+
+    assert ReplicationOffset.average([ReplicationOffset.new(3), ReplicationOffset.new(4)]).value ==
+             3
+  end
 end
