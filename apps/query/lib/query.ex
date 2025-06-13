@@ -1239,6 +1239,25 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Increments the numeric values of every key under `namespace` by `amount`
+  (default `1`) as one atomic transaction, treating a missing/non-numeric value
+  as `0`. Returns `{:ok, :committed}`.
+  """
+  @spec increment_namespace(binary(), number(), binary()) :: {:ok, :committed} | {:error, term()}
+  def increment_namespace(namespace, amount \\ 1, separator \\ ":")
+      when is_binary(namespace) and is_number(amount) do
+    prefix = namespace <> separator
+
+    ops =
+      for {key, value} <- Query.Store.scan(prefix, []) do
+        base = if is_number(value), do: value, else: 0
+        {:write, key, base + amount}
+      end
+
+    transact(ops)
+  end
+
+  @doc """
   Returns the stored `{key, value}` pairs paginated: skips `offset` pairs (in key
   order) and returns up to `limit`. A read-only page over the whole store.
   """

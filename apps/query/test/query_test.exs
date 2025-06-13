@@ -1270,4 +1270,18 @@ defmodule QueryTest do
       assert Query.page(10, 5) == []
     end
   end
+
+  describe "increment_namespace/3" do
+    test "bumps every numeric value under a namespace" do
+      {:ok, _} = Query.write("counter:a", 1)
+      {:ok, _} = Query.write("counter:b", 5)
+      {:ok, _} = Query.write("other:1", 100)
+
+      assert {:ok, :committed} = Query.increment_namespace("counter", 2)
+
+      assert Query.get("counter:a") == 3
+      assert Query.get("counter:b") == 7
+      assert Query.get("other:1") == 100
+    end
+  end
 end
