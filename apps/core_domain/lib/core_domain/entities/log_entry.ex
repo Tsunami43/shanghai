@@ -108,6 +108,16 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Returns `true` when a list of entries is sorted by ascending LSN (WAL order).
+  An empty or single-entry list is trivially ordered.
+  """
+  @spec ordered?([t()]) :: boolean()
+  def ordered?(entries) when is_list(entries) do
+    lsns = Enum.map(entries, &LogSequenceNumber.to_integer(&1.lsn))
+    lsns == Enum.sort(lsns)
+  end
+
+  @doc """
   Groups a list of entries by their producing node id, returning
   `%{node_id => [entries]}`. Each group preserves the input order.
   """

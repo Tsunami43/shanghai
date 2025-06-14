@@ -295,4 +295,14 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.metadata_count(entry) == 2
     assert LogEntry.metadata_count(LogEntry.new(LogSequenceNumber.new(1), "d", id)) == 0
   end
+
+  test "ordered?/1 checks ascending LSN order" do
+    id = %NodeId{value: "n"}
+    entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    assert LogEntry.ordered?([entry.(1), entry.(2), entry.(2), entry.(5)])
+    refute LogEntry.ordered?([entry.(2), entry.(1)])
+    assert LogEntry.ordered?([entry.(3)])
+    assert LogEntry.ordered?([])
+  end
 end
