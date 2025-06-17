@@ -1239,6 +1239,17 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the `{key, value}` pair with the largest key that is less than or equal
+  to `key`, or `nil` when none exists. A floor lookup over the sorted key space.
+  """
+  @spec floor_entry(term()) :: {term(), term()} | nil
+  def floor_entry(key) do
+    to_list()
+    |> Enum.take_while(fn {k, _v} -> k <= key end)
+    |> List.last()
+  end
+
+  @doc """
   Increments the numeric values of every key under `namespace` by `amount`
   (default `1`) as one atomic transaction, treating a missing/non-numeric value
   as `0`. Returns `{:ok, :committed}`.

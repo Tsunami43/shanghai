@@ -1284,4 +1284,17 @@ defmodule QueryTest do
       assert Query.get("other:1") == 100
     end
   end
+
+  describe "floor_entry/1" do
+    test "returns the largest pair with key <= the given key" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+      {:ok, _} = Query.write("e", 5)
+
+      assert Query.floor_entry("d") == {"c", 3}
+      assert Query.floor_entry("c") == {"c", 3}
+      assert Query.floor_entry("a") == {"a", 1}
+      assert Query.floor_entry("0") == nil
+    end
+  end
 end
