@@ -1297,4 +1297,17 @@ defmodule QueryTest do
       assert Query.floor_entry("0") == nil
     end
   end
+
+  describe "ceiling_entry/1" do
+    test "returns the smallest pair with key >= the given key" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+      {:ok, _} = Query.write("e", 5)
+
+      assert Query.ceiling_entry("b") == {"c", 3}
+      assert Query.ceiling_entry("c") == {"c", 3}
+      assert Query.ceiling_entry("e") == {"e", 5}
+      assert Query.ceiling_entry("z") == nil
+    end
+  end
 end

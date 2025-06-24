@@ -1250,6 +1250,16 @@ defmodule Query do
   end
 
   @doc """
+  Returns the `{key, value}` pair with the smallest key that is greater than or
+  equal to `key`, or `nil` when none exists. A ceiling lookup over the sorted key
+  space.
+  """
+  @spec ceiling_entry(term()) :: {term(), term()} | nil
+  def ceiling_entry(key) do
+    Enum.find(to_list(), fn {k, _v} -> k >= key end)
+  end
+
+  @doc """
   Increments the numeric values of every key under `namespace` by `amount`
   (default `1`) as one atomic transaction, treating a missing/non-numeric value
   as `0`. Returns `{:ok, :committed}`.
