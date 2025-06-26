@@ -44,6 +44,7 @@ defmodule Cluster.StatusTest do
     assert Cluster.meets_availability?(Cluster.health_ratio())
     assert is_list(Cluster.node_ids())
     assert is_list(Cluster.node_addresses())
+    assert is_list(Cluster.routable_nodes(60_000))
     assert is_list(Cluster.peer_ids())
     refute Cluster.local_node_id() in Cluster.peer_ids()
     assert is_list(Cluster.peers())

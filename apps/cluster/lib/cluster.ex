@@ -100,6 +100,15 @@ defmodule Cluster do
   @spec up_count() :: non_neg_integer()
   def up_count, do: State.status_count(cluster_state(), :up)
 
+  @doc """
+  Returns the nodes that are routable — `:up` with a heartbeat within
+  `max_age_ms` — sorted by node id. See `Cluster.State.routable_nodes/2`.
+  """
+  @spec routable_nodes(non_neg_integer()) :: [Node.t()]
+  def routable_nodes(max_age_ms) when is_integer(max_age_ms) do
+    State.routable_nodes(cluster_state(), max_age_ms)
+  end
+
   @doc "Returns the number of nodes currently marked `:down`."
   @spec down_count() :: non_neg_integer()
   def down_count, do: State.status_count(cluster_state(), :down)
