@@ -254,6 +254,24 @@ follow semantic versioning.
 - **Test stability**: fixed a real flaky in the `Node.mark_up/1` timestamp
   assertion (two `utc_now/0` calls could coincide) by pinning the prior
   timestamp and asserting the refresh advanced it.
+- **Ordered/paged Query access**: `floor_entry/1`, `ceiling_entry/1`, `page/2`,
+  `top_n/1`, `bottom_n/1`, `slice/1`, `find_key/1`, `first_key_where/1`,
+  `numeric_pairs/0`, `pairs_with_value/1`, `has_exactly?/1`, `string_keys?/0`,
+  `group_by_namespace/1`, `count_in_namespace/2`, and the atomic bulk ops
+  `rekey/1` and `increment_namespace/3`.
+- **Routing & availability**: `Node.fresh?/2` / `routable?/2`, `Cluster.State`
+  (`routable_nodes/2`, `meets_availability?/2`, `count_seen_within/2`,
+  `quorum_surplus/1`, `multi_namespace?/1`, `namespace_count/1`), and
+  `Cluster.meets_availability?/1`.
+- **Value-object clamps & stats**: `at_least/2` / `at_most/2` for
+  `LogSequenceNumber` and `ReplicationOffset`; `ReplicationOffset.average/1`;
+  `NodeMetadata` (`superset_of?/2`, `tag_values/3`); `Heartbeat`
+  (`metric_as_float/3`, `earliest_of/1`); `LogEntry` (`ordered?/1`,
+  `metadata_count/1`, `group_by_node/1`); `Node`
+  (`id_starts_with?/2`, `namespace/1`); and `ConsistencyLevel`
+  (`allows_stale_reads?/1`, `durable?/1`).
+- **Replication insight**: `min_lag/0`, `healthy_replica_count/0`,
+  `unhealthy_replicas/0`, `healthy_group_ratio/0`, and `no_replicas?/0`.
 - **CLI formatting**: a `Shanghaictl.Format` module (`bytes/1`, `count/1`,
   `percent/1`, `duration_ms/1`) now used to render human-readable sizes and
   ratios in `shanghaictl metrics`; `Options.int_option/3`.
