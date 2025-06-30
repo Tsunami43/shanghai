@@ -1310,4 +1310,16 @@ defmodule QueryTest do
       assert Query.ceiling_entry("z") == nil
     end
   end
+
+  describe "value_bounds/0" do
+    test "returns the numeric min and max or nil" do
+      assert Query.value_bounds() == nil
+
+      {:ok, _} = Query.write("a", 10)
+      {:ok, _} = Query.write("b", 3)
+      {:ok, _} = Query.write("c", "skip")
+
+      assert Query.value_bounds() == {3, 10}
+    end
+  end
 end

@@ -1239,6 +1239,22 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the smallest and largest numeric values as `{min, max}`, or `nil` when
+  there are no numeric values. Scans the whole store.
+  """
+  @spec value_bounds() :: {number(), number()} | nil
+  def value_bounds do
+    case numeric_pairs() do
+      [] ->
+        nil
+
+      pairs ->
+        values = Enum.map(pairs, &elem(&1, 1))
+        {Enum.min(values), Enum.max(values)}
+    end
+  end
+
+  @doc """
   Returns the `{key, value}` pair with the largest key that is less than or equal
   to `key`, or `nil` when none exists. A floor lookup over the sorted key space.
   """
