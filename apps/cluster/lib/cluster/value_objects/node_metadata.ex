@@ -77,6 +77,20 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   def capabilities(%__MODULE__{capabilities: caps}), do: caps |> MapSet.to_list() |> Enum.sort()
 
   @doc """
+  Returns the capabilities shared by every metadata in a non-empty list (the
+  intersection), sorted. Returns `[]` for an empty list.
+  """
+  @spec shared_capabilities([t()]) :: [atom()]
+  def shared_capabilities([]), do: []
+
+  def shared_capabilities([first | rest]) do
+    rest
+    |> Enum.reduce(first.capabilities, fn md, acc -> MapSet.intersection(acc, md.capabilities) end)
+    |> MapSet.to_list()
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns the capabilities present in `metadata` but not in `other` (the extra
   capabilities `metadata` advertises), as a sorted list.
   """

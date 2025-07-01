@@ -370,4 +370,21 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.superset_of?(md, [])
     refute NodeMetadata.superset_of?(md, [:storage, :replication])
   end
+
+  test "shared_capabilities/1 intersects a list of metadata" do
+    a =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:storage)
+      |> NodeMetadata.add_capability(:query)
+
+    b =
+      NodeMetadata.new()
+      |> NodeMetadata.add_capability(:query)
+      |> NodeMetadata.add_capability(:replication)
+
+    c = NodeMetadata.new() |> NodeMetadata.add_capability(:query)
+
+    assert NodeMetadata.shared_capabilities([a, b, c]) == [:query]
+    assert NodeMetadata.shared_capabilities([]) == []
+  end
 end
