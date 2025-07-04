@@ -205,4 +205,9 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.at_most(LSN.new(3), LSN.new(5)).value == 3
     assert LSN.at_most(LSN.new(5), LSN.new(5)).value == 5
   end
+
+  test "average/1 returns the mean LSN (integer)" do
+    assert LSN.average([LSN.new(2), LSN.new(4), LSN.new(6)]).value == 4
+    assert LSN.average([LSN.new(3), LSN.new(4)]).value == 3
+  end
 end
