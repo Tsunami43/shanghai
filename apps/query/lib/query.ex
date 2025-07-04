@@ -1239,6 +1239,19 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the keys immediately adjacent to `key` in sorted order as
+  `{predecessor, successor}`; either element is `nil` when there is none. `key`
+  need not exist in the store.
+  """
+  @spec neighbors(term()) :: {term() | nil, term() | nil}
+  def neighbors(key) do
+    sorted = keys() |> Enum.sort()
+    pred = sorted |> Enum.take_while(&(&1 < key)) |> List.last()
+    succ = Enum.find(sorted, &(&1 > key))
+    {pred, succ}
+  end
+
+  @doc """
   Returns the smallest and largest numeric values as `{min, max}`, or `nil` when
   there are no numeric values. Scans the whole store.
   """

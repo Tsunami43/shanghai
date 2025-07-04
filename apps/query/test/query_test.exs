@@ -1322,4 +1322,15 @@ defmodule QueryTest do
       assert Query.value_bounds() == {3, 10}
     end
   end
+
+  describe "neighbors/1" do
+    test "returns the adjacent keys in sorted order" do
+      for k <- ["a", "c", "e"], do: {:ok, _} = Query.write(k, k)
+
+      assert Query.neighbors("c") == {"a", "e"}
+      assert Query.neighbors("d") == {"c", "e"}
+      assert Query.neighbors("a") == {nil, "c"}
+      assert Query.neighbors("z") == {"e", nil}
+    end
+  end
 end
