@@ -298,6 +298,22 @@ defmodule Cluster.State do
   def namespace_count(%__MODULE__{} = cluster), do: length(namespaces(cluster))
 
   @doc """
+  Returns `true` when at least `min_up` nodes are `:up` in every id namespace —
+  a per-region availability floor. Namespaces with no `:up` node fail the check.
+  """
+  @spec each_namespace_available?(t(), pos_integer()) :: boolean()
+  def each_namespace_available?(%__MODULE__{} = cluster, min_up) when is_integer(min_up) do
+    up_by_ns =
+      cluster
+      |> nodes_with_status(:up)
+      |> Enum.frequencies_by(&Node.namespace/1)
+
+    namespaces = namespaces(cluster)
+
+    namespaces != [] and Enum.all?(namespaces, &(Map.get(up_by_ns, &1, 0) >= min_up))
+  end
+
+  @doc """
   Returns `true` when the cluster spans more than one distinct id namespace —
   nodes are drawn from multiple regions/racks.
   """

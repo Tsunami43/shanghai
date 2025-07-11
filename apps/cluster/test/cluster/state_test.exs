@@ -411,6 +411,19 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "each_namespace_available?/2" do
+    test "requires at least min_up up nodes per namespace" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("eu-1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("us-1"), "h", 4002))
+
+      assert State.each_namespace_available?(cluster, 1)
+
+      {:ok, degraded} = State.mark_node_down(cluster, NodeId.new("us-1"))
+      refute State.each_namespace_available?(degraded, 1)
+    end
+  end
+
   describe "namespaces/1" do
     test "returns distinct sorted id namespaces" do
       cluster = State.new(NodeId.new("local"))
