@@ -1333,4 +1333,16 @@ defmodule QueryTest do
       assert Query.neighbors("z") == {"e", nil}
     end
   end
+
+  describe "contains_all?/1" do
+    test "checks that every given key exists" do
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+
+      assert Query.contains_all?(["a", "b"])
+      assert Query.contains_all?(["a"])
+      assert Query.contains_all?([])
+      refute Query.contains_all?(["a", "c"])
+    end
+  end
 end

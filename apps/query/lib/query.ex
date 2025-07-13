@@ -1239,6 +1239,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns `true` when the store contains all of `keys` (a subset check). An empty
+  list is vacuously `true`.
+  """
+  @spec contains_all?([term()]) :: boolean()
+  def contains_all?(keys) when is_list(keys) do
+    MapSet.subset?(MapSet.new(keys), MapSet.new(keys()))
+  end
+
+  @doc """
   Returns the keys immediately adjacent to `key` in sorted order as
   `{predecessor, successor}`; either element is `nil` when there is none. `key`
   need not exist in the store.
