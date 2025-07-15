@@ -303,4 +303,18 @@ defmodule Replication.SummaryTest do
              is_binary(gid) and match?(%NodeId{}, nid)
            end)
   end
+
+  test "empty_group_ids/0 lists groups with no replicas" do
+    Replication.Monitor.record_leader_offset("eg-1", ReplicationOffset.new(1))
+
+    assert "eg-1" in Replication.empty_group_ids()
+
+    Replication.Monitor.record_follower_offset(
+      "eg-1",
+      NodeId.new("eg-f1"),
+      ReplicationOffset.new(1)
+    )
+
+    refute "eg-1" in Replication.empty_group_ids()
+  end
 end

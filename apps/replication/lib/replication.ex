@@ -162,6 +162,18 @@ defmodule Replication do
     |> Enum.sort()
   end
 
+  @doc """
+  Returns the ids of replication groups with no tracked replicas (a
+  leader-only or misconfigured group), sorted.
+  """
+  @spec empty_group_ids() :: [String.t()]
+  def empty_group_ids do
+    all_groups()
+    |> Enum.filter(fn group -> map_size(Map.get(group, :replicas, %{})) == 0 end)
+    |> Enum.map(& &1.group_id)
+    |> Enum.sort()
+  end
+
   @doc "Returns `true` when no replication groups are being tracked."
   @spec no_groups?() :: boolean()
   def no_groups?, do: all_groups() == []
