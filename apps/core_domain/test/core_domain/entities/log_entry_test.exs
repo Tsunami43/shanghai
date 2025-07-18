@@ -305,4 +305,12 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.ordered?([entry.(3)])
     assert LogEntry.ordered?([])
   end
+
+  test "gaps/1 reports LSN jumps in an ordered list" do
+    id = %NodeId{value: "n"}
+    entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    assert LogEntry.gaps([entry.(1), entry.(2), entry.(5), entry.(6)]) == [{2, 5}]
+    assert LogEntry.gaps([entry.(1), entry.(2), entry.(3)]) == []
+  end
 end

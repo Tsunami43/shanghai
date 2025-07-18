@@ -71,6 +71,20 @@ defmodule CoreDomain.Entities.LogEntry do
     |> consecutive?()
   end
 
+  @doc """
+  Returns the LSN gaps in an ordered list of entries as `{after_lsn, before_lsn}`
+  integer tuples where a jump greater than one occurs. Empty when the list is
+  contiguous.
+  """
+  @spec gaps([t()]) :: [{non_neg_integer(), non_neg_integer()}]
+  def gaps(entries) when is_list(entries) do
+    entries
+    |> Enum.map(&LogSequenceNumber.to_integer(&1.lsn))
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.filter(fn [a, b] -> b > a + 1 end)
+    |> Enum.map(fn [a, b] -> {a, b} end)
+  end
+
   defp consecutive?([]), do: true
   defp consecutive?([_single]), do: true
 
