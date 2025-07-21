@@ -396,4 +396,11 @@ defmodule Cluster.Entities.NodeTest do
       refute Node.routable?(stale, 1_000)
     end
   end
+
+  describe "summary/1" do
+    test "returns a compact id/address/status map" do
+      node = Node.new(NodeId.new("n7"), "hostA", 4007)
+      assert Node.summary(node) == %{id: "n7", address: "hostA:4007", status: :up}
+    end
+  end
 end

@@ -184,6 +184,15 @@ defmodule Cluster.Entities.Node do
   def id_value(%__MODULE__{id: %NodeId{value: value}}), do: value
 
   @doc """
+  Returns a serializable summary of the node: id, address, and status. A lighter
+  view than `to_map/1` for status listings.
+  """
+  @spec summary(t()) :: %{id: String.t(), address: String.t(), status: status()}
+  def summary(%__MODULE__{id: %NodeId{value: value}, status: status} = node) do
+    %{id: value, address: address(node), status: status}
+  end
+
+  @doc """
   Returns the node's id namespace (the segment before the first `-` in its id
   value). See `CoreDomain.Types.NodeId.namespace/2`.
   """
