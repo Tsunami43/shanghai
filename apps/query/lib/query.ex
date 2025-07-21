@@ -1239,6 +1239,18 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the `n` keys nearest to (and at or after) `key` in sorted order — a
+  bounded range scan starting at `key`.
+  """
+  @spec keys_from(term(), non_neg_integer()) :: [term()]
+  def keys_from(key, n) when is_integer(n) and n >= 0 do
+    keys()
+    |> Enum.sort()
+    |> Enum.drop_while(&(&1 < key))
+    |> Enum.take(n)
+  end
+
+  @doc """
   Returns `true` when the store contains all of `keys` (a subset check). An empty
   list is vacuously `true`.
   """

@@ -1345,4 +1345,14 @@ defmodule QueryTest do
       refute Query.contains_all?(["a", "c"])
     end
   end
+
+  describe "keys_from/2" do
+    test "returns n keys starting at or after a key" do
+      for k <- ["a", "b", "c", "d", "e"], do: {:ok, _} = Query.write(k, k)
+
+      assert Query.keys_from("c", 2) == ["c", "d"]
+      assert Query.keys_from("b5", 10) == ["c", "d", "e"]
+      assert Query.keys_from("z", 3) == []
+    end
+  end
 end
