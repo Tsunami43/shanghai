@@ -313,4 +313,12 @@ defmodule CoreDomain.Entities.LogEntryTest do
     assert LogEntry.gaps([entry.(1), entry.(2), entry.(5), entry.(6)]) == [{2, 5}]
     assert LogEntry.gaps([entry.(1), entry.(2), entry.(3)]) == []
   end
+
+  test "first_gap/1 returns the earliest gap or nil" do
+    id = %NodeId{value: "n"}
+    entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+    assert LogEntry.first_gap([entry.(1), entry.(3), entry.(9)]) == {1, 3}
+    assert LogEntry.first_gap([entry.(1), entry.(2)]) == nil
+  end
 end

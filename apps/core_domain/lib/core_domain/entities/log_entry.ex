@@ -85,6 +85,15 @@ defmodule CoreDomain.Entities.LogEntry do
     |> Enum.map(fn [a, b] -> {a, b} end)
   end
 
+  @doc """
+  Returns the first LSN gap in an ordered list of entries as `{after_lsn,
+  before_lsn}`, or `nil` when the list is contiguous.
+  """
+  @spec first_gap([t()]) :: {non_neg_integer(), non_neg_integer()} | nil
+  def first_gap(entries) when is_list(entries) do
+    entries |> gaps() |> List.first()
+  end
+
   defp consecutive?([]), do: true
   defp consecutive?([_single]), do: true
 
