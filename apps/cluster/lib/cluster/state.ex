@@ -382,6 +382,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns a compact serializable summary of every node (`id`, `address`,
+  `status`), sorted by node id. See `Cluster.Entities.Node.summary/1`.
+  """
+  @spec node_summaries(t()) :: [%{id: String.t(), address: String.t(), status: atom()}]
+  def node_summaries(%__MODULE__{} = cluster) do
+    cluster
+    |> all_nodes()
+    |> Enum.sort_by(& &1.id.value)
+    |> Enum.map(&Node.summary/1)
+  end
+
+  @doc """
   Returns the nodes available to serve traffic (status `:up`), sorted by node id.
   """
   @spec available_nodes(t()) :: [Node.t()]

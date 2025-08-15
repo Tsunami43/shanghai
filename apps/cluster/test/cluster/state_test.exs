@@ -476,6 +476,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "node_summaries/1" do
+    test "returns compact node maps sorted by id" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostB", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+
+      summaries = State.node_summaries(cluster)
+      assert Enum.map(summaries, & &1.id) == ["n1", "n2"]
+      assert Enum.all?(summaries, &Map.has_key?(&1, :address))
+    end
+  end
+
   describe "all_nodes/1" do
     test "returns all nodes in the cluster" do
       local_id = NodeId.new("local")
