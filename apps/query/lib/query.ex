@@ -1239,6 +1239,19 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the median of the store's numeric values, or `nil` when there are none.
+  For an even count, returns the lower of the two central values. Scans the whole
+  store.
+  """
+  @spec median_value() :: number() | nil
+  def median_value do
+    case numeric_pairs() |> Enum.map(&elem(&1, 1)) |> Enum.sort() do
+      [] -> nil
+      sorted -> Enum.at(sorted, div(length(sorted) - 1, 2))
+    end
+  end
+
+  @doc """
   Returns the `n` keys nearest to (and at or after) `key` in sorted order — a
   bounded range scan starting at `key`.
   """

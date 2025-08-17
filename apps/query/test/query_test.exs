@@ -1355,4 +1355,20 @@ defmodule QueryTest do
       assert Query.keys_from("z", 3) == []
     end
   end
+
+  describe "median_value/0" do
+    test "returns the median numeric value" do
+      assert Query.median_value() == nil
+
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 5)
+      {:ok, _} = Query.write("c", 3)
+
+      assert Query.median_value() == 3
+
+      {:ok, _} = Query.write("d", 9)
+      # even count: lower of the two central (3 and 5) -> 3
+      assert Query.median_value() == 3
+    end
+  end
 end
