@@ -325,4 +325,10 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     assert ReplicationOffset.average([ReplicationOffset.new(3), ReplicationOffset.new(4)]).value ==
              3
   end
+
+  test "multiple_of?/2 checks divisibility of the offset value" do
+    assert ReplicationOffset.multiple_of?(ReplicationOffset.new(100), 10)
+    refute ReplicationOffset.multiple_of?(ReplicationOffset.new(105), 10)
+    assert ReplicationOffset.multiple_of?(ReplicationOffset.zero(), 10)
+  end
 end

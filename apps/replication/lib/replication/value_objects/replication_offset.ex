@@ -126,6 +126,12 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   @spec to_integer(t()) :: non_neg_integer()
   def to_integer(%__MODULE__{value: value}), do: value
 
+  @doc "Returns `true` when the offset value is a whole multiple of `n`."
+  @spec multiple_of?(t(), pos_integer()) :: boolean()
+  def multiple_of?(%__MODULE__{value: value}, n) when is_integer(n) and n > 0 do
+    rem(value, n) == 0
+  end
+
   @doc """
   Returns `true` when this offset is at or before `target` (has not yet passed
   it).
