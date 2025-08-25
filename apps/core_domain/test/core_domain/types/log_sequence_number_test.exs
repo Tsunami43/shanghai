@@ -210,4 +210,10 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     assert LSN.average([LSN.new(2), LSN.new(4), LSN.new(6)]).value == 4
     assert LSN.average([LSN.new(3), LSN.new(4)]).value == 3
   end
+
+  test "multiple_of?/2 checks divisibility of the LSN value" do
+    assert LSN.multiple_of?(LSN.new(100), 10)
+    refute LSN.multiple_of?(LSN.new(105), 10)
+    assert LSN.multiple_of?(LSN.zero(), 10)
+  end
 end

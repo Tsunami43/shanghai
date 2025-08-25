@@ -175,6 +175,12 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec to_integer(t()) :: non_neg_integer()
   def to_integer(%__MODULE__{value: value}), do: value
 
+  @doc "Returns `true` when the LSN value is a whole multiple of `n` (a checkpoint boundary)."
+  @spec multiple_of?(t(), pos_integer()) :: boolean()
+  def multiple_of?(%__MODULE__{value: value}, n) when is_integer(n) and n > 0 do
+    rem(value, n) == 0
+  end
+
   @doc """
   Returns a display string for the LSN in the form `"LSN(n)"`.
 
