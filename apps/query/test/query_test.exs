@@ -1371,4 +1371,16 @@ defmodule QueryTest do
       assert Query.median_value() == 3
     end
   end
+
+  describe "chunks/1" do
+    test "batches pairs in key order" do
+      for k <- ["a", "b", "c", "d", "e"], do: {:ok, _} = Query.write(k, k)
+
+      assert Query.chunks(2) == [
+               [{"a", "a"}, {"b", "b"}],
+               [{"c", "c"}, {"d", "d"}],
+               [{"e", "e"}]
+             ]
+    end
+  end
 end

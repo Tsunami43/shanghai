@@ -1239,6 +1239,15 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the store's `{key, value}` pairs in chunks of at most `size`, in key
+  order. Useful for batch processing a large key space. `size` must be positive.
+  """
+  @spec chunks(pos_integer()) :: [[{term(), term()}]]
+  def chunks(size) when is_integer(size) and size > 0 do
+    Enum.chunk_every(to_list(), size)
+  end
+
+  @doc """
   Returns the median of the store's numeric values, or `nil` when there are none.
   For an even count, returns the lower of the two central values. Scans the whole
   store.
