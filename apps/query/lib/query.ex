@@ -1239,6 +1239,21 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Copies a single key to `to`, preserving the source, only when `to` does not
+  already exist. Returns `{:ok, :copied}`, `{:error, :not_found}` when the source
+  is missing, or `{:error, :exists}` when the target is taken.
+  """
+  @spec copy_new(String.t(), String.t()) ::
+          {:ok, :copied} | {:error, :not_found | :exists}
+  def copy_new(from, to) do
+    cond do
+      not exists?(from) -> {:error, :not_found}
+      exists?(to) -> {:error, :exists}
+      true -> with {:ok, :copied} <- copy(from, to), do: {:ok, :copied}
+    end
+  end
+
+  @doc """
   Renames a single key to `to`, preserving its value, only when `to` does not
   already exist. Returns `{:ok, :renamed}`, `{:error, :not_found}` when the
   source is missing, or `{:error, :exists}` when the target is taken.

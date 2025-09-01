@@ -1396,4 +1396,17 @@ defmodule QueryTest do
       assert {:error, :not_found} = Query.rename_new("missing", "z")
     end
   end
+
+  describe "copy_new/2" do
+    test "copies only when the target is free" do
+      {:ok, _} = Query.write("a", 1)
+
+      assert {:ok, :copied} = Query.copy_new("a", "b")
+      assert Query.get("a") == 1
+      assert Query.get("b") == 1
+
+      assert {:error, :exists} = Query.copy_new("a", "b")
+      assert {:error, :not_found} = Query.copy_new("missing", "z")
+    end
+  end
 end
