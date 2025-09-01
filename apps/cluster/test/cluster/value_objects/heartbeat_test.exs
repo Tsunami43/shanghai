@@ -294,4 +294,14 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.metric_as_float(hb, :missing, 0.5) == 0.5
     end
   end
+
+  describe "has_all_metrics?/2" do
+    test "checks for every required metric key" do
+      hb = Heartbeat.new(NodeId.new("n1"), 1, %{cpu: 0.5, mem: 0.7})
+
+      assert Heartbeat.has_all_metrics?(hb, [:cpu, :mem])
+      assert Heartbeat.has_all_metrics?(hb, [])
+      refute Heartbeat.has_all_metrics?(hb, [:cpu, :disk])
+    end
+  end
 end

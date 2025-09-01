@@ -176,6 +176,14 @@ defmodule Cluster.ValueObjects.Heartbeat do
   def metric_count(%__MODULE__{metrics: metrics}), do: map_size(metrics)
 
   @doc """
+  Returns `true` when the heartbeat carries every metric key in `keys`.
+  """
+  @spec has_all_metrics?(t(), [term()]) :: boolean()
+  def has_all_metrics?(%__MODULE__{metrics: metrics}, keys) when is_list(keys) do
+    Enum.all?(keys, &Map.has_key?(metrics, &1))
+  end
+
+  @doc """
   Returns the numeric metric `key` as a float, or `default` when the metric is
   absent or non-numeric. Useful for reading health gauges.
   """
