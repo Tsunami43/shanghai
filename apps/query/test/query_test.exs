@@ -1383,4 +1383,17 @@ defmodule QueryTest do
              ]
     end
   end
+
+  describe "rename_new/2" do
+    test "renames only when the target is free" do
+      {:ok, _} = Query.write("a", 1)
+
+      assert {:ok, :renamed} = Query.rename_new("a", "b")
+      assert Query.get("b") == 1
+
+      {:ok, _} = Query.write("c", 3)
+      assert {:error, :exists} = Query.rename_new("c", "b")
+      assert {:error, :not_found} = Query.rename_new("missing", "z")
+    end
+  end
 end

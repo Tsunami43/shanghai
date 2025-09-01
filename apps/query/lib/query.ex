@@ -1239,6 +1239,21 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Renames a single key to `to`, preserving its value, only when `to` does not
+  already exist. Returns `{:ok, :renamed}`, `{:error, :not_found}` when the
+  source is missing, or `{:error, :exists}` when the target is taken.
+  """
+  @spec rename_new(String.t(), String.t()) ::
+          {:ok, :renamed} | {:error, :not_found | :exists}
+  def rename_new(from, to) do
+    cond do
+      not exists?(from) -> {:error, :not_found}
+      exists?(to) -> {:error, :exists}
+      true -> with {:ok, :renamed} <- rename(from, to), do: {:ok, :renamed}
+    end
+  end
+
+  @doc """
   Returns the store's `{key, value}` pairs in chunks of at most `size`, in key
   order. Useful for batch processing a large key space. `size` must be positive.
   """
