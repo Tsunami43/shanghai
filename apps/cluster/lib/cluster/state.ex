@@ -281,6 +281,18 @@ defmodule Cluster.State do
     |> Enum.sort_by(& &1.id.value)
   end
 
+  @doc """
+  Returns the nodes in the given id namespace (segment before the first `-`),
+  sorted by node id.
+  """
+  @spec nodes_in_namespace(t(), String.t()) :: [Node.t()]
+  def nodes_in_namespace(%__MODULE__{} = cluster, namespace) when is_binary(namespace) do
+    cluster
+    |> all_nodes()
+    |> Enum.filter(&(Node.namespace(&1) == namespace))
+    |> Enum.sort_by(& &1.id.value)
+  end
+
   @doc "Returns the number of nodes located on `host`."
   @spec count_on_host(t(), String.t()) :: non_neg_integer()
   def count_on_host(%__MODULE__{nodes: nodes}, host) do
