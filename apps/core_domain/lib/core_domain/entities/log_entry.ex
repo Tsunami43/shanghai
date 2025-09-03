@@ -202,6 +202,16 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Returns the `{first, last}` LSN span of a non-empty list of entries as raw
+  integers. Raises on an empty list.
+  """
+  @spec lsn_span([t(), ...]) :: {non_neg_integer(), non_neg_integer()}
+  def lsn_span([_ | _] = entries) do
+    values = Enum.map(entries, &LogSequenceNumber.to_integer(&1.lsn))
+    {Enum.min(values), Enum.max(values)}
+  end
+
+  @doc """
   Returns the entry with the highest LSN of a non-empty list (the most recent).
   Raises on an empty list.
   """
