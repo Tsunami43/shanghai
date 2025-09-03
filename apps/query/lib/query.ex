@@ -1239,6 +1239,20 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the product of the numeric values for `keys` (missing or non-numeric
+  values are treated as `1`). Empty list yields `1`.
+  """
+  @spec product_of([String.t()]) :: number()
+  def product_of(keys) when is_list(keys) do
+    Enum.reduce(keys, 1, fn key, acc ->
+      case get(key) do
+        value when is_number(value) -> acc * value
+        _ -> acc
+      end
+    end)
+  end
+
+  @doc """
   Copies a single key to `to`, preserving the source, only when `to` does not
   already exist. Returns `{:ok, :copied}`, `{:error, :not_found}` when the source
   is missing, or `{:error, :exists}` when the target is taken.

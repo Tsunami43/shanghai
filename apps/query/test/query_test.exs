@@ -1409,4 +1409,15 @@ defmodule QueryTest do
       assert {:error, :not_found} = Query.copy_new("missing", "z")
     end
   end
+
+  describe "product_of/1" do
+    test "multiplies numeric values, ignoring others" do
+      {:ok, _} = Query.write("a", 2)
+      {:ok, _} = Query.write("b", 3)
+      {:ok, _} = Query.write("c", "skip")
+
+      assert Query.product_of(["a", "b", "c", "missing"]) == 6
+      assert Query.product_of([]) == 1
+    end
+  end
 end
