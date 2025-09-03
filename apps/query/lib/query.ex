@@ -1239,6 +1239,23 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the keys grouped by the length of their string form, as
+  `%{length => [keys]}` (each list sorted). Non-binary keys use their inspected
+  form's length. Scans the whole store.
+  """
+  @spec keys_by_length() :: %{optional(non_neg_integer()) => [term()]}
+  def keys_by_length do
+    keys()
+    |> Enum.group_by(fn key ->
+      key |> to_key_string() |> String.length()
+    end)
+    |> Map.new(fn {len, ks} -> {len, Enum.sort(ks)} end)
+  end
+
+  defp to_key_string(key) when is_binary(key), do: key
+  defp to_key_string(key), do: inspect(key)
+
+  @doc """
   Returns the product of the numeric values for `keys` (missing or non-numeric
   values are treated as `1`). Empty list yields `1`.
   """

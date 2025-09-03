@@ -1420,4 +1420,14 @@ defmodule QueryTest do
       assert Query.product_of([]) == 1
     end
   end
+
+  describe "keys_by_length/0" do
+    test "groups keys by string length" do
+      {:ok, _} = Query.write("ab", 1)
+      {:ok, _} = Query.write("cd", 2)
+      {:ok, _} = Query.write("xyz", 3)
+
+      assert Query.keys_by_length() == %{2 => ["ab", "cd"], 3 => ["xyz"]}
+    end
+  end
 end
