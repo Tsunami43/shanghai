@@ -436,6 +436,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "up_by_namespace/1" do
+    test "counts up nodes per namespace" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("eu-1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("eu-2"), "h", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("us-1"), "h", 4003))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("us-1"))
+
+      assert State.up_by_namespace(cluster) == %{"eu" => 2}
+    end
+  end
+
   describe "namespaces/1" do
     test "returns distinct sorted id namespaces" do
       cluster = State.new(NodeId.new("local"))
