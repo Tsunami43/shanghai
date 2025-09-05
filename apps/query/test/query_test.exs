@@ -1430,4 +1430,18 @@ defmodule QueryTest do
       assert Query.keys_by_length() == %{2 => ["ab", "cd"], 3 => ["xyz"]}
     end
   end
+
+  describe "update_namespace/3" do
+    test "transforms every value under a namespace atomically" do
+      {:ok, _} = Query.write("n:a", 1)
+      {:ok, _} = Query.write("n:b", 2)
+      {:ok, _} = Query.write("other:1", 100)
+
+      assert {:ok, :committed} = Query.update_namespace("n", &(&1 * 10))
+
+      assert Query.get("n:a") == 10
+      assert Query.get("n:b") == 20
+      assert Query.get("other:1") == 100
+    end
+  end
 end

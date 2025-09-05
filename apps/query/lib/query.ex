@@ -1239,6 +1239,19 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Applies `fun` to the value of every key under `namespace` as one atomic
+  transaction, storing each result. Returns `{:ok, :committed}`.
+  """
+  @spec update_namespace(binary(), (term() -> term()), binary()) ::
+          {:ok, :committed} | {:error, term()}
+  def update_namespace(namespace, fun, separator \\ ":")
+      when is_binary(namespace) and is_function(fun, 1) do
+    prefix = namespace <> separator
+    ops = for {key, value} <- Query.Store.scan(prefix, []), do: {:write, key, fun.(value)}
+    transact(ops)
+  end
+
+  @doc """
   Returns the keys grouped by the length of their string form, as
   `%{length => [keys]}` (each list sorted). Non-binary keys use their inspected
   form's length. Scans the whole store.
