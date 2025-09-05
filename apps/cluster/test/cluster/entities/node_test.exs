@@ -403,4 +403,12 @@ defmodule Cluster.Entities.NodeTest do
       assert Node.summary(node) == %{id: "n7", address: "hostA:4007", status: :up}
     end
   end
+
+  describe "in_namespace?/2" do
+    test "checks the node's id namespace" do
+      node = Node.new(NodeId.new("eu-1"), "h", 4000)
+      assert Node.in_namespace?(node, "eu")
+      refute Node.in_namespace?(node, "us")
+    end
+  end
 end

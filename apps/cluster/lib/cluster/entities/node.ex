@@ -150,6 +150,12 @@ defmodule Cluster.Entities.Node do
   def on_host?(%__MODULE__{host: host}, host), do: true
   def on_host?(%__MODULE__{}, _host), do: false
 
+  @doc "Returns `true` when the node is in the given id namespace."
+  @spec in_namespace?(t(), String.t()) :: boolean()
+  def in_namespace?(%__MODULE__{} = node, namespace) when is_binary(namespace) do
+    namespace(node) == namespace
+  end
+
   @doc "Returns `true` when the node's address equals `address` (`host:port`)."
   @spec at_address?(t(), String.t()) :: boolean()
   def at_address?(%__MODULE__{} = node, address) when is_binary(address) do
