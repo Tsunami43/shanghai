@@ -272,6 +272,20 @@ follow semantic versioning.
   (`allows_stale_reads?/1`, `durable?/1`).
 - **Replication insight**: `min_lag/0`, `healthy_replica_count/0`,
   `unhealthy_replicas/0`, `healthy_group_ratio/0`, and `no_replicas?/0`.
+- **Query stats, ranges & bulk ops**: `median_value/0`, `value_bounds/0`,
+  `neighbors/1`, `keys_from/2`, `chunks/1`, `page/2`, `product_of/1`,
+  `keys_by_length/0`, `contains_all?/1`, and the atomic bulk transforms
+  `update_namespace/3`, `increment_namespace/3`, plus collision-safe
+  `rename_new/2` / `copy_new/2`.
+- **Namespace/routing helpers**: `Node.in_namespace?/2`, `Cluster.State`
+  (`up_by_namespace/1`, `nodes_in_namespace/2`, `each_namespace_available?/2`,
+  `multi_namespace?/1`, `node_summaries/1`, `routable_nodes/2`), `Node.summary/1`
+  / `routable?/2` / `fresh?/2`, and `Cluster.routable_nodes/1`.
+- **Value-object stats & checkpoints**: `average/1` for `LogSequenceNumber` and
+  `ReplicationOffset`; `multiple_of?/2` (both) for checkpoint-boundary checks;
+  `NodeMetadata.shared_capabilities/1`; `Heartbeat.has_all_metrics?/2`; and
+  `LogEntry` (`gaps/1`, `first_gap/1`, `ordered?/1`, `lsn_span/1`).
+- **Replication**: `empty_group_ids/0` and `unhealthy_group_count/0`.
 - **CLI formatting**: a `Shanghaictl.Format` module (`bytes/1`, `count/1`,
   `percent/1`, `duration_ms/1`) now used to render human-readable sizes and
   ratios in `shanghaictl metrics`; `Options.int_option/3`.
