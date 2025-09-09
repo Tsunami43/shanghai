@@ -101,6 +101,13 @@ defmodule Cluster do
   def up_count, do: State.status_count(cluster_state(), :up)
 
   @doc """
+  Returns a map of `namespace => up_node_count` across the live cluster. See
+  `Cluster.State.up_by_namespace/1`.
+  """
+  @spec up_by_namespace() :: %{optional(String.t()) => non_neg_integer()}
+  def up_by_namespace, do: State.up_by_namespace(cluster_state())
+
+  @doc """
   Returns the nodes that are routable — `:up` with a heartbeat within
   `max_age_ms` — sorted by node id. See `Cluster.State.routable_nodes/2`.
   """
