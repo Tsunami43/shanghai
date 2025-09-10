@@ -1444,4 +1444,15 @@ defmodule QueryTest do
       assert Query.get("other:1") == 100
     end
   end
+
+  describe "random_key/0" do
+    test "returns a stored key or nil" do
+      assert Query.random_key() == nil
+
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+
+      assert Query.random_key() in ["a", "b"]
+    end
+  end
 end

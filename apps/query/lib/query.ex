@@ -1239,6 +1239,18 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns a random stored key, or `nil` when the store is empty. Useful for
+  sampling or fuzz testing.
+  """
+  @spec random_key() :: term() | nil
+  def random_key do
+    case keys() do
+      [] -> nil
+      ks -> Enum.random(ks)
+    end
+  end
+
+  @doc """
   Applies `fun` to the value of every key under `namespace` as one atomic
   transaction, storing each result. Returns `{:ok, :committed}`.
   """
