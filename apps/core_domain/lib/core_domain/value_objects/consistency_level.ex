@@ -43,6 +43,15 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   def all, do: @valid_levels
 
   @doc """
+  Returns the levels at least as strong as `level` (itself included), sorted from
+  weakest to strongest.
+  """
+  @spec at_least_levels(t()) :: [t()]
+  def at_least_levels(level) when level in @valid_levels do
+    ordered() |> Enum.filter(&(rank(&1) >= rank(level)))
+  end
+
+  @doc """
   Returns all consistency levels sorted from weakest to strongest by `rank/1`:
   `[:eventual, :causal, :strong]`.
   """

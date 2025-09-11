@@ -144,4 +144,12 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       refute ConsistencyLevel.allows_stale_reads?(:causal)
     end
   end
+
+  describe "at_least_levels/1" do
+    test "returns levels at least as strong as the given one" do
+      assert ConsistencyLevel.at_least_levels(:causal) == [:causal, :strong]
+      assert ConsistencyLevel.at_least_levels(:eventual) == [:eventual, :causal, :strong]
+      assert ConsistencyLevel.at_least_levels(:strong) == [:strong]
+    end
+  end
 end
