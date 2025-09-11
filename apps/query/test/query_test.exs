@@ -1455,4 +1455,16 @@ defmodule QueryTest do
       assert Query.random_key() in ["a", "b"]
     end
   end
+
+  describe "longest_keys/0" do
+    test "returns the longest keys and their length or nil" do
+      assert Query.longest_keys() == nil
+
+      {:ok, _} = Query.write("ab", 1)
+      {:ok, _} = Query.write("xyz", 2)
+      {:ok, _} = Query.write("uvw", 3)
+
+      assert Query.longest_keys() == {3, ["uvw", "xyz"]}
+    end
+  end
 end

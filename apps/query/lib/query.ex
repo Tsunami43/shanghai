@@ -1239,6 +1239,18 @@ defmodule Query do
   defdelegate count(), to: Query.Store
 
   @doc """
+  Returns the keys with the longest string form, as `{length, [keys]}` (keys
+  sorted), or `nil` when the store is empty. Handy for spotting outlier keys.
+  """
+  @spec longest_keys() :: {non_neg_integer(), [term()]} | nil
+  def longest_keys do
+    case keys_by_length() do
+      map when map_size(map) == 0 -> nil
+      map -> map |> Enum.max_by(&elem(&1, 0))
+    end
+  end
+
+  @doc """
   Returns a random stored key, or `nil` when the store is empty. Useful for
   sampling or fuzz testing.
   """
