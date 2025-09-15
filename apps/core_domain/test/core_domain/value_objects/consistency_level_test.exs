@@ -145,6 +145,14 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
     end
   end
 
+  describe "at_most_levels/1" do
+    test "returns levels no stronger than the given one" do
+      assert ConsistencyLevel.at_most_levels(:causal) == [:eventual, :causal]
+      assert ConsistencyLevel.at_most_levels(:strong) == [:eventual, :causal, :strong]
+      assert ConsistencyLevel.at_most_levels(:eventual) == [:eventual]
+    end
+  end
+
   describe "at_least_levels/1" do
     test "returns levels at least as strong as the given one" do
       assert ConsistencyLevel.at_least_levels(:causal) == [:causal, :strong]
