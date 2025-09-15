@@ -242,6 +242,16 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec span([t(), ...]) :: {t(), t()}
   def span([_ | _] = lsns), do: {min_of(lsns), max_of(lsns)}
 
+  @doc """
+  Returns the median LSN of a non-empty list. For an even count the lower of the
+  two middle values is returned. Raises on an empty list.
+  """
+  @spec median([t(), ...]) :: t()
+  def median([_ | _] = lsns) do
+    sorted = sort(lsns)
+    Enum.at(sorted, div(length(sorted) - 1, 2))
+  end
+
   @doc "Returns `true` when the LSN is the zero (initial) LSN."
   @spec initial?(t()) :: boolean()
   def initial?(%__MODULE__{value: 0}), do: true

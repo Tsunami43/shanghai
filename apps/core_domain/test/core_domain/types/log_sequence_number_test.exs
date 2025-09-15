@@ -216,4 +216,16 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
     refute LSN.multiple_of?(LSN.new(105), 10)
     assert LSN.multiple_of?(LSN.zero(), 10)
   end
+
+  describe "median/1" do
+    test "returns the middle LSN for an odd count" do
+      lsns = [LSN.new(5), LSN.new(1), LSN.new(3)]
+      assert LSN.median(lsns) == LSN.new(3)
+    end
+
+    test "returns the lower-middle LSN for an even count" do
+      lsns = [LSN.new(4), LSN.new(2), LSN.new(8), LSN.new(6)]
+      assert LSN.median(lsns) == LSN.new(4)
+    end
+  end
 end
