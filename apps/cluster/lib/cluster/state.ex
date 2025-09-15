@@ -299,6 +299,12 @@ defmodule Cluster.State do
     Enum.count(Map.values(nodes), &(&1.host == host))
   end
 
+  @doc "Returns the number of nodes in the given id namespace."
+  @spec count_in_namespace(t(), String.t()) :: non_neg_integer()
+  def count_in_namespace(%__MODULE__{} = cluster, namespace) when is_binary(namespace) do
+    length(nodes_in_namespace(cluster, namespace))
+  end
+
   @doc "Returns the number of distinct hosts the cluster's nodes run on."
   @spec host_count(t()) :: non_neg_integer()
   def host_count(%__MODULE__{nodes: nodes}) do

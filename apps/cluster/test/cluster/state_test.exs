@@ -207,6 +207,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "count_in_namespace/2" do
+    test "counts nodes in an id namespace" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("eu-1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("eu-2"), "h", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("us-1"), "h", 4003))
+
+      assert State.count_in_namespace(cluster, "eu") == 2
+      assert State.count_in_namespace(cluster, "ap") == 0
+    end
+  end
+
   describe "nodes_in_namespace/2" do
     test "returns nodes in an id namespace sorted by id" do
       cluster = State.new(NodeId.new("local"))
