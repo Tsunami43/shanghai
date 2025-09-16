@@ -244,6 +244,16 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   @spec span([t(), ...]) :: {t(), t()}
   def span([_ | _] = offsets), do: {min_of(offsets), max_of(offsets)}
 
+  @doc """
+  Returns the median offset of a non-empty list. For an even count the lower of
+  the two middle values is returned. Raises on an empty list.
+  """
+  @spec median([t(), ...]) :: t()
+  def median([_ | _] = offsets) do
+    sorted = sort(offsets)
+    Enum.at(sorted, div(length(sorted) - 1, 2))
+  end
+
   @doc "Returns the earlier (lesser) of two offsets."
   @spec earlier(t(), t()) :: t()
   def earlier(%__MODULE__{value: a} = off_a, %__MODULE__{value: b} = off_b) do

@@ -331,4 +331,22 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
     refute ReplicationOffset.multiple_of?(ReplicationOffset.new(105), 10)
     assert ReplicationOffset.multiple_of?(ReplicationOffset.zero(), 10)
   end
+
+  describe "median/1" do
+    test "returns the middle offset for an odd count" do
+      offsets = [ReplicationOffset.new(5), ReplicationOffset.new(1), ReplicationOffset.new(3)]
+      assert ReplicationOffset.median(offsets) == ReplicationOffset.new(3)
+    end
+
+    test "returns the lower-middle offset for an even count" do
+      offsets = [
+        ReplicationOffset.new(4),
+        ReplicationOffset.new(2),
+        ReplicationOffset.new(8),
+        ReplicationOffset.new(6)
+      ]
+
+      assert ReplicationOffset.median(offsets) == ReplicationOffset.new(4)
+    end
+  end
 end
