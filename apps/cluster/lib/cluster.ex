@@ -108,6 +108,15 @@ defmodule Cluster do
   def up_by_namespace, do: State.up_by_namespace(cluster_state())
 
   @doc """
+  Returns the number of live-cluster nodes in the given id namespace. See
+  `Cluster.State.count_in_namespace/2`.
+  """
+  @spec count_in_namespace(String.t()) :: non_neg_integer()
+  def count_in_namespace(namespace) when is_binary(namespace) do
+    State.count_in_namespace(cluster_state(), namespace)
+  end
+
+  @doc """
   Returns the nodes that are routable — `:up` with a heartbeat within
   `max_age_ms` — sorted by node id. See `Cluster.State.routable_nodes/2`.
   """
