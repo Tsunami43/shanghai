@@ -1467,4 +1467,20 @@ defmodule QueryTest do
       assert Query.longest_keys() == {3, ["uvw", "xyz"]}
     end
   end
+
+  describe "sample_keys/1" do
+    test "returns up to n distinct random keys" do
+      assert Query.sample_keys(3) == []
+
+      for k <- ["a", "b", "c", "d"], do: {:ok, _} = Query.write(k, 1)
+
+      sample = Query.sample_keys(2)
+      assert length(sample) == 2
+      assert sample == Enum.uniq(sample)
+      assert Enum.all?(sample, &(&1 in ["a", "b", "c", "d"]))
+
+      assert length(Query.sample_keys(10)) == 4
+      assert Query.sample_keys(0) == []
+    end
+  end
 end

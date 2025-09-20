@@ -1263,6 +1263,15 @@ defmodule Query do
   end
 
   @doc """
+  Returns up to `n` distinct random stored keys. Fewer are returned when the
+  store holds fewer than `n` keys; an empty list when it is empty.
+  """
+  @spec sample_keys(non_neg_integer()) :: [term()]
+  def sample_keys(n) when is_integer(n) and n >= 0 do
+    keys() |> Enum.shuffle() |> Enum.take(n)
+  end
+
+  @doc """
   Applies `fun` to the value of every key under `namespace` as one atomic
   transaction, storing each result. Returns `{:ok, :committed}`.
   """
