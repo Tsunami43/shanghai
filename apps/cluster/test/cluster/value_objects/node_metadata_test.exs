@@ -387,4 +387,17 @@ defmodule Cluster.ValueObjects.NodeMetadataTest do
     assert NodeMetadata.shared_capabilities([a, b, c]) == [:query]
     assert NodeMetadata.shared_capabilities([]) == []
   end
+
+  describe "resource_names/1 and tag_names/1" do
+    test "return sorted keys" do
+      meta =
+        NodeMetadata.new(resources: %{cpu: 8, ram: 32})
+        |> NodeMetadata.put_tag(:zone, "eu")
+        |> NodeMetadata.put_tag(:rack, "r1")
+
+      assert NodeMetadata.resource_names(meta) == [:cpu, :ram]
+      assert NodeMetadata.tag_names(meta) == [:rack, :zone]
+      assert NodeMetadata.resource_names(NodeMetadata.new()) == []
+    end
+  end
 end

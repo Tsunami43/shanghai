@@ -169,6 +169,18 @@ defmodule Cluster.ValueObjects.NodeMetadata do
   @spec resource_count(t()) :: non_neg_integer()
   def resource_count(%__MODULE__{resources: resources}), do: map_size(resources)
 
+  @doc "Returns the resource keys, sorted."
+  @spec resource_names(t()) :: [atom() | String.t()]
+  def resource_names(%__MODULE__{resources: resources}) do
+    resources |> Map.keys() |> Enum.sort()
+  end
+
+  @doc "Returns the tag keys, sorted."
+  @spec tag_names(t()) :: [atom() | String.t()]
+  def tag_names(%__MODULE__{tags: tags}) do
+    tags |> Map.keys() |> Enum.sort()
+  end
+
   @doc "Returns `true` when a tag with `key` is set."
   @spec has_tag?(t(), atom() | String.t()) :: boolean()
   def has_tag?(%__MODULE__{tags: tags}, key), do: Map.has_key?(tags, key)
