@@ -283,6 +283,16 @@ defmodule CoreDomain.Entities.LogEntry do
   @spec metadata_keys(t()) :: [term()]
   def metadata_keys(%__MODULE__{metadata: metadata}), do: metadata |> Map.keys() |> Enum.sort()
 
+  @doc "Returns the full metadata map of the entry."
+  @spec metadata(t()) :: map()
+  def metadata(%__MODULE__{metadata: metadata}), do: metadata
+
+  @doc "Returns a copy of the entry keeping only the metadata keys in `keys`."
+  @spec take_metadata(t(), [term()]) :: t()
+  def take_metadata(%__MODULE__{metadata: metadata} = entry, keys) when is_list(keys) do
+    %{entry | metadata: Map.take(metadata, keys)}
+  end
+
   @doc "Returns a copy of the entry with `key` set to `value` in its metadata."
   @spec put_metadata(t(), term(), term()) :: t()
   def put_metadata(%__MODULE__{metadata: metadata} = entry, key, value) do

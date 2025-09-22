@@ -328,4 +328,16 @@ defmodule CoreDomain.Entities.LogEntryTest do
 
     assert LogEntry.lsn_span([entry.(3), entry.(1), entry.(7)]) == {1, 7}
   end
+
+  describe "metadata/1 and take_metadata/2" do
+    test "return and filter the metadata map" do
+      entry =
+        LogEntry.new(LogSequenceNumber.new(1), "payload", NodeId.new("n1"))
+        |> LogEntry.merge_metadata(%{a: 1, b: 2, c: 3})
+
+      assert LogEntry.metadata(entry) == %{a: 1, b: 2, c: 3}
+      assert LogEntry.metadata(LogEntry.take_metadata(entry, [:a, :c])) == %{a: 1, c: 3}
+      assert LogEntry.metadata(LogEntry.take_metadata(entry, [])) == %{}
+    end
+  end
 end
