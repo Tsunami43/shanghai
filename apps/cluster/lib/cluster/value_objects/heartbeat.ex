@@ -164,6 +164,19 @@ defmodule Cluster.ValueObjects.Heartbeat do
   @spec metric_names(t()) :: [term()]
   def metric_names(%__MODULE__{metrics: metrics}), do: metrics |> Map.keys() |> Enum.sort()
 
+  @doc "Returns the full metrics map carried by the heartbeat."
+  @spec metrics(t()) :: map()
+  def metrics(%__MODULE__{metrics: metrics}), do: metrics
+
+  @doc """
+  Merges `extra` metrics into the heartbeat, overwriting existing keys on
+  conflict. Returns the updated heartbeat.
+  """
+  @spec merge_metrics(t(), map()) :: t()
+  def merge_metrics(%__MODULE__{metrics: metrics} = heartbeat, extra) when is_map(extra) do
+    %{heartbeat | metrics: Map.merge(metrics, extra)}
+  end
+
   @doc """
   Returns a copy of the heartbeat with every metric removed. Useful when only
   the liveness signal (node id + sequence + timestamp) is needed.

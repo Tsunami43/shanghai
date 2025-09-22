@@ -304,4 +304,17 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       refute Heartbeat.has_all_metrics?(hb, [:cpu, :disk])
     end
   end
+
+  describe "metrics/1 and merge_metrics/2" do
+    test "return and merge the metrics map" do
+      hb = Heartbeat.new(NodeId.new("n1"), 1)
+      assert Heartbeat.metrics(hb) == %{}
+
+      hb = Heartbeat.put_metric(hb, :cpu, 0.5)
+      assert Heartbeat.metrics(hb) == %{cpu: 0.5}
+
+      hb = Heartbeat.merge_metrics(hb, %{cpu: 0.9, ram: 0.3})
+      assert Heartbeat.metrics(hb) == %{cpu: 0.9, ram: 0.3}
+    end
+  end
 end
