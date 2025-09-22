@@ -293,6 +293,12 @@ defmodule CoreDomain.Entities.LogEntry do
     %{entry | metadata: Map.take(metadata, keys)}
   end
 
+  @doc "Returns a copy of the entry with the metadata keys in `keys` removed."
+  @spec drop_metadata(t(), [term()]) :: t()
+  def drop_metadata(%__MODULE__{metadata: metadata} = entry, keys) when is_list(keys) do
+    %{entry | metadata: Map.drop(metadata, keys)}
+  end
+
   @doc "Returns a copy of the entry with `key` set to `value` in its metadata."
   @spec put_metadata(t(), term(), term()) :: t()
   def put_metadata(%__MODULE__{metadata: metadata} = entry, key, value) do

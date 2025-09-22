@@ -340,4 +340,16 @@ defmodule CoreDomain.Entities.LogEntryTest do
       assert LogEntry.metadata(LogEntry.take_metadata(entry, [])) == %{}
     end
   end
+
+  describe "drop_metadata/2" do
+    test "removes the given metadata keys" do
+      entry =
+        LogEntry.new(LogSequenceNumber.new(1), "payload", NodeId.new("n1"))
+        |> LogEntry.merge_metadata(%{a: 1, b: 2, c: 3})
+
+      assert LogEntry.metadata(LogEntry.drop_metadata(entry, [:b])) == %{a: 1, c: 3}
+      assert LogEntry.metadata(LogEntry.drop_metadata(entry, [:a, :b, :c])) == %{}
+      assert LogEntry.metadata(LogEntry.drop_metadata(entry, [])) == %{a: 1, b: 2, c: 3}
+    end
+  end
 end
