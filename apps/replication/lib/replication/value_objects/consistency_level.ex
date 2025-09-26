@@ -68,6 +68,24 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   @spec ordered() :: [t()]
   def ordered, do: Enum.sort_by(all(), &rank/1)
 
+  @doc """
+  Returns the levels at least as strong as `level` (itself included), sorted from
+  weakest to strongest by durability.
+  """
+  @spec at_least_levels(t()) :: [t()]
+  def at_least_levels(%__MODULE__{} = level) do
+    Enum.filter(ordered(), &(rank(&1) >= rank(level)))
+  end
+
+  @doc """
+  Returns the levels no stronger than `level` (itself included), sorted from
+  weakest to strongest by durability.
+  """
+  @spec at_most_levels(t()) :: [t()]
+  def at_most_levels(%__MODULE__{} = level) do
+    Enum.filter(ordered(), &(rank(&1) <= rank(level)))
+  end
+
   @doc "Returns the stronger (higher-durability) of two levels; ties return `a`."
   @spec stronger(t(), t()) :: t()
   def stronger(%__MODULE__{} = a, %__MODULE__{} = b) do

@@ -231,4 +231,16 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
       assert ConsistencyLevel.durable?(ConsistencyLevel.new(:leader))
     end
   end
+
+  describe "at_least_levels/1 and at_most_levels/1" do
+    test "filter levels around the given durability" do
+      quorum = ConsistencyLevel.new(:quorum)
+
+      assert ConsistencyLevel.at_least_levels(quorum) ==
+               [ConsistencyLevel.new(:quorum), ConsistencyLevel.new(:leader)]
+
+      assert ConsistencyLevel.at_most_levels(quorum) ==
+               [ConsistencyLevel.new(:local), ConsistencyLevel.new(:quorum)]
+    end
+  end
 end
