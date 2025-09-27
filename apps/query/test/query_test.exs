@@ -1483,4 +1483,16 @@ defmodule QueryTest do
       assert Query.sample_keys(0) == []
     end
   end
+
+  describe "most_common_value/0" do
+    test "returns the most frequent value and its count or nil" do
+      assert Query.most_common_value() == nil
+
+      {:ok, _} = Query.write("a", "x")
+      {:ok, _} = Query.write("b", "x")
+      {:ok, _} = Query.write("c", "y")
+
+      assert Query.most_common_value() == {"x", 2}
+    end
+  end
 end
