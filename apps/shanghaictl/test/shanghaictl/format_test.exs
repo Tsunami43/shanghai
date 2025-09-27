@@ -128,4 +128,16 @@ defmodule Shanghaictl.FormatTest do
       assert Format.status(:unavailable) == "unavailable"
     end
   end
+
+  describe "ratio/2" do
+    test "formats part over whole as a percentage" do
+      assert Format.ratio(3, 4) == "75.0%"
+      assert Format.ratio(1, 2) == "50.0%"
+    end
+
+    test "returns 0.0% for a zero whole (integer or float)" do
+      assert Format.ratio(5, 0) == "0.0%"
+      assert Format.ratio(5, 0.0) == "0.0%"
+    end
+  end
 end

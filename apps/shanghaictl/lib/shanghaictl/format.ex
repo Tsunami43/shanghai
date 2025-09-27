@@ -81,6 +81,26 @@ defmodule Shanghaictl.Format do
   end
 
   @doc """
+  Formats `part` out of `whole` as a percentage string. A zero `whole` yields
+  `"0.0%"` rather than dividing by zero.
+
+  ## Examples
+
+      iex> Shanghaictl.Format.ratio(3, 4)
+      "75.0%"
+
+      iex> Shanghaictl.Format.ratio(0, 0)
+      "0.0%"
+  """
+  @spec ratio(number(), number()) :: String.t()
+  def ratio(_part, 0), do: percent(0.0)
+  def ratio(_part, +0.0), do: percent(0.0)
+
+  def ratio(part, whole) when is_number(part) and is_number(whole) do
+    percent(part / whole)
+  end
+
+  @doc """
   Formats a millisecond duration in a human-readable form: `ms` below a second,
   `s` below a minute, otherwise `m`.
 
