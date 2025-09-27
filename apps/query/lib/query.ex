@@ -1797,6 +1797,21 @@ defmodule Query do
   end
 
   @doc """
+  Returns the least frequently stored value as `{value, count}`, or `nil` when the
+  store is empty. Ties are broken by the natural ordering of the value.
+  """
+  @spec least_common_value() :: {term(), pos_integer()} | nil
+  def least_common_value do
+    case value_counts() do
+      counts when map_size(counts) == 0 ->
+        nil
+
+      counts ->
+        counts |> Enum.sort() |> Enum.min_by(&elem(&1, 1))
+    end
+  end
+
+  @doc """
   Returns the distinct stored values, sorted. Scans the whole store — useful for
   discovering the set of values in a small key space.
   """

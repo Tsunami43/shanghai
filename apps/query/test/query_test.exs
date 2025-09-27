@@ -1495,4 +1495,16 @@ defmodule QueryTest do
       assert Query.most_common_value() == {"x", 2}
     end
   end
+
+  describe "least_common_value/0" do
+    test "returns the least frequent value and its count or nil" do
+      assert Query.least_common_value() == nil
+
+      {:ok, _} = Query.write("a", "x")
+      {:ok, _} = Query.write("b", "x")
+      {:ok, _} = Query.write("c", "y")
+
+      assert Query.least_common_value() == {"y", 1}
+    end
+  end
 end
