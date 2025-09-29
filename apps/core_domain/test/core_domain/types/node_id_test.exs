@@ -120,4 +120,15 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert NodeId.namespace(NodeId.new("plain")) == "plain"
     assert NodeId.namespace(NodeId.new("a:b"), ":") == "a"
   end
+
+  describe "group_by_namespace/1" do
+    test "groups ids by namespace with sorted buckets" do
+      ids = [NodeId.new("eu-2"), NodeId.new("us-1"), NodeId.new("eu-1"), NodeId.new("plain")]
+      grouped = NodeId.group_by_namespace(ids)
+
+      assert Enum.map(grouped["eu"], & &1.value) == ["eu-1", "eu-2"]
+      assert Enum.map(grouped["us"], & &1.value) == ["us-1"]
+      assert Enum.map(grouped["plain"], & &1.value) == ["plain"]
+    end
+  end
 end

@@ -126,6 +126,24 @@ defmodule CoreDomain.Types.NodeId do
   def blank?(%__MODULE__{value: value}), do: value == ""
 
   @doc """
+  Groups a list of node ids by their namespace (see `namespace/2`), returning a
+  map of `namespace => [ids]` with each bucket sorted.
+
+  ## Examples
+
+      iex> ids = [CoreDomain.Types.NodeId.new("eu-1"), CoreDomain.Types.NodeId.new("us-1"), CoreDomain.Types.NodeId.new("eu-2")]
+      iex> grouped = CoreDomain.Types.NodeId.group_by_namespace(ids)
+      iex> Enum.map(grouped["eu"], & &1.value)
+      ["eu-1", "eu-2"]
+  """
+  @spec group_by_namespace([t()], String.t()) :: %{optional(String.t()) => [t()]}
+  def group_by_namespace(ids, separator \\ "-") when is_list(ids) and is_binary(separator) do
+    ids
+    |> Enum.group_by(&namespace(&1, separator))
+    |> Map.new(fn {ns, group} -> {ns, sort(group)} end)
+  end
+
+  @doc """
   Builds a NodeId from an Erlang node name atom or string of the form
   `name@host`, taking the part before `@` as the id value. A name without `@` is
   used as-is.
