@@ -301,6 +301,11 @@ defmodule AdminApi.Prometheus do
         "shanghai_cluster_fault_tolerance",
         "Number of node failures tolerable while retaining quorum.",
         safe(fn -> Cluster.fault_tolerance() end, 0)
+      ),
+      gauge(
+        "shanghai_cluster_quorum_size",
+        "Number of nodes required to form a quorum.",
+        safe(fn -> Cluster.State.quorum_size(Cluster.cluster_state()) end, 0)
       )
     ]
 
