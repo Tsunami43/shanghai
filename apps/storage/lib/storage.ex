@@ -186,6 +186,13 @@ defmodule Storage do
   end
 
   @doc """
+  Returns `true` when a background compaction run is currently in progress.
+  Shorthand for reading the `:running` flag of `compaction_status/0`.
+  """
+  @spec compaction_running?() :: boolean()
+  def compaction_running?, do: Map.get(compaction_status(), :running, false)
+
+  @doc """
   Returns the average number of bytes per active WAL segment, or `0` when there
   are no segments.
   """
@@ -312,7 +319,7 @@ defmodule Storage do
       entries: stats.entries,
       bytes: stats.bytes,
       snapshots: length(list_snapshots()),
-      compaction_running: Map.get(compaction_status(), :running, false)
+      compaction_running: compaction_running?()
     }
   end
 
