@@ -144,6 +144,20 @@ defmodule CoreDomain.Types.NodeId do
   end
 
   @doc """
+  Returns the distinct namespaces present in a list of node ids, sorted.
+
+  ## Examples
+
+      iex> ids = [CoreDomain.Types.NodeId.new("eu-1"), CoreDomain.Types.NodeId.new("us-1"), CoreDomain.Types.NodeId.new("eu-2")]
+      iex> CoreDomain.Types.NodeId.namespaces(ids)
+      ["eu", "us"]
+  """
+  @spec namespaces([t()], String.t()) :: [String.t()]
+  def namespaces(ids, separator \\ "-") when is_list(ids) and is_binary(separator) do
+    ids |> Enum.map(&namespace(&1, separator)) |> Enum.uniq() |> Enum.sort()
+  end
+
+  @doc """
   Builds a NodeId from an Erlang node name atom or string of the form
   `name@host`, taking the part before `@` as the id value. A name without `@` is
   used as-is.

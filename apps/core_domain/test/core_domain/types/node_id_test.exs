@@ -131,4 +131,12 @@ defmodule CoreDomain.Types.NodeIdTest do
       assert Enum.map(grouped["plain"], & &1.value) == ["plain"]
     end
   end
+
+  describe "namespaces/1" do
+    test "returns the distinct sorted namespaces" do
+      ids = [NodeId.new("us-1"), NodeId.new("eu-1"), NodeId.new("eu-2"), NodeId.new("us-2")]
+      assert NodeId.namespaces(ids) == ["eu", "us"]
+      assert NodeId.namespaces([]) == []
+    end
+  end
 end
