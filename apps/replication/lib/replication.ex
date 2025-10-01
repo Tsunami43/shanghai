@@ -235,6 +235,27 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the id and replica count of the group with the most tracked replicas as
+  `{group_id, count}`, or `nil` when no groups are tracked. Ties are broken by
+  the group id order.
+  """
+  @spec largest_group() :: {String.t(), non_neg_integer()} | nil
+  def largest_group do
+    case all_groups() do
+      [] ->
+        nil
+
+      groups ->
+        groups
+        |> Enum.map(fn group ->
+          {group.group_id, map_size(Map.get(group, :replicas, %{}))}
+        end)
+        |> Enum.sort_by(&elem(&1, 0))
+        |> Enum.max_by(&elem(&1, 1))
+    end
+  end
+
+  @doc """
   Returns the maximum replica lag (in offsets) across all groups, or `0` when
   there are no tracked replicas. A quick worst-case staleness indicator.
   """

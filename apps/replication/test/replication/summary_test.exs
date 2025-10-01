@@ -317,4 +317,17 @@ defmodule Replication.SummaryTest do
 
     refute "eg-1" in Replication.empty_group_ids()
   end
+
+  test "largest_group/0 returns the group with the most replicas" do
+    assert Replication.largest_group() == nil
+
+    Monitor.record_leader_offset("lg1", ReplicationOffset.new(10))
+    Monitor.record_follower_offset("lg1", NodeId.new("lg-f1"), ReplicationOffset.new(9))
+
+    Monitor.record_leader_offset("lg2", ReplicationOffset.new(10))
+    Monitor.record_follower_offset("lg2", NodeId.new("lg-f2"), ReplicationOffset.new(9))
+    Monitor.record_follower_offset("lg2", NodeId.new("lg-f3"), ReplicationOffset.new(8))
+
+    assert Replication.largest_group() == {"lg2", 2}
+  end
 end
