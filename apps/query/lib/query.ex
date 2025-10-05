@@ -1812,6 +1812,16 @@ defmodule Query do
   end
 
   @doc """
+  Returns the `{value, count}` pairs sorted by descending count, breaking ties by
+  the natural ordering of the value. Scans the whole store.
+  """
+  @spec value_frequencies_desc() :: [{term(), pos_integer()}]
+  def value_frequencies_desc do
+    value_counts()
+    |> Enum.sort_by(fn {value, count} -> {-count, value} end)
+  end
+
+  @doc """
   Returns the distinct stored values, sorted. Scans the whole store — useful for
   discovering the set of values in a small key space.
   """

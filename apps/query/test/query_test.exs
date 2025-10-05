@@ -1507,4 +1507,17 @@ defmodule QueryTest do
       assert Query.least_common_value() == {"y", 1}
     end
   end
+
+  describe "value_frequencies_desc/0" do
+    test "returns pairs sorted by descending count then value" do
+      assert Query.value_frequencies_desc() == []
+
+      {:ok, _} = Query.write("a", "x")
+      {:ok, _} = Query.write("b", "x")
+      {:ok, _} = Query.write("c", "y")
+      {:ok, _} = Query.write("d", "z")
+
+      assert Query.value_frequencies_desc() == [{"x", 2}, {"y", 1}, {"z", 1}]
+    end
+  end
 end
