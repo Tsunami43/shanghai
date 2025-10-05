@@ -16,6 +16,17 @@ defmodule ObservabilityTest do
     assert Observability.event_count() == length(Observability.event_names())
   end
 
+  test "domain facade delegates mirror Metrics" do
+    assert Observability.domains() == Observability.Metrics.domains()
+    assert Observability.domain?(:query)
+    refute Observability.domain?(:nope)
+
+    assert Observability.events_for_domain(:query) ==
+             Observability.Metrics.events_for_domain(:query)
+
+    assert Observability.domain_event_counts() == Observability.Metrics.domain_event_counts()
+  end
+
   test "new_correlation_id/0 returns a hex string" do
     id = Observability.new_correlation_id()
 

@@ -27,6 +27,22 @@ defmodule Observability do
   @spec event_count() :: non_neg_integer()
   defdelegate event_count(), to: Metrics
 
+  @doc "Returns the telemetry events emitted for the given domain (e.g. `:query`)."
+  @spec events_for_domain(atom()) :: [[atom()]]
+  defdelegate events_for_domain(domain), to: Metrics
+
+  @doc "Returns the distinct telemetry domains Shanghai emits events for, sorted."
+  @spec domains() :: [atom()]
+  defdelegate domains(), to: Metrics
+
+  @doc "Returns `true` when `domain` has at least one emitted telemetry event."
+  @spec domain?(atom()) :: boolean()
+  defdelegate domain?(domain), to: Metrics
+
+  @doc "Returns a map of `domain => event_count` across all telemetry events."
+  @spec domain_event_counts() :: %{optional(atom()) => non_neg_integer()}
+  defdelegate domain_event_counts(), to: Metrics
+
   @doc "Generates a new correlation id for request tracing."
   @spec new_correlation_id() :: String.t()
   defdelegate new_correlation_id(), to: StructuredLogger
