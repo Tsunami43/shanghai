@@ -1520,4 +1520,14 @@ defmodule QueryTest do
       assert Query.value_frequencies_desc() == [{"x", 2}, {"y", 1}, {"z", 1}]
     end
   end
+
+  describe "toggle/1" do
+    test "flips a boolean, defaulting a missing key to false" do
+      assert Query.toggle("enabled") == {:ok, true}
+      assert Query.toggle("enabled") == {:ok, false}
+
+      {:ok, _} = Query.write("flag", true)
+      assert Query.toggle("flag") == {:ok, false}
+    end
+  end
 end

@@ -393,6 +393,22 @@ defmodule Query do
   end
 
   @doc """
+  Atomically flips the boolean value at `key`, treating a missing key as `false`
+  (so the first toggle yields `true`). Returns `{:ok, new_value}`.
+
+  ## Examples
+
+      iex> Query.toggle("enabled")
+      {:ok, true}
+
+      iex> Query.write("flag", true)
+      iex> Query.toggle("flag")
+      {:ok, false}
+  """
+  @spec toggle(String.t()) :: {:ok, boolean()} | {:error, term()}
+  def toggle(key), do: update(key, false, &(!&1))
+
+  @doc """
   Atomically appends `element` to the list stored at `key`, creating an empty
   list first when the key is absent. Returns `{:ok, new_list}`.
 
