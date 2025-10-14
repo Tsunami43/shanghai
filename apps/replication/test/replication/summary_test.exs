@@ -330,4 +330,17 @@ defmodule Replication.SummaryTest do
 
     assert Replication.largest_group() == {"lg2", 2}
   end
+
+  test "smallest_group/0 returns the group with the fewest replicas" do
+    assert Replication.smallest_group() == nil
+
+    Monitor.record_leader_offset("sg1", ReplicationOffset.new(10))
+    Monitor.record_follower_offset("sg1", NodeId.new("sg-f1"), ReplicationOffset.new(9))
+    Monitor.record_follower_offset("sg1", NodeId.new("sg-f2"), ReplicationOffset.new(8))
+
+    Monitor.record_leader_offset("sg2", ReplicationOffset.new(10))
+    Monitor.record_follower_offset("sg2", NodeId.new("sg-f3"), ReplicationOffset.new(9))
+
+    assert Replication.smallest_group() == {"sg2", 1}
+  end
 end
