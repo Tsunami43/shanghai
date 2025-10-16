@@ -353,6 +353,24 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def range(%__MODULE__{}, %__MODULE__{}), do: []
 
   @doc """
+  Returns the number of LSNs in the inclusive range `first..last`, or `0` when
+  `last` precedes `first`. Equivalent to `length(range(first, last))` without
+  materializing the list.
+
+  ## Examples
+
+      iex> alias CoreDomain.Types.LogSequenceNumber, as: LSN
+      iex> LSN.count_between(LSN.new(2), LSN.new(4))
+      3
+  """
+  @spec count_between(t(), t()) :: non_neg_integer()
+  def count_between(%__MODULE__{value: first}, %__MODULE__{value: last}) when last >= first do
+    last - first + 1
+  end
+
+  def count_between(%__MODULE__{}, %__MODULE__{}), do: 0
+
+  @doc """
   Returns the number of positions `b` is ahead of `a` (`b - a`), or `0` when `a`
   is at or ahead of `b`.
 

@@ -228,4 +228,12 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
       assert LSN.median(lsns) == LSN.new(4)
     end
   end
+
+  describe "count_between/2" do
+    test "counts the LSNs in an inclusive range" do
+      assert LSN.count_between(LSN.new(2), LSN.new(4)) == 3
+      assert LSN.count_between(LSN.new(5), LSN.new(5)) == 1
+      assert LSN.count_between(LSN.new(4), LSN.new(2)) == 0
+    end
+  end
 end
