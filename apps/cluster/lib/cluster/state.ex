@@ -883,6 +883,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the host of the node with `node_id`, or `nil` when the node is not a
+  member.
+  """
+  @spec host_of(t(), NodeId.t()) :: String.t() | nil
+  def host_of(%__MODULE__{nodes: nodes}, node_id) do
+    case Map.fetch(nodes, node_id) do
+      {:ok, node} -> node.host
+      :error -> nil
+    end
+  end
+
+  @doc """
   Returns the local node's entity when it is a member of the cluster, or `nil`
   when the local id is unset or not yet joined.
   """

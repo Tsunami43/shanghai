@@ -818,6 +818,16 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "host_of/2" do
+    test "returns a node host or nil" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+
+      assert State.host_of(cluster, NodeId.new("n1")) == "hostA"
+      assert State.host_of(cluster, NodeId.new("missing")) == nil
+    end
+  end
+
   describe "pending_event_count/1 and pending_events?/1" do
     test "track uncommitted events" do
       cluster = State.new(NodeId.new("local"))
