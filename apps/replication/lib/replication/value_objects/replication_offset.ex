@@ -81,6 +81,18 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   def range(%__MODULE__{}, %__MODULE__{}), do: []
 
   @doc """
+  Returns the number of offsets in the inclusive range `first..last`, or `0` when
+  `last` precedes `first` — the size of the catch-up window without building the
+  list.
+  """
+  @spec count_between(t(), t()) :: non_neg_integer()
+  def count_between(%__MODULE__{value: first}, %__MODULE__{value: last}) when last >= first do
+    last - first + 1
+  end
+
+  def count_between(%__MODULE__{}, %__MODULE__{}), do: 0
+
+  @doc """
   Compares two offsets.
   Returns :lt, :eq, or :gt.
   """

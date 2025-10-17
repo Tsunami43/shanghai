@@ -349,4 +349,17 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
       assert ReplicationOffset.median(offsets) == ReplicationOffset.new(4)
     end
   end
+
+  describe "count_between/2" do
+    test "counts the offsets in an inclusive range" do
+      assert ReplicationOffset.count_between(ReplicationOffset.new(2), ReplicationOffset.new(5)) ==
+               4
+
+      assert ReplicationOffset.count_between(ReplicationOffset.new(3), ReplicationOffset.new(3)) ==
+               1
+
+      assert ReplicationOffset.count_between(ReplicationOffset.new(5), ReplicationOffset.new(2)) ==
+               0
+    end
+  end
 end
