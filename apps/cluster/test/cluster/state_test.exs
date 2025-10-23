@@ -828,6 +828,16 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "port_of/2" do
+    test "returns a node port or nil" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+
+      assert State.port_of(cluster, NodeId.new("n1")) == 4001
+      assert State.port_of(cluster, NodeId.new("missing")) == nil
+    end
+  end
+
   describe "pending_event_count/1 and pending_events?/1" do
     test "track uncommitted events" do
       cluster = State.new(NodeId.new("local"))

@@ -895,6 +895,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the port of the node with `node_id`, or `nil` when the node is not a
+  member.
+  """
+  @spec port_of(t(), NodeId.t()) :: non_neg_integer() | nil
+  def port_of(%__MODULE__{nodes: nodes}, node_id) do
+    case Map.fetch(nodes, node_id) do
+      {:ok, node} -> node.port
+      :error -> nil
+    end
+  end
+
+  @doc """
   Returns the local node's entity when it is a member of the cluster, or `nil`
   when the local id is unset or not yet joined.
   """
