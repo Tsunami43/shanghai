@@ -121,6 +121,10 @@ defmodule Query.Cache do
     ArgumentError -> 0
   end
 
+  @doc "Returns `true` when the cache currently holds no entries."
+  @spec empty?() :: boolean()
+  def empty?, do: size() == 0
+
   @doc """
   Returns `true` when `key` has a live (non-expired) cache entry. A read-only
   probe: unlike `get/1`, it does not affect the hit/miss counters.

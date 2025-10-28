@@ -26,6 +26,13 @@ defmodule Query.CacheTest do
       assert Query.Cache.size() == 2
     end
 
+    test "empty?/0 reflects whether the cache holds entries" do
+      Query.Cache.clear()
+      assert Query.Cache.empty?()
+      :ok = Query.Cache.put("e:1", 1)
+      refute Query.Cache.empty?()
+    end
+
     test "cached?/1 probes membership without touching hit/miss counters" do
       Query.Cache.clear()
       refute Query.Cache.cached?("p:1")
