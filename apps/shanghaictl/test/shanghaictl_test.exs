@@ -193,6 +193,17 @@ defmodule ShanghaictlTest do
     end
   end
 
+  describe "Status.fault_tolerance_line/1" do
+    test "renders the tolerable failure count" do
+      assert Status.fault_tolerance_line(2) == "Fault Tolerance: 2 node(s)"
+      assert Status.fault_tolerance_line(0) == "Fault Tolerance: 0 node(s)"
+    end
+
+    test "is nil when the value is absent" do
+      assert Status.fault_tolerance_line(nil) == nil
+    end
+  end
+
   describe "Options" do
     test "format/1 detects json in either form" do
       assert Options.format(["--json"]) == :json
@@ -332,6 +343,7 @@ defmodule ShanghaictlTest do
         local_node_id: "node-1",
         quorum_available: true,
         quorum_size: 2,
+        fault_tolerance: 1,
         nodes: [%{id: "node-1", status: :up, heartbeat_age: 50}]
       }
 
@@ -341,6 +353,7 @@ defmodule ShanghaictlTest do
       assert decoded["local_node_id"] == "node-1"
       assert decoded["quorum_available"] == true
       assert decoded["quorum_size"] == 2
+      assert decoded["fault_tolerance"] == 1
       assert [node] = decoded["nodes"]
       assert node["id"] == "node-1"
       assert node["status"] == "up"

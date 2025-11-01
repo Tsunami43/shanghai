@@ -34,6 +34,7 @@ defmodule Shanghaictl.Commands.Status do
       local_node_id: info.local_node_id,
       quorum_available: info.quorum_available,
       quorum_size: info.quorum_size,
+      fault_tolerance: Map.get(info, :fault_tolerance),
       nodes:
         Enum.map(info.nodes, fn node ->
           %{
@@ -56,7 +57,8 @@ defmodule Shanghaictl.Commands.Status do
          cluster_state: String.to_atom(state),
          local_node_id: status["local_node_id"],
          quorum_available: status["quorum_available"],
-         quorum_size: status["quorum_size"]
+         quorum_size: status["quorum_size"],
+         fault_tolerance: status["fault_tolerance"]
        }}
     else
       {:ok, %{status: status}} ->
@@ -92,11 +94,20 @@ defmodule Shanghaictl.Commands.Status do
   defp quorum_needed(nil), do: ""
   defp quorum_needed(size), do: " (#{size} needed)"
 
+  @doc false
+  @spec fault_tolerance_line(non_neg_integer() | nil) :: String.t() | nil
+  def fault_tolerance_line(nil), do: nil
+
+  def fault_tolerance_line(tolerance) do
+    "Fault Tolerance: #{tolerance} node(s)"
+  end
+
   defp display_cluster_info(info) do
     IO.puts("Cluster State: #{format_state(info.cluster_state)}")
 
     if line = local_node_line(info.local_node_id), do: IO.puts(line)
     if line = quorum_line(info.quorum_available, info.quorum_size), do: IO.puts(line)
+    if line = fault_tolerance_line(info.fault_tolerance), do: IO.puts(line)
 
     IO.puts("")
     IO.puts("Nodes:")
