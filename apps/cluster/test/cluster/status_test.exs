@@ -89,6 +89,8 @@ defmodule Cluster.StatusTest do
     assert Cluster.member?(id)
     assert Cluster.node_status(id) == :up
     assert Cluster.node_status(NodeId.new("no-such-node")) == nil
+    assert Cluster.node_address(id) == "localhost:4322"
+    assert Cluster.node_address(NodeId.new("no-such-node")) == nil
     assert Enum.any?(Cluster.up_nodes(), &(&1.id == id))
     assert id in Cluster.up_node_ids()
     assert Cluster.up_node_ids() == Enum.sort_by(Cluster.up_node_ids(), & &1.value)

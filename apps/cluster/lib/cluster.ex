@@ -79,6 +79,13 @@ defmodule Cluster do
   def node_status(node_id), do: State.status_of(cluster_state(), node_id)
 
   @doc """
+  Returns the `host:port` address of the node with `node_id`, or `nil` when it is
+  not a member. See `Cluster.State.address_of/2`.
+  """
+  @spec node_address(NodeId.t()) :: String.t() | nil
+  def node_address(node_id), do: State.address_of(cluster_state(), node_id)
+
+  @doc """
   Returns the nodes currently marked `:up`. Useful for routing reads and writes
   to live peers.
   """
