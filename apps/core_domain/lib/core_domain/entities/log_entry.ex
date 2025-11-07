@@ -159,6 +159,20 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Returns the node that produced the most entries as `{node_id, count}`, or `nil`
+  for an empty list. Ties are broken by the node id string value.
+  """
+  @spec most_active_node([t()]) :: {NodeId.t(), pos_integer()} | nil
+  def most_active_node([]), do: nil
+
+  def most_active_node(entries) when is_list(entries) do
+    entries
+    |> node_counts()
+    |> Enum.sort_by(fn {node_id, _count} -> node_id.value end)
+    |> Enum.max_by(&elem(&1, 1))
+  end
+
+  @doc """
   Returns the entries whose LSN falls within the inclusive range `[low, high]`,
   in their given order.
   """

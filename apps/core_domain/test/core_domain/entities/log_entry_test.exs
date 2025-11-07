@@ -364,4 +364,16 @@ defmodule CoreDomain.Entities.LogEntryTest do
       assert LogEntry.node_counts([]) == %{}
     end
   end
+
+  describe "most_active_node/1" do
+    test "returns the node producing the most entries" do
+      a = %NodeId{value: "a"}
+      b = %NodeId{value: "b"}
+      entry = fn n, id -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+      entries = [entry.(1, a), entry.(2, b), entry.(3, a)]
+      assert LogEntry.most_active_node(entries) == {a, 2}
+      assert LogEntry.most_active_node([]) == nil
+    end
+  end
 end
