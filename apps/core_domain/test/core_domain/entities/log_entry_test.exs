@@ -352,4 +352,16 @@ defmodule CoreDomain.Entities.LogEntryTest do
       assert LogEntry.metadata(LogEntry.drop_metadata(entry, [])) == %{a: 1, b: 2, c: 3}
     end
   end
+
+  describe "node_counts/1" do
+    test "counts entries produced by each node" do
+      a = %NodeId{value: "a"}
+      b = %NodeId{value: "b"}
+      entry = fn n, id -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+      entries = [entry.(1, a), entry.(2, b), entry.(3, a)]
+      assert LogEntry.node_counts(entries) == %{a => 2, b => 1}
+      assert LogEntry.node_counts([]) == %{}
+    end
+  end
 end

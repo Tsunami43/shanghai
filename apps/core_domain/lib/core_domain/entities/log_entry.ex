@@ -150,6 +150,15 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Returns the number of entries produced by each node id as
+  `%{node_id => count}`.
+  """
+  @spec node_counts([t()]) :: %{optional(NodeId.t()) => non_neg_integer()}
+  def node_counts(entries) when is_list(entries) do
+    Enum.frequencies_by(entries, & &1.node_id)
+  end
+
+  @doc """
   Returns the entries whose LSN falls within the inclusive range `[low, high]`,
   in their given order.
   """
