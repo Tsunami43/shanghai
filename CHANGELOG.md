@@ -295,6 +295,24 @@ follow semantic versioning.
   `Metrics.event_defined?/1`, `event_count/0`); `Admin.Health.healthy_subsystems/0`
   (with a `degraded` list in `GET /api/v1/health`); `Shanghaictl.Options`
   (`flag?/2`, `option/3`); `Replication` (`lagging_count/0`, `stale_count/0`).
+- **Value-object range/stat helpers**: `median/1` and `count_between/2` for
+  `LogSequenceNumber` and `ReplicationOffset`; `ConsistencyLevel.at_least_levels/1`
+  / `at_most_levels/1` (core and replication); `NodeId.group_by_namespace/2` /
+  `namespaces/2`; `LogEntry` (`metadata/1`, `take_metadata/2`, `drop_metadata/2`,
+  `node_counts/1`, `most_active_node/1`); `NodeMetadata` (`resource_names/1`,
+  `tag_names/1`); `Heartbeat` (`metrics/1`, `merge_metrics/2`).
+- **Query analytics & ergonomics**: `random_key/0`, `sample_keys/1`,
+  `longest_keys/0`, `most_common_value/0`, `least_common_value/0`,
+  `value_frequencies_desc/0`, `toggle/1`, and `Cache.empty?/0`.
+- **Cluster introspection**: `State.count_in_namespace/2`,
+  `node_ids_in_namespace/2`, `host_of/2`, `port_of/2`; facades
+  `Cluster.count_in_namespace/1` and `node_address/1`; `Observability` domain
+  telemetry accessors on the facade; `Replication.largest_group/0` /
+  `smallest_group/0`.
+- **Storage/API/CLI**: `Storage.compaction_running?/0`; a
+  `shanghai_cluster_quorum_size` Prometheus gauge and a `fault_tolerance` field
+  in `GET /api/v1/status`, surfaced in `shanghaictl status`;
+  `Shanghaictl.Format.ratio/2`.
 
 ### Fixed (this cycle)
 - `Query.delete_prefix/1` scanned the default store table instead of the target
