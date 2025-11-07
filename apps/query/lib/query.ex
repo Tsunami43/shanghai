@@ -1054,6 +1054,13 @@ defmodule Query do
   end
 
   @doc """
+  Returns the read cache hit ratio (0.0..1.0), or `0.0` when there have been no
+  lookups yet. A convenience over reading it out of `info/0`.
+  """
+  @spec cache_hit_ratio() :: float()
+  defdelegate cache_hit_ratio(), to: Query.Cache, as: :hit_ratio
+
+  @doc """
   Returns a compact one-call summary of the query layer: the live key count,
   whether the store is durable, and the cache size and hit ratio.
 

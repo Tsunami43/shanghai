@@ -1530,4 +1530,12 @@ defmodule QueryTest do
       assert Query.toggle("flag") == {:ok, false}
     end
   end
+
+  describe "cache_hit_ratio/0" do
+    test "returns a ratio in 0.0..1.0" do
+      ratio = Query.cache_hit_ratio()
+      assert is_float(ratio)
+      assert ratio >= 0.0 and ratio <= 1.0
+    end
+  end
 end
