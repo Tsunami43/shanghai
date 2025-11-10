@@ -1060,6 +1060,10 @@ defmodule Query do
   @spec cache_hit_ratio() :: float()
   defdelegate cache_hit_ratio(), to: Query.Cache, as: :hit_ratio
 
+  @doc "Returns the number of entries currently held in the read cache."
+  @spec cache_size() :: non_neg_integer()
+  defdelegate cache_size(), to: Query.Cache, as: :size
+
   @doc """
   Returns a compact one-call summary of the query layer: the live key count,
   whether the store is durable, and the cache size and hit ratio.

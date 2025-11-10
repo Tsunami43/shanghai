@@ -1538,4 +1538,15 @@ defmodule QueryTest do
       assert ratio >= 0.0 and ratio <= 1.0
     end
   end
+
+  describe "cache_size/0" do
+    test "returns the number of cached entries" do
+      Query.Cache.clear()
+      assert Query.cache_size() == 0
+
+      {:ok, _} = Query.write("cs:1", 1)
+      {:ok, _} = Query.read("cs:1")
+      assert Query.cache_size() >= 1
+    end
+  end
 end
