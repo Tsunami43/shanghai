@@ -30,4 +30,17 @@ defmodule Admin do
   @doc "Returns the subsystems whose health check is passing. See `Admin.Health.healthy_subsystems/0`."
   @spec healthy_subsystems() :: [atom()]
   defdelegate healthy_subsystems(), to: Admin.Health
+
+  @doc """
+  Returns a one-call health summary: status, healthy/total subsystem counts, the
+  health ratio, and the sorted unhealthy subsystems. See `Admin.Health.summary/0`.
+  """
+  @spec summary() :: %{
+          status: :healthy | :degraded,
+          healthy: non_neg_integer(),
+          total: non_neg_integer(),
+          ratio: float(),
+          unhealthy: [atom()]
+        }
+  defdelegate summary(), to: Admin.Health
 end
