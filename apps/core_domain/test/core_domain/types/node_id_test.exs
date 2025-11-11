@@ -139,4 +139,20 @@ defmodule CoreDomain.Types.NodeIdTest do
       assert NodeId.namespaces([]) == []
     end
   end
+
+  describe "longest_common_prefix/1" do
+    test "returns the shared string prefix" do
+      ids = [NodeId.new("node-1"), NodeId.new("node-2"), NodeId.new("node-42")]
+      assert NodeId.longest_common_prefix(ids) == "node-"
+    end
+
+    test "returns an empty string when there is no shared prefix" do
+      assert NodeId.longest_common_prefix([NodeId.new("abc"), NodeId.new("xyz")]) == ""
+      assert NodeId.longest_common_prefix([]) == ""
+    end
+
+    test "returns the whole value for a single id" do
+      assert NodeId.longest_common_prefix([NodeId.new("solo")]) == "solo"
+    end
+  end
 end

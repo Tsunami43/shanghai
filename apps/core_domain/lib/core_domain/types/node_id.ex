@@ -126,6 +126,32 @@ defmodule CoreDomain.Types.NodeId do
   def blank?(%__MODULE__{value: value}), do: value == ""
 
   @doc """
+  Returns the longest common string prefix shared by all node id values in a
+  list, or `""` when the list is empty or the ids share no common prefix.
+
+  ## Examples
+
+      iex> ids = [CoreDomain.Types.NodeId.new("node-1"), CoreDomain.Types.NodeId.new("node-2")]
+      iex> CoreDomain.Types.NodeId.longest_common_prefix(ids)
+      "node-"
+  """
+  @spec longest_common_prefix([t()]) :: String.t()
+  def longest_common_prefix([]), do: ""
+
+  def longest_common_prefix(ids) when is_list(ids) do
+    [first | rest] = Enum.map(ids, & &1.value)
+    Enum.reduce(rest, first, &common_prefix/2)
+  end
+
+  defp common_prefix(a, b) do
+    a
+    |> String.graphemes()
+    |> Enum.zip(String.graphemes(b))
+    |> Enum.take_while(fn {x, y} -> x == y end)
+    |> Enum.map_join("", fn {x, _y} -> x end)
+  end
+
+  @doc """
   Groups a list of node ids by their namespace (see `namespace/2`), returning a
   map of `namespace => [ids]` with each bucket sorted.
 
