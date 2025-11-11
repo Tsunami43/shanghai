@@ -91,6 +91,11 @@ defmodule AdminTest do
     test "is exposed on the Admin facade" do
       assert Admin.summary() == Admin.Health.summary()
     end
+
+    test "health_ratio/0 mirrors the summary ratio" do
+      assert Admin.health_ratio() == Admin.summary().ratio
+      assert Admin.health_ratio() >= 0.0 and Admin.health_ratio() <= 1.0
+    end
   end
 
   # The subsystem => monitored process map mirrors Admin.Health.check/0.

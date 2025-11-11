@@ -43,4 +43,11 @@ defmodule Admin do
           unhealthy: [atom()]
         }
   defdelegate summary(), to: Admin.Health
+
+  @doc """
+  Returns the fraction of healthy subsystems (0.0..1.0), `1.0` when there are no
+  subsystems. A convenience over `summary/0`'s `:ratio`.
+  """
+  @spec health_ratio() :: float()
+  def health_ratio, do: summary().ratio
 end
