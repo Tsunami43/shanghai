@@ -1549,4 +1549,23 @@ defmodule QueryTest do
       assert Query.cache_size() >= 1
     end
   end
+
+  describe "common_key_prefix/0" do
+    test "returns the shared prefix of all keys" do
+      assert Query.common_key_prefix() == ""
+
+      {:ok, _} = Query.write("user:1", 1)
+      {:ok, _} = Query.write("user:2", 2)
+      {:ok, _} = Query.write("user:30", 3)
+
+      assert Query.common_key_prefix() == "user:"
+    end
+
+    test "returns an empty string when keys share no prefix" do
+      {:ok, _} = Query.write("alpha", 1)
+      {:ok, _} = Query.write("beta", 2)
+
+      assert Query.common_key_prefix() == ""
+    end
+  end
 end

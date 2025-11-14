@@ -1535,6 +1535,33 @@ defmodule Query do
   end
 
   @doc """
+  Returns the longest common string prefix shared by all keys, or `""` when the
+  store is empty, keys share no prefix, or any key is not a binary.
+  """
+  @spec common_key_prefix() :: String.t()
+  def common_key_prefix do
+    case keys() do
+      [] ->
+        ""
+
+      ks ->
+        if Enum.all?(ks, &is_binary/1) do
+          Enum.reduce(ks, &longest_shared_prefix/2)
+        else
+          ""
+        end
+    end
+  end
+
+  defp longest_shared_prefix(a, b) do
+    a
+    |> String.graphemes()
+    |> Enum.zip(String.graphemes(b))
+    |> Enum.take_while(fn {x, y} -> x == y end)
+    |> Enum.map_join("", fn {x, _y} -> x end)
+  end
+
+  @doc """
   Returns `true` when the store contains exactly the given `keys` (as a set),
   no more and no fewer.
   """
