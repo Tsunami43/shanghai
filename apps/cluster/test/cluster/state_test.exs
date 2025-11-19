@@ -1043,6 +1043,21 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "all_down?/1" do
+    test "is true only when every node is down" do
+      refute State.all_down?(State.new(NodeId.new("local")))
+
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "h", 4002))
+      refute State.all_down?(cluster)
+
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n1"))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n2"))
+      assert State.all_down?(cluster)
+    end
+  end
+
   describe "degraded?/1" do
     test "is true when any node is down or suspect" do
       cluster = State.new(NodeId.new("local"))

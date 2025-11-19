@@ -718,6 +718,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when every node in the cluster is `:down` — a total outage.
+  `false` for an empty cluster.
+  """
+  @spec all_down?(t()) :: boolean()
+  def all_down?(%__MODULE__{} = cluster) do
+    total = node_count(cluster)
+    total > 0 and status_count(cluster, :down) == total
+  end
+
+  @doc """
   Returns true when a strict majority of the cluster's nodes are `:up` — the
   condition for serving quorum reads and writes. Always false for an empty
   cluster.
