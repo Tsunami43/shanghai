@@ -276,6 +276,13 @@ defmodule Cluster do
   def degraded?, do: State.degraded?(cluster_state())
 
   @doc """
+  Returns `true` when every node in the live cluster is `:down` — a total
+  outage. `false` for an empty cluster. See `Cluster.State.all_down?/1`.
+  """
+  @spec all_down?() :: boolean()
+  def all_down?, do: State.all_down?(cluster_state())
+
+  @doc """
   Returns a concise cluster status summary: the local node id, the total node
   count, per-status counts, and whether quorum is available.
   """
