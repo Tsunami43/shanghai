@@ -86,6 +86,14 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
     Enum.filter(ordered(), &(rank(&1) <= rank(level)))
   end
 
+  @doc "Returns `true` when `a` is at least as strong (durable) as `b`."
+  @spec at_least?(t(), t()) :: boolean()
+  def at_least?(%__MODULE__{} = a, %__MODULE__{} = b), do: rank(a) >= rank(b)
+
+  @doc "Returns `true` when `a` is no stronger (durable) than `b`."
+  @spec at_most?(t(), t()) :: boolean()
+  def at_most?(%__MODULE__{} = a, %__MODULE__{} = b), do: rank(a) <= rank(b)
+
   @doc "Returns the stronger (higher-durability) of two levels; ties return `a`."
   @spec stronger(t(), t()) :: t()
   def stronger(%__MODULE__{} = a, %__MODULE__{} = b) do

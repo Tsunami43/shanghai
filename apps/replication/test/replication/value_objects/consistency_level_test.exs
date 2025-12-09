@@ -243,4 +243,20 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
                [ConsistencyLevel.new(:local), ConsistencyLevel.new(:quorum)]
     end
   end
+
+  describe "at_least?/2 and at_most?/2" do
+    test "compare durability inclusively" do
+      local = ConsistencyLevel.new(:local)
+      quorum = ConsistencyLevel.new(:quorum)
+      leader = ConsistencyLevel.new(:leader)
+
+      assert ConsistencyLevel.at_least?(leader, quorum)
+      assert ConsistencyLevel.at_least?(quorum, quorum)
+      refute ConsistencyLevel.at_least?(local, quorum)
+
+      assert ConsistencyLevel.at_most?(local, quorum)
+      assert ConsistencyLevel.at_most?(quorum, quorum)
+      refute ConsistencyLevel.at_most?(leader, quorum)
+    end
+  end
 end
