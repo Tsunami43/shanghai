@@ -111,6 +111,12 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevelTest do
       assert ConsistencyLevel.at_least?(:strong, :strong)
       refute ConsistencyLevel.at_least?(:eventual, :strong)
     end
+
+    test "at_most? accepts weaker or equal levels" do
+      assert ConsistencyLevel.at_most?(:eventual, :strong)
+      assert ConsistencyLevel.at_most?(:strong, :strong)
+      refute ConsistencyLevel.at_most?(:strong, :eventual)
+    end
   end
 
   describe "strongest_of/1 and weakest_of/1" do

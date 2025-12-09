@@ -134,6 +134,10 @@ defmodule CoreDomain.ValueObjects.ConsistencyLevel do
   @spec at_least?(t(), t()) :: boolean()
   def at_least?(a, b), do: a == b or stronger_than?(a, b)
 
+  @doc "Returns `true` when `a` is no stronger than `b` (weaker or equal)."
+  @spec at_most?(t(), t()) :: boolean()
+  def at_most?(a, b), do: a == b or weaker_than?(a, b)
+
   @doc """
   Returns the ordinal strength of a level: `:eventual` (0) < `:causal` (1) <
   `:strong` (2). Useful for sorting or comparing levels numerically.
