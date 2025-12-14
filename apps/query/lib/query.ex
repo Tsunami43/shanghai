@@ -2047,6 +2047,30 @@ defmodule Query do
   defp extreme(values, fun), do: fun.(values)
 
   @doc """
+  Returns the population variance of the store's numeric values, or `0.0` when
+  there are fewer than one numeric value. Scans the whole store.
+  """
+  @spec value_variance() :: float()
+  def value_variance do
+    case numeric_values() do
+      [] ->
+        0.0
+
+      values ->
+        count = length(values)
+        mean = Enum.sum(values) / count
+        Enum.reduce(values, 0.0, fn v, acc -> acc + :math.pow(v - mean, 2) end) / count
+    end
+  end
+
+  @doc """
+  Returns the population standard deviation of the store's numeric values, or
+  `0.0` when there are no numeric values. The square root of `value_variance/0`.
+  """
+  @spec value_stddev() :: float()
+  def value_stddev, do: :math.sqrt(value_variance())
+
+  @doc """
   Groups the store's keys by the result of applying `fun` to each value,
   returning a map of `group => [keys]` (each key list sorted). Scans the whole
   store.

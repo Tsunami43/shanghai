@@ -1568,4 +1568,19 @@ defmodule QueryTest do
       assert Query.common_key_prefix() == ""
     end
   end
+
+  describe "value_variance/0 and value_stddev/0" do
+    test "compute population variance and standard deviation" do
+      assert Query.value_variance() == 0.0
+      assert Query.value_stddev() == 0.0
+
+      {:ok, _} = Query.write("a", 2)
+      {:ok, _} = Query.write("b", 4)
+      {:ok, _} = Query.write("c", 6)
+
+      # mean = 4, variance = ((-2)^2 + 0 + 2^2)/3 = 8/3
+      assert_in_delta Query.value_variance(), 8 / 3, 1.0e-9
+      assert_in_delta Query.value_stddev(), :math.sqrt(8 / 3), 1.0e-9
+    end
+  end
 end
