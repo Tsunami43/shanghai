@@ -1445,6 +1445,18 @@ defmodule Query do
   end
 
   @doc """
+  Returns the spread of the store's numeric values (`max - min`), or `0` when
+  there are no numeric values. Scans the whole store.
+  """
+  @spec value_range() :: number()
+  def value_range do
+    case value_bounds() do
+      nil -> 0
+      {min, max} -> max - min
+    end
+  end
+
+  @doc """
   Returns the `{key, value}` pair with the largest key that is less than or equal
   to `key`, or `nil` when none exists. A floor lookup over the sorted key space.
   """

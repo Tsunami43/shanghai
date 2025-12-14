@@ -1583,4 +1583,16 @@ defmodule QueryTest do
       assert_in_delta Query.value_stddev(), :math.sqrt(8 / 3), 1.0e-9
     end
   end
+
+  describe "value_range/0" do
+    test "returns the spread of numeric values" do
+      assert Query.value_range() == 0
+
+      {:ok, _} = Query.write("a", 3)
+      {:ok, _} = Query.write("b", 10)
+      {:ok, _} = Query.write("c", 5)
+
+      assert Query.value_range() == 7
+    end
+  end
 end
