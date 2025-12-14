@@ -69,7 +69,8 @@ defmodule AdminApi.Router do
         "/api/v1/kv",
         "/api/v1/kv/:key",
         "/api/v1/keys",
-        "/api/v1/storage"
+        "/api/v1/storage",
+        "/api/v1/namespaces"
       ]
     })
   end
@@ -241,6 +242,16 @@ defmodule AdminApi.Router do
   # Compact overview of the storage subsystem (WAL segments, entries, snapshots).
   get "/api/v1/storage" do
     send_json(conn, 200, Storage.summary())
+  end
+
+  # Per-namespace count of live (`:up`) nodes, for topology-by-region views.
+  get "/api/v1/namespaces" do
+    up_by_namespace = Cluster.up_by_namespace()
+
+    send_json(conn, 200, %{
+      namespaces: up_by_namespace,
+      count: map_size(up_by_namespace)
+    })
   end
 
   # Read a single key from the materialized store. Read-only and safe to expose

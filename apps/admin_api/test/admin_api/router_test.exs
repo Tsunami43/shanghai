@@ -146,6 +146,16 @@ defmodule AdminApi.RouterTest do
     assert is_integer(body["bytes"])
   end
 
+  test "GET /api/v1/namespaces returns per-namespace up counts" do
+    conn = get("/api/v1/namespaces")
+    assert conn.status == 200
+
+    body = json(conn)
+    assert is_map(body["namespaces"])
+    assert is_integer(body["count"])
+    assert body["count"] == map_size(body["namespaces"])
+  end
+
   test "GET /api/v1/nodes returns a nodes list" do
     conn = get("/api/v1/nodes")
     assert conn.status == 200
