@@ -338,6 +338,18 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns a map of `host => up_node_count` — how many `:up` nodes run on each
+  host. Hosts with no `:up` node are omitted. Useful for spotting hosts whose
+  failure would take down several nodes at once.
+  """
+  @spec up_by_host(t()) :: %{optional(String.t()) => non_neg_integer()}
+  def up_by_host(%__MODULE__{} = cluster) do
+    cluster
+    |> nodes_with_status(:up)
+    |> Enum.frequencies_by(& &1.host)
+  end
+
+  @doc """
   Returns `true` when at least `min_up` nodes are `:up` in every id namespace —
   a per-region availability floor. Namespaces with no `:up` node fail the check.
   """

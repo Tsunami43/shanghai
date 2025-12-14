@@ -472,6 +472,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "up_by_host/1" do
+    test "counts up nodes per host" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostB", 4003))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n3"))
+
+      assert State.up_by_host(cluster) == %{"hostA" => 2}
+    end
+  end
+
   describe "namespaces/1" do
     test "returns distinct sorted id namespaces" do
       cluster = State.new(NodeId.new("local"))
