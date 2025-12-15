@@ -115,6 +115,13 @@ defmodule Cluster do
   def up_by_namespace, do: State.up_by_namespace(cluster_state())
 
   @doc """
+  Returns a map of `host => up_node_count` across the live cluster. See
+  `Cluster.State.up_by_host/1`.
+  """
+  @spec up_by_host() :: %{optional(String.t()) => non_neg_integer()}
+  def up_by_host, do: State.up_by_host(cluster_state())
+
+  @doc """
   Returns the number of live-cluster nodes in the given id namespace. See
   `Cluster.State.count_in_namespace/2`.
   """
