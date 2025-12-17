@@ -291,6 +291,19 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "max_nodes_per_host/1" do
+    test "returns the largest per-host node count" do
+      assert State.max_nodes_per_host(State.new(NodeId.new("solo"))) == 0
+
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostB", 4003))
+
+      assert State.max_nodes_per_host(cluster) == 2
+    end
+  end
+
   describe "multi_node?/1" do
     test "is true with more than one member" do
       cluster = State.new(NodeId.new("local"))

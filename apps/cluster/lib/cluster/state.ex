@@ -426,6 +426,19 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the largest number of nodes sharing a single host — a concentration
+  metric where a high value means one machine's failure removes many nodes at
+  once. Returns `0` for an empty cluster.
+  """
+  @spec max_nodes_per_host(t()) :: non_neg_integer()
+  def max_nodes_per_host(%__MODULE__{} = cluster) do
+    cluster
+    |> hosts_summary()
+    |> Map.values()
+    |> Enum.max(fn -> 0 end)
+  end
+
+  @doc """
   Returns all nodes in the cluster.
   """
   @spec all_nodes(t()) :: [Node.t()]
