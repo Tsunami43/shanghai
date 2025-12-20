@@ -131,6 +131,13 @@ defmodule Cluster do
   end
 
   @doc """
+  Returns the largest number of live-cluster nodes sharing a single host — a
+  co-location concentration metric. See `Cluster.State.max_nodes_per_host/1`.
+  """
+  @spec max_nodes_per_host() :: non_neg_integer()
+  def max_nodes_per_host, do: State.max_nodes_per_host(cluster_state())
+
+  @doc """
   Returns the nodes that are routable — `:up` with a heartbeat within
   `max_age_ms` — sorted by node id. See `Cluster.State.routable_nodes/2`.
   """

@@ -26,6 +26,8 @@ defmodule Cluster.StatusTest do
     assert Cluster.up_count() == before.up
     assert is_map(Cluster.up_by_namespace())
     assert is_map(Cluster.up_by_host())
+    assert is_integer(Cluster.max_nodes_per_host())
+    assert Cluster.max_nodes_per_host() >= 0
     assert Cluster.count_in_namespace("nonexistent-ns") == 0
     assert is_integer(Cluster.count_in_namespace("local"))
     assert Cluster.down_count() == before.down
