@@ -28,6 +28,10 @@ defmodule StorageTest do
     assert ids == Enum.sort(ids)
   end
 
+  test "segment_ids_desc/0 is the reverse of segment_ids/0" do
+    assert Storage.segment_ids_desc() == Enum.reverse(Storage.segment_ids())
+  end
+
   test "segment_count/0 and latest_segment_id/0 agree with segment_ids/0" do
     ids = Storage.segment_ids()
     assert Storage.segment_count() == length(ids)

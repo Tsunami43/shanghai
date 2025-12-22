@@ -64,6 +64,10 @@ defmodule Storage do
     SegmentManager.list_segments() |> Enum.map(&elem(&1, 0)) |> Enum.sort()
   end
 
+  @doc "Returns the ids of all active WAL segments, newest first (descending)."
+  @spec segment_ids_desc() :: [non_neg_integer()]
+  def segment_ids_desc, do: segment_ids() |> Enum.reverse()
+
   @doc "Returns the number of active WAL segments."
   @spec segment_count() :: non_neg_integer()
   def segment_count, do: SegmentManager.count()
