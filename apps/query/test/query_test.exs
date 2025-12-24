@@ -1595,4 +1595,16 @@ defmodule QueryTest do
       assert Query.value_range() == 7
     end
   end
+
+  describe "entries_desc/0" do
+    test "returns pairs in descending key order" do
+      assert Query.entries_desc() == []
+
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("c", 3)
+      {:ok, _} = Query.write("b", 2)
+
+      assert Query.entries_desc() == [{"c", 3}, {"b", 2}, {"a", 1}]
+    end
+  end
 end

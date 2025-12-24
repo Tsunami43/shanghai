@@ -1812,6 +1812,14 @@ defmodule Query do
   end
 
   @doc """
+  Returns the store's `{key, value}` pairs in descending key order.
+  """
+  @spec entries_desc() :: [{term(), term()}]
+  def entries_desc do
+    to_list() |> Enum.sort_by(&elem(&1, 0), :desc)
+  end
+
+  @doc """
   Returns `true` when at least one stored value equals `value`. Scans the whole
   store.
   """
