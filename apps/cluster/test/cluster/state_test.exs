@@ -365,6 +365,20 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "single_host?/1" do
+    test "detects a single-host layout" do
+      refute State.single_host?(State.new(NodeId.new("local")))
+
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4002))
+      assert State.single_host?(cluster)
+
+      {:ok, spread} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostB", 4003))
+      refute State.single_host?(spread)
+    end
+  end
+
   describe "available_node_ids/1" do
     test "returns sorted ids of up nodes" do
       cluster = State.new(NodeId.new("local"))

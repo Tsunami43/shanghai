@@ -415,6 +415,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when every node runs on a single host — a single-point-of-failure
+  layout. `false` for an empty cluster.
+  """
+  @spec single_host?(t()) :: boolean()
+  def single_host?(%__MODULE__{} = cluster) do
+    any_nodes?(cluster) and host_count(cluster) == 1
+  end
+
+  @doc """
   Returns a map of `host => node_count` across the cluster — a quick view of how
   nodes are distributed across physical machines.
   """
