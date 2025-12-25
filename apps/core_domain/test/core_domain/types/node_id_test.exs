@@ -71,6 +71,12 @@ defmodule CoreDomain.Types.NodeIdTest do
     assert NodeId.sort([]) == []
   end
 
+  test "sort_desc/1 orders node ids by value descending" do
+    ids = [NodeId.new("a"), NodeId.new("c"), NodeId.new("b")]
+    assert Enum.map(NodeId.sort_desc(ids), & &1.value) == ["c", "b", "a"]
+    assert NodeId.sort_desc([]) == []
+  end
+
   test "uniq/1 deduplicates by value, keeping order" do
     ids = [NodeId.new("a"), NodeId.new("b"), NodeId.new("a"), NodeId.new("c")]
     assert Enum.map(NodeId.uniq(ids), & &1.value) == ["a", "b", "c"]

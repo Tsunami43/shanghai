@@ -207,6 +207,12 @@ defmodule CoreDomain.Types.NodeId do
   @spec sort([t()]) :: [t()]
   def sort(node_ids) when is_list(node_ids), do: Enum.sort_by(node_ids, & &1.value)
 
+  @doc "Sorts a list of NodeIds by their string value, descending."
+  @spec sort_desc([t()]) :: [t()]
+  def sort_desc(node_ids) when is_list(node_ids) do
+    Enum.sort_by(node_ids, & &1.value, :desc)
+  end
+
   @doc """
   Returns the distinct NodeIds from a list, preserving first-seen order.
   Deduplicates by string value.
