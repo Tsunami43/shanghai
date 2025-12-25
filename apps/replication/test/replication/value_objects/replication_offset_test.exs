@@ -362,4 +362,12 @@ defmodule Replication.ValueObjects.ReplicationOffsetTest do
                0
     end
   end
+
+  describe "sort_desc/1" do
+    test "orders offsets in descending order" do
+      offsets = [ReplicationOffset.new(1), ReplicationOffset.new(3), ReplicationOffset.new(2)]
+      assert Enum.map(ReplicationOffset.sort_desc(offsets), & &1.value) == [3, 2, 1]
+      assert ReplicationOffset.sort_desc([]) == []
+    end
+  end
 end

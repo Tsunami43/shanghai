@@ -236,6 +236,10 @@ defmodule Replication.ValueObjects.ReplicationOffset do
     Enum.reduce(offsets, 0, fn %__MODULE__{value: v}, acc -> acc + v end)
   end
 
+  @doc "Sorts a list of offsets in descending order."
+  @spec sort_desc([t()]) :: [t()]
+  def sort_desc(offsets) when is_list(offsets), do: Enum.sort_by(offsets, & &1.value, :desc)
+
   @doc "Sorts a list of offsets in ascending order."
   @spec sort([t()]) :: [t()]
   def sort(offsets) when is_list(offsets), do: Enum.sort_by(offsets, & &1.value)
