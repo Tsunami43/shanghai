@@ -306,6 +306,11 @@ defmodule AdminApi.Prometheus do
         "shanghai_cluster_quorum_size",
         "Number of nodes required to form a quorum.",
         safe(fn -> Cluster.State.quorum_size(Cluster.cluster_state()) end, 0)
+      ),
+      gauge(
+        "shanghai_cluster_max_nodes_per_host",
+        "Largest number of nodes sharing a single host (co-location risk).",
+        safe(fn -> Cluster.State.max_nodes_per_host(Cluster.cluster_state()) end, 0)
       )
     ]
 

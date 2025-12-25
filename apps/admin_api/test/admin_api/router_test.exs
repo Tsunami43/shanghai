@@ -366,6 +366,7 @@ defmodule AdminApi.RouterTest do
     assert body =~ "# TYPE shanghai_cluster_node_count gauge"
     assert body =~ "# TYPE shanghai_cluster_fault_tolerance gauge"
     assert body =~ "# TYPE shanghai_cluster_quorum_size gauge"
+    assert body =~ "# TYPE shanghai_cluster_max_nodes_per_host gauge"
     assert body =~ "# TYPE shanghai_replication_max_lag gauge"
     assert body =~ "# TYPE shanghai_replication_sync_ratio gauge"
   end
