@@ -2007,6 +2007,20 @@ defmodule Query do
   end
 
   @doc """
+  Returns the fraction of stored values that are numeric (0.0..1.0), or `0.0`
+  when the store is empty. A quick data-quality probe. Scans the whole store.
+  """
+  @spec numeric_ratio() :: float()
+  def numeric_ratio do
+    all = values()
+
+    case length(all) do
+      0 -> 0.0
+      total -> Enum.count(all, &is_number/1) / total
+    end
+  end
+
+  @doc """
   Returns the average of all numeric values in the store, ignoring non-numeric
   ones. Returns `0.0` when there are no numeric values. Scans the whole store.
   """

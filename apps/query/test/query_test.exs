@@ -1607,4 +1607,17 @@ defmodule QueryTest do
       assert Query.entries_desc() == [{"c", 3}, {"b", 2}, {"a", 1}]
     end
   end
+
+  describe "numeric_ratio/0" do
+    test "returns the fraction of numeric values" do
+      assert Query.numeric_ratio() == 0.0
+
+      {:ok, _} = Query.write("a", 1)
+      {:ok, _} = Query.write("b", 2)
+      {:ok, _} = Query.write("c", "text")
+      {:ok, _} = Query.write("d", "more")
+
+      assert Query.numeric_ratio() == 0.5
+    end
+  end
 end
