@@ -225,6 +225,10 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec sort([t()]) :: [t()]
   def sort(lsns) when is_list(lsns), do: Enum.sort_by(lsns, & &1.value)
 
+  @doc "Sorts a list of LSNs in descending order."
+  @spec sort_desc([t()]) :: [t()]
+  def sort_desc(lsns) when is_list(lsns), do: Enum.sort_by(lsns, & &1.value, :desc)
+
   @doc "Returns the sorted list of LSNs with duplicates removed (by value)."
   @spec sort_uniq([t()]) :: [t()]
   def sort_uniq(lsns) when is_list(lsns) do

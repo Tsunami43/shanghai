@@ -236,4 +236,12 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
       assert LSN.count_between(LSN.new(4), LSN.new(2)) == 0
     end
   end
+
+  describe "sort_desc/1" do
+    test "orders LSNs in descending order" do
+      lsns = [LSN.new(1), LSN.new(3), LSN.new(2)]
+      assert Enum.map(LSN.sort_desc(lsns), & &1.value) == [3, 2, 1]
+      assert LSN.sort_desc([]) == []
+    end
+  end
 end
