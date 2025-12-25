@@ -111,6 +111,19 @@ defmodule Cluster.Entities.NodeTest do
     end
   end
 
+  describe "get_metadata/3 and has_metadata?/2" do
+    test "read a metadata key with an optional default" do
+      node = Node.new(NodeId.new("node1"), "localhost", 4000, %{region: "us-west"})
+
+      assert Node.get_metadata(node, :region) == "us-west"
+      assert Node.get_metadata(node, :zone) == nil
+      assert Node.get_metadata(node, :zone, "default") == "default"
+
+      assert Node.has_metadata?(node, :region)
+      refute Node.has_metadata?(node, :zone)
+    end
+  end
+
   describe "touch/1" do
     test "updates last_seen_at timestamp" do
       node_id = NodeId.new("node1")

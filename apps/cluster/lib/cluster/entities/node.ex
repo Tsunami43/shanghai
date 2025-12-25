@@ -127,6 +127,19 @@ defmodule Cluster.Entities.Node do
   end
 
   @doc """
+  Reads the metadata value at `key`, returning `default` (`nil` by default) when
+  the key is absent.
+  """
+  @spec get_metadata(t(), term(), term()) :: term()
+  def get_metadata(%__MODULE__{metadata: metadata}, key, default \\ nil) do
+    Map.get(metadata, key, default)
+  end
+
+  @doc "Returns `true` when the node's metadata contains `key`."
+  @spec has_metadata?(t(), term()) :: boolean()
+  def has_metadata?(%__MODULE__{metadata: metadata}, key), do: Map.has_key?(metadata, key)
+
+  @doc """
   Updates the last_seen_at timestamp to current time.
   """
   @spec touch(t()) :: t()
