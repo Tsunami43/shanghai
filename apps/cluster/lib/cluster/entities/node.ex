@@ -145,6 +145,12 @@ defmodule Cluster.Entities.Node do
     %{node | metadata: Map.put(metadata, key, value)}
   end
 
+  @doc "Returns a copy of the node with `key` removed from its metadata."
+  @spec delete_metadata(t(), term()) :: t()
+  def delete_metadata(%__MODULE__{metadata: metadata} = node, key) do
+    %{node | metadata: Map.delete(metadata, key)}
+  end
+
   @doc """
   Updates the last_seen_at timestamp to current time.
   """

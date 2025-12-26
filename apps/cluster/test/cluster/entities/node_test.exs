@@ -137,6 +137,16 @@ defmodule Cluster.Entities.NodeTest do
     end
   end
 
+  describe "delete_metadata/2" do
+    test "removes a metadata key" do
+      node = Node.new(NodeId.new("node1"), "localhost", 4000, %{region: "us-west", zone: "z1"})
+
+      updated = Node.delete_metadata(node, :zone)
+      refute Node.has_metadata?(updated, :zone)
+      assert Node.get_metadata(updated, :region) == "us-west"
+    end
+  end
+
   describe "touch/1" do
     test "updates last_seen_at timestamp" do
       node_id = NodeId.new("node1")
