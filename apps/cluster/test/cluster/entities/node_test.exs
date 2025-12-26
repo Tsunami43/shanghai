@@ -124,6 +124,19 @@ defmodule Cluster.Entities.NodeTest do
     end
   end
 
+  describe "put_metadata/3" do
+    test "sets a single metadata key" do
+      node = Node.new(NodeId.new("node1"), "localhost", 4000, %{region: "us-west"})
+
+      updated = Node.put_metadata(node, :zone, "z1")
+      assert Node.get_metadata(updated, :zone) == "z1"
+      assert Node.get_metadata(updated, :region) == "us-west"
+
+      overwritten = Node.put_metadata(updated, :region, "eu-west")
+      assert Node.get_metadata(overwritten, :region) == "eu-west"
+    end
+  end
+
   describe "touch/1" do
     test "updates last_seen_at timestamp" do
       node_id = NodeId.new("node1")

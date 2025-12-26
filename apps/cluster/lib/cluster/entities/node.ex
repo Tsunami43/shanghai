@@ -139,6 +139,12 @@ defmodule Cluster.Entities.Node do
   @spec has_metadata?(t(), term()) :: boolean()
   def has_metadata?(%__MODULE__{metadata: metadata}, key), do: Map.has_key?(metadata, key)
 
+  @doc "Returns a copy of the node with `key` set to `value` in its metadata."
+  @spec put_metadata(t(), term(), term()) :: t()
+  def put_metadata(%__MODULE__{metadata: metadata} = node, key, value) do
+    %{node | metadata: Map.put(metadata, key, value)}
+  end
+
   @doc """
   Updates the last_seen_at timestamp to current time.
   """
