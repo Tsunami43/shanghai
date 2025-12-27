@@ -343,4 +343,17 @@ defmodule Replication.SummaryTest do
 
     assert Replication.smallest_group() == {"sg2", 1}
   end
+
+  test "group_sizes/0 maps each group to its replica count" do
+    assert Replication.group_sizes() == %{}
+
+    Monitor.record_leader_offset("gs1", ReplicationOffset.new(10))
+    Monitor.record_follower_offset("gs1", NodeId.new("gs-f1"), ReplicationOffset.new(9))
+    Monitor.record_follower_offset("gs1", NodeId.new("gs-f2"), ReplicationOffset.new(8))
+
+    Monitor.record_leader_offset("gs2", ReplicationOffset.new(10))
+    Monitor.record_follower_offset("gs2", NodeId.new("gs-f3"), ReplicationOffset.new(9))
+
+    assert Replication.group_sizes() == %{"gs1" => 2, "gs2" => 1}
+  end
 end

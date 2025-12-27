@@ -235,6 +235,17 @@ defmodule Replication do
   end
 
   @doc """
+  Returns a map of `group_id => replica_count` for every tracked replication
+  group.
+  """
+  @spec group_sizes() :: %{optional(String.t()) => non_neg_integer()}
+  def group_sizes do
+    Map.new(all_groups(), fn group ->
+      {group.group_id, map_size(Map.get(group, :replicas, %{}))}
+    end)
+  end
+
+  @doc """
   Returns the id and replica count of the group with the most tracked replicas as
   `{group_id, count}`, or `nil` when no groups are tracked. Ties are broken by
   the group id order.
