@@ -304,6 +304,20 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "hosts_with_multiple_nodes/1" do
+    test "returns hosts running more than one node, sorted" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostB", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostB", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostA", 4003))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n4"), "hostA", 4004))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n5"), "hostC", 4005))
+
+      assert State.hosts_with_multiple_nodes(cluster) == ["hostA", "hostB"]
+      assert State.hosts_with_multiple_nodes(State.new(NodeId.new("solo"))) == []
+    end
+  end
+
   describe "multi_node?/1" do
     test "is true with more than one member" do
       cluster = State.new(NodeId.new("local"))

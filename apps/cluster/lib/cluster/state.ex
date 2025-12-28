@@ -448,6 +448,19 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the hosts running more than one node, sorted — the co-location
+  hotspots whose failure would take down several nodes at once.
+  """
+  @spec hosts_with_multiple_nodes(t()) :: [String.t()]
+  def hosts_with_multiple_nodes(%__MODULE__{} = cluster) do
+    cluster
+    |> hosts_summary()
+    |> Enum.filter(fn {_host, count} -> count > 1 end)
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns all nodes in the cluster.
   """
   @spec all_nodes(t()) :: [Node.t()]
