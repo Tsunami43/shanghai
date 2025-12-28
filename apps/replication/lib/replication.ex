@@ -251,20 +251,7 @@ defmodule Replication do
   the group id order.
   """
   @spec largest_group() :: {String.t(), non_neg_integer()} | nil
-  def largest_group do
-    case all_groups() do
-      [] ->
-        nil
-
-      groups ->
-        groups
-        |> Enum.map(fn group ->
-          {group.group_id, map_size(Map.get(group, :replicas, %{}))}
-        end)
-        |> Enum.sort_by(&elem(&1, 0))
-        |> Enum.max_by(&elem(&1, 1))
-    end
-  end
+  def largest_group, do: extreme_group(&Enum.max_by/2)
 
   @doc """
   Returns the id and replica count of the group with the fewest tracked replicas
@@ -272,18 +259,19 @@ defmodule Replication do
   the group id order.
   """
   @spec smallest_group() :: {String.t(), non_neg_integer()} | nil
-  def smallest_group do
-    case all_groups() do
-      [] ->
+  def smallest_group, do: extreme_group(&Enum.min_by/2)
+
+  # Picks the group with the extreme replica count using `pick` (Enum.max_by or
+  # Enum.min_by), breaking ties by group id order. Returns `nil` when empty.
+  defp extreme_group(pick) do
+    case group_sizes() do
+      sizes when map_size(sizes) == 0 ->
         nil
 
-      groups ->
-        groups
-        |> Enum.map(fn group ->
-          {group.group_id, map_size(Map.get(group, :replicas, %{}))}
-        end)
+      sizes ->
+        sizes
         |> Enum.sort_by(&elem(&1, 0))
-        |> Enum.min_by(&elem(&1, 1))
+        |> pick.(&elem(&1, 1))
     end
   end
 
