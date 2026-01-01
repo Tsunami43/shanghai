@@ -87,6 +87,13 @@ defmodule Observability.MetricsTest do
     assert Metrics.events_for_domain(:nope) == []
   end
 
+  test "event_domain/1 returns the domain of a known event" do
+    assert Metrics.event_domain([:shanghai, :query, :operation]) == :query
+    assert Metrics.event_domain([:shanghai, :storage, :wal, :write]) == :storage
+    assert Metrics.event_domain([:shanghai, :nope, :thing]) == nil
+    assert Metrics.event_domain([:not, :shanghai]) == nil
+  end
+
   test "domain?/1 reflects whether a domain emits events" do
     assert Metrics.domain?(:query)
     assert Metrics.domain?(:storage)

@@ -295,4 +295,20 @@ defmodule Observability.Metrics do
   def domain_event_counts do
     Enum.frequencies_by(event_names(), fn [:shanghai, domain | _rest] -> domain end)
   end
+
+  @doc """
+  Returns the domain (second path segment) of a telemetry event, or `nil` when
+  the event is not one Shanghai emits.
+
+  ## Examples
+
+      iex> Observability.Metrics.event_domain([:shanghai, :query, :operation])
+      :query
+  """
+  @spec event_domain([atom()]) :: atom() | nil
+  def event_domain([:shanghai, domain | _rest] = event) do
+    if event_defined?(event), do: domain, else: nil
+  end
+
+  def event_domain(_event), do: nil
 end
