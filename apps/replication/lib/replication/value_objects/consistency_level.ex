@@ -162,6 +162,10 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   @spec to_string(t()) :: String.t()
   def to_string(%__MODULE__{level: level}), do: Atom.to_string(level)
 
+  @doc "Returns the underlying level atom (`:local`, `:quorum`, or `:leader`)."
+  @spec level(t()) :: :local | :quorum | :leader
+  def level(%__MODULE__{level: level}), do: level
+
   @doc """
   Parses a consistency level from a string or atom.
   """

@@ -259,4 +259,12 @@ defmodule Replication.ValueObjects.ConsistencyLevelTest do
       refute ConsistencyLevel.at_most?(leader, quorum)
     end
   end
+
+  describe "level/1" do
+    test "returns the underlying level atom" do
+      assert ConsistencyLevel.level(ConsistencyLevel.new(:local)) == :local
+      assert ConsistencyLevel.level(ConsistencyLevel.new(:quorum)) == :quorum
+      assert ConsistencyLevel.level(ConsistencyLevel.new(:leader)) == :leader
+    end
+  end
 end
