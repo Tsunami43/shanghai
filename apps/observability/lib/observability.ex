@@ -31,6 +31,10 @@ defmodule Observability do
   @spec events_for_domain(atom()) :: [[atom()]]
   defdelegate events_for_domain(domain), to: Metrics
 
+  @doc "Returns the domain of a telemetry event, or `nil` when it is not emitted."
+  @spec event_domain([atom()]) :: atom() | nil
+  defdelegate event_domain(event), to: Metrics
+
   @doc "Returns the distinct telemetry domains Shanghai emits events for, sorted."
   @spec domains() :: [atom()]
   defdelegate domains(), to: Metrics

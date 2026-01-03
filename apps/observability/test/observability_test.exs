@@ -25,6 +25,8 @@ defmodule ObservabilityTest do
              Observability.Metrics.events_for_domain(:query)
 
     assert Observability.domain_event_counts() == Observability.Metrics.domain_event_counts()
+    assert Observability.event_domain([:shanghai, :query, :operation]) == :query
+    assert Observability.event_domain([:shanghai, :nope, :thing]) == nil
   end
 
   test "new_correlation_id/0 returns a hex string" do
