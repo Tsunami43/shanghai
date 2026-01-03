@@ -376,4 +376,17 @@ defmodule CoreDomain.Entities.LogEntryTest do
       assert LogEntry.most_active_node([]) == nil
     end
   end
+
+  describe "since_lsn/2" do
+    test "returns entries at or after the given LSN" do
+      id = %NodeId{value: "n"}
+      entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+      entries = [entry.(1), entry.(2), entry.(3), entry.(4)]
+
+      result = LogEntry.since_lsn(entries, LogSequenceNumber.new(3))
+      assert Enum.map(result, &LogEntry.lsn_value/1) == [3, 4]
+
+      assert LogEntry.since_lsn(entries, LogSequenceNumber.new(99)) == []
+    end
+  end
 end

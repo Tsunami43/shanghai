@@ -182,6 +182,15 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
+  Returns the entries whose LSN is at or after `lsn` (inclusive), in their given
+  order — useful for streaming a follower everything from a checkpoint onward.
+  """
+  @spec since_lsn([t()], LogSequenceNumber.t()) :: [t()]
+  def since_lsn(entries, lsn) when is_list(entries) do
+    Enum.filter(entries, &LogSequenceNumber.at_or_after?(&1.lsn, lsn))
+  end
+
+  @doc """
   Returns the entry with the highest LSN in a non-empty list. Raises on an empty
   list.
   """
