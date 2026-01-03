@@ -282,6 +282,16 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the ids of the nodes located on `host`, sorted by their string value.
+  """
+  @spec node_ids_on_host(t(), String.t()) :: [NodeId.t()]
+  def node_ids_on_host(%__MODULE__{} = cluster, host) do
+    cluster
+    |> nodes_on_host(host)
+    |> Enum.map(& &1.id)
+  end
+
+  @doc """
   Returns the nodes in the given id namespace (segment before the first `-`),
   sorted by node id.
   """

@@ -256,6 +256,18 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "node_ids_on_host/2" do
+    test "returns sorted node ids on a host" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostB", 4003))
+
+      assert Enum.map(State.node_ids_on_host(cluster, "hostA"), & &1.value) == ["n1", "n2"]
+      assert State.node_ids_on_host(cluster, "hostC") == []
+    end
+  end
+
   describe "duplicate_addresses?/1" do
     test "detects two nodes sharing an address" do
       cluster = State.new(NodeId.new("local"))
