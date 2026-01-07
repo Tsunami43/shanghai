@@ -317,4 +317,11 @@ defmodule Cluster.ValueObjects.HeartbeatTest do
       assert Heartbeat.metrics(hb) == %{cpu: 0.9, ram: 0.3}
     end
   end
+
+  describe "node_id_value/1" do
+    test "returns the raw node id string" do
+      hb = Heartbeat.new(NodeId.new("node-7"), 1)
+      assert Heartbeat.node_id_value(hb) == "node-7"
+    end
+  end
 end

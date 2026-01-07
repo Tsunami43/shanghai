@@ -97,6 +97,10 @@ defmodule Cluster.ValueObjects.Heartbeat do
     "#{value} seq=#{sequence}"
   end
 
+  @doc "Returns the raw string value of the heartbeat's node id."
+  @spec node_id_value(t()) :: String.t()
+  def node_id_value(%__MODULE__{node_id: %NodeId{value: value}}), do: value
+
   @doc """
   Returns the next heartbeat for the same node: the sequence incremented by one,
   a fresh timestamp, and the metrics carried over.
