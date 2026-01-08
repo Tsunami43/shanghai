@@ -34,6 +34,10 @@ defmodule Admin.Health do
     if Enum.all?(Map.values(checks)), do: :healthy, else: :degraded
   end
 
+  @doc "Returns the names of the subsystems included in the health check, sorted."
+  @spec subsystems() :: [atom()]
+  def subsystems, do: check().checks |> Map.keys() |> Enum.sort()
+
   @doc """
   Returns the fraction of subsystem checks that pass (0.0..1.0). Returns `1.0`
   for an empty checks map.

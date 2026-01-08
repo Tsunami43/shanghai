@@ -27,6 +27,12 @@ defmodule AdminTest do
     end
   end
 
+  describe "subsystems/0" do
+    test "lists the monitored subsystem names, sorted" do
+      assert Admin.Health.subsystems() == [:cluster, :query, :replication, :storage]
+    end
+  end
+
   describe "health_ratio/1" do
     test "is the fraction of passing checks" do
       assert Admin.Health.health_ratio(%{}) == 1.0
