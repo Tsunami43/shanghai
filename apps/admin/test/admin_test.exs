@@ -31,6 +31,10 @@ defmodule AdminTest do
     test "lists the monitored subsystem names, sorted" do
       assert Admin.Health.subsystems() == [:cluster, :query, :replication, :storage]
     end
+
+    test "is exposed on the Admin facade" do
+      assert Admin.subsystems() == Admin.Health.subsystems()
+    end
   end
 
   describe "health_ratio/1" do

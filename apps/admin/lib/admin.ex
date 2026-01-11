@@ -50,4 +50,8 @@ defmodule Admin do
   """
   @spec health_ratio() :: float()
   def health_ratio, do: summary().ratio
+
+  @doc "Returns the monitored subsystem names, sorted. See `Admin.Health.subsystems/0`."
+  @spec subsystems() :: [atom()]
+  defdelegate subsystems(), to: Admin.Health
 end
