@@ -1635,4 +1635,19 @@ defmodule QueryTest do
       assert Query.count_below(5) == 1
     end
   end
+
+  describe "count_values_between/2" do
+    test "counts numeric values within an inclusive range" do
+      assert Query.count_values_between(1, 10) == 0
+
+      {:ok, _} = Query.write("a", 2)
+      {:ok, _} = Query.write("b", 5)
+      {:ok, _} = Query.write("c", 8)
+      {:ok, _} = Query.write("d", 15)
+      {:ok, _} = Query.write("e", "text")
+
+      assert Query.count_values_between(5, 10) == 2
+      assert Query.count_values_between(0, 100) == 4
+    end
+  end
 end

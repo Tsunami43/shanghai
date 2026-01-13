@@ -1556,6 +1556,15 @@ defmodule Query do
   end
 
   @doc """
+  Returns the number of stored numeric values within the inclusive range
+  `[low, high]`. Non-numeric values are ignored. Scans the whole store.
+  """
+  @spec count_values_between(number(), number()) :: non_neg_integer()
+  def count_values_between(low, high) when is_number(low) and is_number(high) do
+    Enum.count(values(), &(is_number(&1) and &1 >= low and &1 <= high))
+  end
+
+  @doc """
   Returns `true` when the store's keys are all binaries. Useful before running
   prefix/namespace operations that assume string keys.
   """
