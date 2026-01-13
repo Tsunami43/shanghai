@@ -1538,6 +1538,24 @@ defmodule Query do
   end
 
   @doc """
+  Returns the number of stored numeric values strictly greater than `threshold`.
+  Non-numeric values are ignored. Scans the whole store.
+  """
+  @spec count_above(number()) :: non_neg_integer()
+  def count_above(threshold) when is_number(threshold) do
+    Enum.count(values(), &(is_number(&1) and &1 > threshold))
+  end
+
+  @doc """
+  Returns the number of stored numeric values strictly less than `threshold`.
+  Non-numeric values are ignored. Scans the whole store.
+  """
+  @spec count_below(number()) :: non_neg_integer()
+  def count_below(threshold) when is_number(threshold) do
+    Enum.count(values(), &(is_number(&1) and &1 < threshold))
+  end
+
+  @doc """
   Returns `true` when the store's keys are all binaries. Useful before running
   prefix/namespace operations that assume string keys.
   """

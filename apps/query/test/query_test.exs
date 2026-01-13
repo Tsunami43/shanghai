@@ -1620,4 +1620,19 @@ defmodule QueryTest do
       assert Query.numeric_ratio() == 0.5
     end
   end
+
+  describe "count_above/1 and count_below/1" do
+    test "count numeric values around a threshold, ignoring non-numeric" do
+      assert Query.count_above(5) == 0
+      assert Query.count_below(5) == 0
+
+      {:ok, _} = Query.write("a", 3)
+      {:ok, _} = Query.write("b", 7)
+      {:ok, _} = Query.write("c", 10)
+      {:ok, _} = Query.write("d", "text")
+
+      assert Query.count_above(5) == 2
+      assert Query.count_below(5) == 1
+    end
+  end
 end
