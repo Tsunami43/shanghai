@@ -44,6 +44,7 @@ defmodule Storage.WAL.BatchWriter do
     @type t :: %__MODULE__{
             segment_pid: pid(),
             pending_writes: [map()],
+            pending_count: non_neg_integer(),
             batch_size: non_neg_integer(),
             batch_timeout_ms: non_neg_integer(),
             flush_timer: reference() | nil
@@ -51,8 +52,9 @@ defmodule Storage.WAL.BatchWriter do
 
     defstruct segment_pid: nil,
               pending_writes: [],
-              batch_size: @default_batch_size,
-              batch_timeout_ms: @default_batch_timeout_ms,
+              pending_count: 0,
+              batch_size: 100,
+              batch_timeout_ms: 10,
               flush_timer: nil
   end
 
@@ -119,11 +121,12 @@ defmodule Storage.WAL.BatchWriter do
     }
 
     pending = [write_req | state.pending_writes]
-    new_state = %{state | pending_writes: pending}
+    new_count = state.pending_count + 1
+    new_state = %{state | pending_writes: pending, pending_count: new_count}
 
     # Start flush timer if this is the first write
     new_state =
-      if length(state.pending_writes) == 0 do
+      if state.pending_count == 0 do
         timer = Process.send_after(self(), :flush_timeout, state.batch_timeout_ms)
         %{new_state | flush_timer: timer}
       else
@@ -131,7 +134,7 @@ defmodule Storage.WAL.BatchWriter do
       end
 
     # Check if we should flush immediately
-    if length(pending) >= state.batch_size do
+    if new_count >= state.batch_size do
       flush_batch(new_state)
       {:noreply, reset_state(new_state)}
     else
@@ -141,7 +144,7 @@ defmodule Storage.WAL.BatchWriter do
 
   @impl true
   def handle_call(:flush, _from, state) do
-    if length(state.pending_writes) > 0 do
+    if state.pending_count > 0 do
       flush_batch(state)
     end
 
@@ -150,7 +153,7 @@ defmodule Storage.WAL.BatchWriter do
 
   @impl true
   def handle_info(:flush_timeout, state) do
-    if length(state.pending_writes) > 0 do
+    if state.pending_count > 0 do
       flush_batch(state)
     end
 
@@ -226,6 +229,6 @@ defmodule Storage.WAL.BatchWriter do
       Process.cancel_timer(state.flush_timer)
     end
 
-    %{state | pending_writes: [], flush_timer: nil}
+    %{state | pending_writes: [], pending_count: 0, flush_timer: nil}
   end
 end

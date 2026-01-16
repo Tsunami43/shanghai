@@ -28,9 +28,12 @@ defmodule Storage.WAL.Writer do
   alias Storage.Index.SegmentIndex
   alias Storage.Persistence.{FileBackend, Serializer}
 
-  @default_segment_size_threshold 64 * 1024 * 1024  # 64 MB
-  @default_segment_time_threshold 3600  # 1 hour in seconds
-  @metadata_persist_interval 100  # Persist metadata every N appends
+  # 64 MB
+  @default_segment_size_threshold 64 * 1024 * 1024
+  # 1 hour in seconds
+  @default_segment_time_threshold 3600
+  # Persist metadata every N appends
+  @metadata_persist_interval 100
 
   defmodule State do
     @moduledoc false
@@ -115,8 +118,12 @@ defmodule Storage.WAL.Writer do
   def init(opts) do
     data_dir = Keyword.fetch!(opts, :data_dir)
     node_id_str = Keyword.get(opts, :node_id, "node1")
-    segment_size_threshold = Keyword.get(opts, :segment_size_threshold, @default_segment_size_threshold)
-    segment_time_threshold = Keyword.get(opts, :segment_time_threshold, @default_segment_time_threshold)
+
+    segment_size_threshold =
+      Keyword.get(opts, :segment_size_threshold, @default_segment_size_threshold)
+
+    segment_time_threshold =
+      Keyword.get(opts, :segment_time_threshold, @default_segment_time_threshold)
 
     segments_dir = Path.join(data_dir, "segments")
     metadata_path = Path.join(data_dir, "wal_metadata.dat")
@@ -178,8 +185,9 @@ defmodule Storage.WAL.Writer do
             append_count: state.append_count + 1
         }
 
-        # Check if we need to rotate
-        new_state = check_and_rotate(new_state)
+        # Check if we need to rotate (cache current time for checks)
+        current_time = System.monotonic_time(:second)
+        new_state = check_and_rotate(new_state, current_time)
 
         # Periodically persist metadata
         new_state =
@@ -268,13 +276,13 @@ defmodule Storage.WAL.Writer do
     end
   end
 
-  @spec check_and_rotate(State.t()) :: State.t()
-  defp check_and_rotate(state) do
+  @spec check_and_rotate(State.t(), integer()) :: State.t()
+  defp check_and_rotate(state, current_time) do
     should_rotate =
-      check_size_threshold(state) or check_time_threshold(state)
+      check_size_threshold(state) or check_time_threshold(state, current_time)
 
     if should_rotate do
-      rotate_segment(state)
+      rotate_segment(state, current_time)
     else
       state
     end
@@ -293,15 +301,14 @@ defmodule Storage.WAL.Writer do
     end
   end
 
-  @spec check_time_threshold(State.t()) :: boolean()
-  defp check_time_threshold(state) do
-    current_time = System.monotonic_time(:second)
+  @spec check_time_threshold(State.t(), integer()) :: boolean()
+  defp check_time_threshold(state, current_time) do
     elapsed = current_time - state.segment_start_time
     elapsed >= state.segment_time_threshold
   end
 
-  @spec rotate_segment(State.t()) :: State.t()
-  defp rotate_segment(state) do
+  @spec rotate_segment(State.t(), integer()) :: State.t()
+  defp rotate_segment(state, current_time) do
     Logger.info("Rotating segment #{state.current_segment_id} at LSN #{state.current_lsn}")
 
     # Seal current segment
@@ -318,7 +325,7 @@ defmodule Storage.WAL.Writer do
           state
           | current_segment_id: new_segment_id,
             current_segment_pid: new_pid,
-            segment_start_time: System.monotonic_time(:second)
+            segment_start_time: current_time
         }
 
         persist_metadata(new_state)
@@ -337,7 +344,8 @@ defmodule Storage.WAL.Writer do
   @spec segment_file_path(String.t(), non_neg_integer()) :: String.t()
   defp segment_file_path(segments_dir, segment_id) do
     # Format: segment_0000000000000001.wal
-    filename = "segment_#{String.pad_leading(Integer.to_string(segment_id), 18, "0")}.wal"
+    # Use :io_lib.format for efficient zero-padded formatting
+    filename = :io_lib.format("segment_~18..0B.wal", [segment_id]) |> IO.iodata_to_binary()
     Path.join(segments_dir, filename)
   end
 end
