@@ -211,14 +211,19 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   @spec max_of([t(), ...]) :: t()
   def max_of([first | rest]), do: Enum.reduce(rest, first, &later/2)
 
+  @doc "Returns the integer sum of a list of LSN values. Empty list sums to `0`."
+  @spec sum([t()]) :: non_neg_integer()
+  def sum(lsns) when is_list(lsns) do
+    Enum.reduce(lsns, 0, fn %__MODULE__{value: v}, acc -> acc + v end)
+  end
+
   @doc """
   Returns the average of a non-empty list of LSNs as an LSN (integer division).
   Raises on an empty list.
   """
   @spec average([t(), ...]) :: t()
   def average([_ | _] = lsns) do
-    total = Enum.reduce(lsns, 0, fn %__MODULE__{value: v}, acc -> acc + v end)
-    new(div(total, length(lsns)))
+    new(div(sum(lsns), length(lsns)))
   end
 
   @doc "Sorts a list of LSNs in ascending order."

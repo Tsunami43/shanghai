@@ -244,4 +244,11 @@ defmodule CoreDomain.Types.LogSequenceNumberTest do
       assert LSN.sort_desc([]) == []
     end
   end
+
+  describe "sum/1" do
+    test "sums LSN values, empty list is zero" do
+      assert LSN.sum([LSN.new(2), LSN.new(3), LSN.new(5)]) == 10
+      assert LSN.sum([]) == 0
+    end
+  end
 end
