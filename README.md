@@ -1,5 +1,9 @@
 # Shanghai
 
+> The philosophy of this project is focused on creating a high-performance solution
+> for distributed data storage and database interactions.
+> — Tsunami43
+
 A distributed, replicated log storage system built on the Erlang VM (BEAM) using Elixir.
 
 Shanghai provides:
@@ -170,8 +174,6 @@ iex> Query.delete("user:1")
 
 ## Project Status
 
-**Current Version:** 1.2.0 (Phase 4 - Completed November 2025)
-
 ### What's Implemented
 
 ✅ **Storage Layer**
@@ -204,23 +206,6 @@ iex> Query.delete("user:1")
 - Performance benchmarks
 - Operations guides
 - Monitoring setup
-
-### Not Yet Implemented
-
-⚠️ **Reader API** - Currently write-only
-⚠️ **Query layer** - No SQL-like queries
-⚠️ **Strong consistency** - Eventual consistency only
-⚠️ **Automatic conflict resolution** - Manual intervention required
-
-### Release History
-
-- **v1.2.0** (Sep 2025) - Observability, tooling, bug fixes
-- **v1.1.0** (Jun 2025) - Replication with flow control
-- **v1.0.0** (Mar 2025) - Initial release (WAL + Cluster)
-
-## License
-
-TBD
 
 ## Contributing
 
