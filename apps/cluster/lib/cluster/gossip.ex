@@ -127,7 +127,7 @@ defmodule Cluster.Gossip do
     target_nodes = select_gossip_targets(state.fanout)
 
     # Send buffered messages to target nodes
-    if length(state.message_buffer) > 0 and length(target_nodes) > 0 do
+    if state.message_buffer != [] and target_nodes != [] do
       Enum.each(target_nodes, fn node ->
         send_gossip_to_node(node, state.message_buffer)
       end)

@@ -1,9 +1,9 @@
 defmodule Cluster.MembershipTest do
   use ExUnit.Case, async: false
 
-  alias Cluster.Membership
   alias Cluster.Entities.Node
   alias Cluster.Events.{NodeJoined, NodeLeft}
+  alias Cluster.Membership
   alias CoreDomain.Types.NodeId
 
   setup do
@@ -53,7 +53,7 @@ defmodule Cluster.MembershipTest do
       assert :ok = Membership.leave_node(node_id)
 
       nodes = Membership.all_nodes()
-      assert length(nodes) == 0
+      assert nodes == []
     end
 
     test "returns error when removing non-existent node" do

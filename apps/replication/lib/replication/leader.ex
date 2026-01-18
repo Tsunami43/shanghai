@@ -13,9 +13,8 @@ defmodule Replication.Leader do
   use GenServer
   require Logger
 
-  alias Replication.ReplicaGroup
-  alias Replication.ValueObjects.{ReplicationOffset, ConsistencyLevel}
   alias CoreDomain.Types.NodeId
+  alias Replication.ValueObjects.{ConsistencyLevel, ReplicationOffset}
 
   @type state :: %{
           group_id: String.t(),
@@ -176,22 +175,18 @@ defmodule Replication.Leader do
 
   defp broadcast_to_followers(group_id, offset, data) do
     # Send to Stream for batched replication
-    try do
-      Replication.Stream.append_entry(group_id, offset, data)
-    catch
-      :exit, _ ->
-        # Stream not available, log warning
-        Logger.warning("Stream not available for group #{group_id}")
-        :ok
-    end
+    Replication.Stream.append_entry(group_id, offset, data)
+  catch
+    :exit, _ ->
+      # Stream not available, log warning
+      Logger.warning("Stream not available for group #{group_id}")
+      :ok
   end
 
   defp report_to_monitor(group_id, offset) do
-    try do
-      Replication.Monitor.record_leader_offset(group_id, offset)
-    catch
-      :exit, _ -> :ok
-    end
+    Replication.Monitor.record_leader_offset(group_id, offset)
+  catch
+    :exit, _ -> :ok
   end
 
   defp update_pending_acks(state, follower_id, follower_offset) do

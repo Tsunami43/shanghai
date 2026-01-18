@@ -8,7 +8,8 @@ defmodule Shanghai.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      releases: releases()
+      releases: releases(),
+      dialyzer: dialyzer()
     ]
   end
 
@@ -27,6 +28,15 @@ defmodule Shanghai.MixProject do
       test: ["test --color"],
       "test.all": ["cmd mix test --color"],
       quality: ["format --check-formatted", "credo --strict", "dialyzer"]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+      plt_add_apps: [:mix, :ex_unit],
+      flags: [:error_handling],
+      ignore_warnings: ".dialyzer_ignore.exs"
     ]
   end
 

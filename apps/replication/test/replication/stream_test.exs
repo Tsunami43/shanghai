@@ -1,10 +1,10 @@
 defmodule Replication.StreamTest do
   use ExUnit.Case, async: false
 
-  alias Replication.Stream
-  alias Replication.{Leader, Follower}
-  alias Replication.ValueObjects.ReplicationOffset
   alias CoreDomain.Types.NodeId
+  alias Replication.{Follower, Leader}
+  alias Replication.Stream
+  alias Replication.ValueObjects.ReplicationOffset
 
   setup do
     # Start registry if not already running

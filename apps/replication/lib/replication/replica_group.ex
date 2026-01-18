@@ -10,10 +10,10 @@ defmodule Replication.ReplicaGroup do
   - Emitting events for replication changes
   """
 
+  alias CoreDomain.Types.NodeId
   alias Replication.Entities.Replica
   alias Replication.Events.{LeaderElected, ReplicaCaughtUp, ReplicaFellBehind}
   alias Replication.ValueObjects.ReplicationOffset
-  alias CoreDomain.Types.NodeId
 
   @type t :: %__MODULE__{
           group_id: String.t(),
@@ -63,7 +63,7 @@ defmodule Replication.ReplicaGroup do
   @spec elect_leader(t(), NodeId.t()) :: {:ok, t()} | {:error, atom()}
   def elect_leader(%__MODULE__{replicas: replicas, term: term} = group, node_id) do
     case Map.fetch(replicas, node_id) do
-      {:ok, replica} ->
+      {:ok, _replica} ->
         # Demote current leader if exists
         updated_replicas =
           if group.leader_node_id do

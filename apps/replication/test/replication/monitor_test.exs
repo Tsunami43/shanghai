@@ -1,9 +1,9 @@
 defmodule Replication.MonitorTest do
   use ExUnit.Case, async: false
 
+  alias CoreDomain.Types.NodeId
   alias Replication.Monitor
   alias Replication.ValueObjects.ReplicationOffset
-  alias CoreDomain.Types.NodeId
 
   setup do
     # Start monitor with short intervals for testing

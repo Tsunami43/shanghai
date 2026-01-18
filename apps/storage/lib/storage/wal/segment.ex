@@ -38,8 +38,8 @@ defmodule Storage.WAL.Segment do
   use GenServer
   require Logger
 
-  alias Storage.Persistence.{FileBackend, Serializer}
   alias CoreDomain.Entities.LogEntry
+  alias Storage.Persistence.{FileBackend, Serializer}
 
   @magic "SHANGHAI_WAL\0"
   @version 1
@@ -271,13 +271,8 @@ defmodule Storage.WAL.Segment do
   end
 
   def handle_call(:read_all, _from, state) do
-    case read_all_impl(state) do
-      {:ok, entries} ->
-        {:reply, {:ok, entries}, state}
-
-      {:error, reason} ->
-        {:reply, {:error, reason}, state}
-    end
+    {:ok, entries} = read_all_impl(state)
+    {:reply, {:ok, entries}, state}
   end
 
   @impl true
@@ -345,10 +340,8 @@ defmodule Storage.WAL.Segment do
     if byte_size(header) != @header_size do
       {:error, {:invalid_header_size, byte_size(header)}}
     else
-      case IO.binwrite(file, header) do
-        :ok -> :ok
-        {:error, reason} -> {:error, reason}
-      end
+      :ok = IO.binwrite(file, header)
+      :ok
     end
   end
 
@@ -520,7 +513,7 @@ defmodule Storage.WAL.Segment do
     end
   end
 
-  @spec read_all_impl(state()) :: {:ok, [LogEntry.t()]} | {:error, term()}
+  @spec read_all_impl(state()) :: {:ok, [LogEntry.t()]}
   defp read_all_impl(state) do
     # Read all entries sequentially from offset @header_size
     entries =

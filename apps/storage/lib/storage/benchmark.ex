@@ -196,21 +196,21 @@ defmodule Storage.Benchmark do
     # Sequential writes
     Logger.info("1. Sequential Writes (10,000 writes)")
     seq_result = wal_write_throughput(10_000)
-    IO.inspect(seq_result, label: "Sequential Result")
+    Logger.info("Sequential Result: #{inspect(seq_result)}")
 
     :timer.sleep(2000)
 
     # Latency percentiles
     Logger.info("\n2. Latency Percentiles (1,000 writes)")
     lat_result = wal_write_latency(1_000)
-    IO.inspect(lat_result, label: "Latency Result")
+    Logger.info("Latency Result: #{inspect(lat_result)}")
 
     :timer.sleep(2000)
 
     # Concurrent writes
     Logger.info("\n3. Concurrent Writes (10 processes × 1,000 writes)")
     conc_result = concurrent_writes(10, 1_000)
-    IO.inspect(conc_result, label: "Concurrent Result")
+    Logger.info("Concurrent Result: #{inspect(conc_result)}")
 
     Logger.info("\n=== Benchmark Complete ===")
 

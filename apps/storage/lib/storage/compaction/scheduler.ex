@@ -154,20 +154,18 @@ defmodule Storage.Compaction.Scheduler do
 
   @spec run_compaction(State.t()) :: :ok | {:error, term()}
   defp run_compaction(state) do
-    try do
-      case state.compactor.compact() do
-        :ok ->
-          Logger.info("Scheduled compaction completed successfully")
-          :ok
+    case state.compactor.compact() do
+      :ok ->
+        Logger.info("Scheduled compaction completed successfully")
+        :ok
 
-        {:error, reason} ->
-          Logger.warning("Scheduled compaction failed: #{inspect(reason)}")
-          {:error, reason}
-      end
-    rescue
-      e ->
-        Logger.error("Compaction crashed: #{inspect(e)}")
-        {:error, {:compaction_crash, Exception.message(e)}}
+      {:error, reason} ->
+        Logger.warning("Scheduled compaction failed: #{inspect(reason)}")
+        {:error, reason}
     end
+  rescue
+    e ->
+      Logger.error("Compaction crashed: #{inspect(e)}")
+      {:error, {:compaction_crash, Exception.message(e)}}
   end
 end

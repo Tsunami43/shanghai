@@ -17,8 +17,8 @@ defmodule Storage.WAL.Reader do
   require Logger
 
   alias CoreDomain.Entities.LogEntry
-  alias Storage.WAL.{Segment, SegmentManager}
   alias Storage.Index.SegmentIndex
+  alias Storage.WAL.{Segment, SegmentManager}
 
   defmodule State do
     @moduledoc false
@@ -115,13 +115,8 @@ defmodule Storage.WAL.Reader do
   end
 
   def handle_call({:read_range, start_lsn, end_lsn}, _from, state) do
-    case read_range_impl(start_lsn, end_lsn, state) do
-      {:ok, entries, new_state} ->
-        {:reply, {:ok, entries}, new_state}
-
-      {:error, reason} ->
-        {:reply, {:error, reason}, state}
-    end
+    {:ok, entries, new_state} = read_range_impl(start_lsn, end_lsn, state)
+    {:reply, {:ok, entries}, new_state}
   end
 
   def handle_call(:stats, _from, state) do
@@ -163,7 +158,7 @@ defmodule Storage.WAL.Reader do
   end
 
   @spec read_range_impl(non_neg_integer(), non_neg_integer(), State.t()) ::
-          {:ok, [LogEntry.t()], State.t()} | {:error, term()}
+          {:ok, [LogEntry.t()], State.t()}
   defp read_range_impl(start_lsn, end_lsn, state) do
     # Read all LSNs in range
     lsns = Enum.to_list(start_lsn..end_lsn)

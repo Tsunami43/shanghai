@@ -1,9 +1,9 @@
 defmodule Replication.Entities.ReplicaTest do
   use ExUnit.Case, async: true
 
+  alias CoreDomain.Types.NodeId
   alias Replication.Entities.Replica
   alias Replication.ValueObjects.ReplicationOffset
-  alias CoreDomain.Types.NodeId
 
   describe "new_follower/1" do
     test "creates replica as follower with zero offset" do

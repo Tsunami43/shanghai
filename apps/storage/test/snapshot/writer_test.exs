@@ -1,10 +1,11 @@
 defmodule Storage.Snapshot.WriterTest do
   use ExUnit.Case, async: false
 
-  alias Storage.Snapshot.Writer, as: SnapshotWriter
-  alias Storage.WAL.{Writer, SegmentManager}
-  alias Storage.Index.SegmentIndex
   alias CoreDomain.Entities.{LogEntry, LogSequenceNumber, NodeId}
+  alias Storage.Index.SegmentIndex
+  alias Storage.Persistence.Serializer
+  alias Storage.Snapshot.Writer, as: SnapshotWriter
+  alias Storage.WAL.{Reader, SegmentManager, Writer}
 
   @test_dir Path.join(
               System.tmp_dir!(),
@@ -45,7 +46,7 @@ defmodule Storage.Snapshot.WriterTest do
       )
 
     # Start WAL Reader
-    {:ok, reader_pid} = Storage.WAL.Reader.start_link([])
+    {:ok, reader_pid} = Reader.start_link([])
 
     on_exit(fn ->
       if Process.alive?(reader_pid), do: GenServer.stop(reader_pid)
@@ -115,7 +116,7 @@ defmodule Storage.Snapshot.WriterTest do
     test "creates snapshot with various data types", %{writer: _writer} do
       test_data = [
         "string",
-        12345,
+        12_345,
         %{key: "value"},
         [1, 2, 3],
         {:tuple, "data"}
@@ -172,7 +173,7 @@ defmodule Storage.Snapshot.WriterTest do
       # Read metadata
       {_data_path, meta_path} = SnapshotWriter.snapshot_paths(@snapshots_dir, snapshot_id)
       {:ok, meta_binary} = File.read(meta_path)
-      {:ok, metadata} = Storage.Persistence.Serializer.decode(meta_binary)
+      {:ok, metadata} = Serializer.decode(meta_binary)
 
       assert metadata.snapshot_id == snapshot_id
       assert metadata.lsn == last_lsn
@@ -205,7 +206,7 @@ defmodule Storage.Snapshot.WriterTest do
 
       # Read metadata
       {:ok, meta_binary} = File.read(meta_path)
-      {:ok, metadata} = Storage.Persistence.Serializer.decode(meta_binary)
+      {:ok, metadata} = Serializer.decode(meta_binary)
       assert metadata.entry_count == 0
     end
   end
@@ -284,11 +285,11 @@ defmodule Storage.Snapshot.WriterTest do
 
       # Read metadata
       {:ok, meta_binary} = File.read(meta_path)
-      {:ok, metadata} = Storage.Persistence.Serializer.decode(meta_binary)
+      {:ok, metadata} = Serializer.decode(meta_binary)
 
       # Read data and compute checksum
       {:ok, data} = File.read(data_path)
-      actual_checksum = Storage.Persistence.Serializer.compute_checksum(data)
+      actual_checksum = Serializer.compute_checksum(data)
 
       assert metadata.checksum == actual_checksum
     end

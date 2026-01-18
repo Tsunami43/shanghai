@@ -12,8 +12,8 @@ defmodule Replication.Follower do
   use GenServer
   require Logger
 
-  alias Replication.ValueObjects.ReplicationOffset
   alias CoreDomain.Types.NodeId
+  alias Replication.ValueObjects.ReplicationOffset
 
   @type state :: %{
           group_id: String.t(),
@@ -85,7 +85,7 @@ defmodule Replication.Follower do
   end
 
   @impl true
-  def handle_cast({:apply_entry, offset, data}, state) do
+  def handle_cast({:apply_entry, offset, _data}, state) do
     # Verify offset is the next expected one
     expected_offset = ReplicationOffset.increment(state.current_offset)
 

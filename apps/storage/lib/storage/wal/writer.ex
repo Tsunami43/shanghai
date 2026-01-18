@@ -22,11 +22,11 @@ defmodule Storage.WAL.Writer do
   use GenServer
   require Logger
 
-  alias CoreDomain.Types.{LogSequenceNumber, NodeId}
   alias CoreDomain.Entities.LogEntry
-  alias Storage.WAL.{Segment, SegmentManager}
+  alias CoreDomain.Types.{LogSequenceNumber, NodeId}
   alias Storage.Index.SegmentIndex
   alias Storage.Persistence.{FileBackend, Serializer}
+  alias Storage.WAL.{Segment, SegmentManager}
 
   # 64 MB
   @default_segment_size_threshold 64 * 1024 * 1024
@@ -290,15 +290,10 @@ defmodule Storage.WAL.Writer do
 
   @spec check_size_threshold(State.t()) :: boolean()
   defp check_size_threshold(state) do
-    case Segment.info(state.current_segment_pid) do
-      {:ok, info} ->
-        # Calculate approximate size from current offset
-        size = info.current_offset
-        size >= state.segment_size_threshold
-
-      {:error, _} ->
-        false
-    end
+    {:ok, info} = Segment.info(state.current_segment_pid)
+    # Calculate approximate size from current offset
+    size = info.current_offset
+    size >= state.segment_size_threshold
   end
 
   @spec check_time_threshold(State.t(), integer()) :: boolean()

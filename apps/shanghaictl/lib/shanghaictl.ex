@@ -6,6 +6,8 @@ defmodule Shanghaictl do
   Shanghai clusters, nodes, and replication.
   """
 
+  alias Shanghaictl.Commands.{Metrics, Node, Replicas, Shutdown, Status}
+
   @doc """
   Main entry point for the CLI.
   """
@@ -48,27 +50,27 @@ defmodule Shanghaictl do
   end
 
   defp execute({:status, opts}) do
-    Shanghaictl.Commands.Status.run(opts)
+    Status.run(opts)
   end
 
   defp execute({:replicas, opts}) do
-    Shanghaictl.Commands.Replicas.run(opts)
+    Replicas.run(opts)
   end
 
   defp execute({:metrics, opts}) do
-    Shanghaictl.Commands.Metrics.run(opts)
+    Metrics.run(opts)
   end
 
   defp execute({:node_join, opts}) do
-    Shanghaictl.Commands.Node.join(opts)
+    Node.join(opts)
   end
 
   defp execute({:node_leave, opts}) do
-    Shanghaictl.Commands.Node.leave(opts)
+    Node.leave(opts)
   end
 
   defp execute({:shutdown, opts}) do
-    Shanghaictl.Commands.Shutdown.run(opts)
+    Shutdown.run(opts)
   end
 
   defp execute(:version) do

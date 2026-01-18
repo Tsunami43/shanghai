@@ -130,9 +130,8 @@ defmodule Storage.Snapshot.Reader do
     {data_path, meta_path} = Writer.snapshot_paths(snapshots_dir, snapshot_id)
 
     with {:ok, metadata} <- read_metadata(meta_path),
-         {:ok, compressed_data} <- FileBackend.read_file(data_path),
-         :ok <- validate_checksum(compressed_data, metadata.checksum) do
-      :ok
+         {:ok, compressed_data} <- FileBackend.read_file(data_path) do
+      validate_checksum(compressed_data, metadata.checksum)
     end
   end
 
@@ -187,12 +186,10 @@ defmodule Storage.Snapshot.Reader do
 
   @spec decompress_data(binary()) :: {:ok, binary()} | {:error, term()}
   defp decompress_data(compressed) do
-    try do
-      uncompressed = :zlib.gunzip(compressed)
-      {:ok, uncompressed}
-    rescue
-      e ->
-        {:error, {:decompression_failed, Exception.message(e)}}
-    end
+    uncompressed = :zlib.gunzip(compressed)
+    {:ok, uncompressed}
+  rescue
+    e ->
+      {:error, {:decompression_failed, Exception.message(e)}}
   end
 end

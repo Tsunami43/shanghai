@@ -9,7 +9,7 @@ defmodule Storage.MixProject do
       config_path: "config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.19",
+      elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -26,7 +26,8 @@ defmodule Storage.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:core_domain, in_umbrella: true}
+      {:core_domain, in_umbrella: true},
+      {:observability, in_umbrella: true}
     ]
   end
 end

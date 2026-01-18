@@ -323,7 +323,7 @@ defmodule Storage.Index.SegmentIndexTest do
 
     # Write entries
     entry_data =
-      Enum.map(entries, fn {lsn, data} ->
+      Enum.map_join(entries, "", fn {lsn, data} ->
         # Serialize the entry data
         payload = :erlang.term_to_binary(%{lsn: lsn, data: data}, [:compressed])
         length = byte_size(payload)
@@ -331,7 +331,6 @@ defmodule Storage.Index.SegmentIndexTest do
 
         <<length::32, lsn::64, checksum::32, payload::binary>>
       end)
-      |> Enum.join()
 
     File.write!(path, header <> entry_data)
 

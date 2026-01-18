@@ -1,12 +1,12 @@
 defmodule Storage.Snapshot.ReaderTest do
   use ExUnit.Case, async: false
 
+  alias Storage.Index.SegmentIndex
   alias Storage.Snapshot.Reader, as: SnapshotReader
   alias Storage.Snapshot.Writer, as: SnapshotWriter
-  alias Storage.WAL.Writer, as: WALWriter
   alias Storage.WAL.Reader, as: WALReader
   alias Storage.WAL.SegmentManager
-  alias Storage.Index.SegmentIndex
+  alias Storage.WAL.Writer, as: WALWriter
 
   @test_dir Path.join(
               System.tmp_dir!(),
@@ -116,7 +116,7 @@ defmodule Storage.Snapshot.ReaderTest do
     test "reads snapshot with various data types", %{writer: _writer} do
       test_data = [
         "string",
-        12345,
+        12_345,
         %{key: "value"},
         [1, 2, 3],
         {:tuple, "data"}

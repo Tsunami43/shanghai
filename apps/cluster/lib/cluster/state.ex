@@ -10,7 +10,7 @@ defmodule Cluster.State do
   """
 
   alias Cluster.Entities.Node
-  alias Cluster.Events.{NodeJoined, NodeLeft, NodeDetectedDown}
+  alias Cluster.Events.{NodeDetectedDown, NodeJoined, NodeLeft}
   alias CoreDomain.Types.NodeId
 
   @type t :: %__MODULE__{

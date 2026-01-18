@@ -122,7 +122,7 @@ defmodule Storage.WAL.SegmentManager do
       iex> SegmentManager.stop_segment(1)
       :ok
   """
-  @spec stop_segment(non_neg_integer()) :: :ok | {:error, term()}
+  @spec stop_segment(non_neg_integer()) :: :ok
   def stop_segment(segment_id) do
     case get_segment(segment_id) do
       {:ok, pid} ->
