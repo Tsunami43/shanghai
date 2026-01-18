@@ -132,7 +132,9 @@ defmodule Cluster.Gossip do
         send_gossip_to_node(node, state.message_buffer)
       end)
 
-      Logger.debug("Gossip round: sent #{length(state.message_buffer)} messages to #{length(target_nodes)} nodes")
+      Logger.debug(
+        "Gossip round: sent #{length(state.message_buffer)} messages to #{length(target_nodes)} nodes"
+      )
     end
 
     # Clear buffer after gossip round

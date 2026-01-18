@@ -71,7 +71,8 @@ defmodule Storage.WAL.Reader do
       iex> Reader.read_range(999, 1000)
       {:ok, []}
   """
-  @spec read_range(non_neg_integer(), non_neg_integer()) :: {:ok, [LogEntry.t()]} | {:error, term()}
+  @spec read_range(non_neg_integer(), non_neg_integer()) ::
+          {:ok, [LogEntry.t()]} | {:error, term()}
   def read_range(start_lsn, end_lsn) when is_integer(start_lsn) and is_integer(end_lsn) do
     GenServer.call(__MODULE__, {:read_range, start_lsn, end_lsn}, :infinity)
   end

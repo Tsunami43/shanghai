@@ -251,9 +251,7 @@ defmodule Replication.Stream do
           Replication.Follower.apply_entry(group_id, offset, data)
         end)
 
-        Logger.debug(
-          "Sent #{length(entries_to_send)} entries to follower #{follower_id.value}"
-        )
+        Logger.debug("Sent #{length(entries_to_send)} entries to follower #{follower_id.value}")
       catch
         :exit, reason ->
           Logger.warning(

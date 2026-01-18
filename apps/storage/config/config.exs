@@ -17,28 +17,39 @@ config :storage,
 
   # WAL segment rotation thresholds
   # Segments rotate when EITHER threshold is met (hybrid strategy)
-  segment_size_threshold: 64 * 1024 * 1024,  # 64 MB
-  segment_time_threshold: 3600,               # 1 hour (in seconds)
+  # 64 MB
+  segment_size_threshold: 64 * 1024 * 1024,
+  # 1 hour (in seconds)
+  segment_time_threshold: 3600,
 
   # Index configuration
-  index_flush_threshold: 1000,     # Flush to disk every N inserts
-  index_flush_interval: 10_000,    # Or every N milliseconds
+  # Flush to disk every N inserts
+  index_flush_threshold: 1000,
+  # Or every N milliseconds
+  index_flush_interval: 10_000,
 
   # Snapshot configuration
-  snapshot_retention: 5,            # Keep N most recent snapshots
-  snapshot_compression: :gzip,      # Compression algorithm
+  # Keep N most recent snapshots
+  snapshot_retention: 5,
+  # Compression algorithm
+  snapshot_compression: :gzip,
 
   # Compaction configuration
   compaction_enabled: true,
-  compaction_interval: 3_600_000,   # 1 hour in milliseconds
+  # 1 hour in milliseconds
+  compaction_interval: 3_600_000,
   compaction_strategy: Storage.Compaction.Strategy.SizeTiered,
-  compaction_min_segments: 4,       # Minimum segments to trigger compaction
+  # Minimum segments to trigger compaction
+  compaction_min_segments: 4,
 
   # Compaction strategy: Size-Tiered thresholds
   compaction_tier_thresholds: [
-    16 * 1024 * 1024,   # 16 MB
-    64 * 1024 * 1024,   # 64 MB
-    256 * 1024 * 1024   # 256 MB
+    # 16 MB
+    16 * 1024 * 1024,
+    # 64 MB
+    64 * 1024 * 1024,
+    # 256 MB
+    256 * 1024 * 1024
   ]
 
 # Import environment-specific config

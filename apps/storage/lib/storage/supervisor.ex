@@ -50,7 +50,10 @@ defmodule Storage.Supervisor do
     snapshots_dir = Path.join(data_root, "snapshots")
 
     node_id = Application.get_env(:storage, :node_id, "default_node")
-    segment_size_threshold = Application.get_env(:storage, :segment_size_threshold, 64 * 1024 * 1024)
+
+    segment_size_threshold =
+      Application.get_env(:storage, :segment_size_threshold, 64 * 1024 * 1024)
+
     segment_time_threshold = Application.get_env(:storage, :segment_time_threshold, 3600)
 
     [
@@ -79,7 +82,12 @@ defmodule Storage.Supervisor do
       {Storage.Compaction.Compactor,
        [
          data_dir: segments_dir,
-         strategy: Application.get_env(:storage, :compaction_strategy, Storage.Compaction.Strategy.SizeTiered)
+         strategy:
+           Application.get_env(
+             :storage,
+             :compaction_strategy,
+             Storage.Compaction.Strategy.SizeTiered
+           )
        ]},
       {Storage.Compaction.Scheduler,
        [

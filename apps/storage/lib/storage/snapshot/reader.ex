@@ -177,7 +177,10 @@ defmodule Storage.Snapshot.Reader do
     if actual_checksum == expected_checksum do
       :ok
     else
-      Logger.error("Snapshot checksum mismatch: expected #{expected_checksum}, got #{actual_checksum}")
+      Logger.error(
+        "Snapshot checksum mismatch: expected #{expected_checksum}, got #{actual_checksum}"
+      )
+
       {:error, :corrupt_snapshot}
     end
   end

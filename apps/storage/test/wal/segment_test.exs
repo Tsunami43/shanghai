@@ -65,14 +65,18 @@ defmodule Storage.WAL.SegmentTest do
       result = Segment.start_link(segment_id: 999, start_lsn: 300, path: path, create: false)
 
       case result do
-        {:error, {:segment_mismatch, 3, 300}} -> assert true
+        {:error, {:segment_mismatch, 3, 300}} ->
+          assert true
+
         {:ok, pid} ->
           receive do
             {:EXIT, ^pid, {:segment_mismatch, 3, 300}} -> assert true
           after
             100 -> flunk("Expected process to exit with segment_mismatch")
           end
-        other -> flunk("Unexpected result: #{inspect(other)}")
+
+        other ->
+          flunk("Unexpected result: #{inspect(other)}")
       end
     end
 
@@ -92,12 +96,13 @@ defmodule Storage.WAL.SegmentTest do
       path = Path.join(dir, "segment_005.wal")
       {:ok, pid} = Segment.start_link(segment_id: 5, start_lsn: 500, path: path)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(500),
-        "test data",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(500),
+          "test data",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       assert {:ok, offset} = Segment.append_entry(pid, entry)
       assert offset == 256
@@ -150,12 +155,13 @@ defmodule Storage.WAL.SegmentTest do
 
       large_data = String.duplicate("x", 100_000)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(800),
-        large_data,
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(800),
+          large_data,
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       assert {:ok, offset} = Segment.append_entry(pid, entry)
       assert offset == 256
@@ -172,12 +178,13 @@ defmodule Storage.WAL.SegmentTest do
       path = Path.join(dir, "segment_009.wal")
       {:ok, pid} = Segment.start_link(segment_id: 9, start_lsn: 900, path: path)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(900),
-        "readable data",
-        %NodeId{value: "node1"},
-        %{key: "value"}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(900),
+          "readable data",
+          %NodeId{value: "node1"},
+          %{key: "value"}
+        )
 
       {:ok, offset} = Segment.append_entry(pid, entry)
       assert {:ok, read_entry} = Segment.read_entry(pid, offset)
@@ -232,12 +239,13 @@ defmodule Storage.WAL.SegmentTest do
       path = Path.join(dir, "segment_012.wal")
       {:ok, pid} = Segment.start_link(segment_id: 12, start_lsn: 1200, path: path)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(1200),
-        "corrupt me",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(1200),
+          "corrupt me",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       {:ok, offset} = Segment.append_entry(pid, entry)
 
@@ -264,12 +272,13 @@ defmodule Storage.WAL.SegmentTest do
       path = Path.join(dir, "segment_013.wal")
       {:ok, pid} = Segment.start_link(segment_id: 13, start_lsn: 1300, path: path)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(1300),
-        "before seal",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(1300),
+          "before seal",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       {:ok, _offset} = Segment.append_entry(pid, entry)
 
@@ -287,12 +296,13 @@ defmodule Storage.WAL.SegmentTest do
 
       :ok = Segment.seal(pid)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(1400),
-        "after seal",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(1400),
+          "after seal",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       assert {:error, :segment_sealed} = Segment.append_entry(pid, entry)
 
@@ -303,12 +313,13 @@ defmodule Storage.WAL.SegmentTest do
       path = Path.join(dir, "segment_015.wal")
       {:ok, pid} = Segment.start_link(segment_id: 15, start_lsn: 1500, path: path)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(1500),
-        "sealed read",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(1500),
+          "sealed read",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       {:ok, offset} = Segment.append_entry(pid, entry)
       :ok = Segment.seal(pid)
@@ -356,12 +367,13 @@ defmodule Storage.WAL.SegmentTest do
       {:ok, pid} = Segment.start_link(segment_id: 18, start_lsn: 1800, path: path)
 
       for i <- 1..5 do
-        entry = LogEntry.new(
-          LogSequenceNumber.new(1800 + i - 1),
-          "entry #{i}",
-          %NodeId{value: "node1"},
-          %{}
-        )
+        entry =
+          LogEntry.new(
+            LogSequenceNumber.new(1800 + i - 1),
+            "entry #{i}",
+            %NodeId{value: "node1"},
+            %{}
+          )
 
         Segment.append_entry(pid, entry)
       end
@@ -378,12 +390,13 @@ defmodule Storage.WAL.SegmentTest do
       path = Path.join(dir, "segment_019.wal")
       {:ok, pid} = Segment.start_link(segment_id: 19, start_lsn: 1900, path: path)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(1900),
-        "close test",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(1900),
+          "close test",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       {:ok, _offset} = Segment.append_entry(pid, entry)
 
@@ -445,7 +458,9 @@ defmodule Storage.WAL.SegmentTest do
         )
 
       case result do
-        {:error, _reason} -> assert true
+        {:error, _reason} ->
+          assert true
+
         {:ok, pid} ->
           receive do
             {:EXIT, ^pid, _reason} -> assert true
@@ -465,7 +480,9 @@ defmodule Storage.WAL.SegmentTest do
       result = Segment.start_link(segment_id: 21, start_lsn: 2100, path: path, create: false)
 
       case result do
-        {:error, _reason} -> assert true
+        {:error, _reason} ->
+          assert true
+
         {:ok, pid} ->
           receive do
             {:EXIT, ^pid, _reason} -> assert true

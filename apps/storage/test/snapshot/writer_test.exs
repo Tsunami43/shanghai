@@ -6,7 +6,10 @@ defmodule Storage.Snapshot.WriterTest do
   alias Storage.Index.SegmentIndex
   alias CoreDomain.Entities.{LogEntry, LogSequenceNumber, NodeId}
 
-  @test_dir Path.join(System.tmp_dir!(), "shanghai_snapshot_writer_test_#{:rand.uniform(999_999)}")
+  @test_dir Path.join(
+              System.tmp_dir!(),
+              "shanghai_snapshot_writer_test_#{:rand.uniform(999_999)}"
+            )
   @snapshots_dir Path.join(@test_dir, "snapshots")
   @wal_dir Path.join(@test_dir, "wal")
   @index_dir Path.join(@test_dir, "index")
@@ -79,7 +82,11 @@ defmodule Storage.Snapshot.WriterTest do
       Process.sleep(10)
 
       assert {:ok, snapshot_id} = SnapshotWriter.create_snapshot(@snapshots_dir, lsn)
-      assert String.contains?(snapshot_id, "_lsn_#{String.pad_leading(Integer.to_string(lsn), 16, "0")}")
+
+      assert String.contains?(
+               snapshot_id,
+               "_lsn_#{String.pad_leading(Integer.to_string(lsn), 16, "0")}"
+             )
 
       # Verify files exist
       {data_path, meta_path} = SnapshotWriter.snapshot_paths(@snapshots_dir, snapshot_id)

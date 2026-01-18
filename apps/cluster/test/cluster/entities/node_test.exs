@@ -126,7 +126,7 @@ defmodule Cluster.Entities.NodeTest do
 
       erlang_name = Node.erlang_node_name(node)
 
-      assert erlang_name == :"node1@localhost"
+      assert erlang_name == :node1@localhost
     end
   end
 end

@@ -78,9 +78,7 @@ defmodule Replication.ConsistencyTest do
       start_supervised!({Leader, [group_id: group_id, node_id: leader_id, replica_count: 3]})
 
       # Should timeout waiting for quorum (2 acks needed, only 1 from leader)
-      assert catch_exit(
-               Leader.write(group_id, "data", consistency_level: :quorum, timeout: 100)
-             )
+      assert catch_exit(Leader.write(group_id, "data", consistency_level: :quorum, timeout: 100))
     end
   end
 

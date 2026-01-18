@@ -8,7 +8,10 @@ defmodule Storage.Snapshot.ReaderTest do
   alias Storage.WAL.SegmentManager
   alias Storage.Index.SegmentIndex
 
-  @test_dir Path.join(System.tmp_dir!(), "shanghai_snapshot_reader_test_#{:rand.uniform(999_999)}")
+  @test_dir Path.join(
+              System.tmp_dir!(),
+              "shanghai_snapshot_reader_test_#{:rand.uniform(999_999)}"
+            )
   @snapshots_dir Path.join(@test_dir, "snapshots")
   @wal_dir Path.join(@test_dir, "wal")
   @index_dir Path.join(@test_dir, "index")
@@ -139,7 +142,8 @@ defmodule Storage.Snapshot.ReaderTest do
     end
 
     test "returns error for non-existent snapshot", %{} do
-      assert {:error, _reason} = SnapshotReader.read_snapshot(@snapshots_dir, "non_existent_snapshot")
+      assert {:error, _reason} =
+               SnapshotReader.read_snapshot(@snapshots_dir, "non_existent_snapshot")
     end
 
     test "returns error for corrupt data file", %{writer: _writer} do
@@ -153,7 +157,8 @@ defmodule Storage.Snapshot.ReaderTest do
       File.write!(data_path, "corrupted data")
 
       # Should detect corruption via checksum
-      assert {:error, :corrupt_snapshot} = SnapshotReader.read_snapshot(@snapshots_dir, snapshot_id)
+      assert {:error, :corrupt_snapshot} =
+               SnapshotReader.read_snapshot(@snapshots_dir, snapshot_id)
     end
 
     test "returns error for corrupt metadata file", %{writer: _writer} do
@@ -284,7 +289,8 @@ defmodule Storage.Snapshot.ReaderTest do
     end
 
     test "returns error for non-existent snapshot", %{} do
-      assert {:error, _reason} = SnapshotReader.get_snapshot_metadata(@snapshots_dir, "non_existent")
+      assert {:error, _reason} =
+               SnapshotReader.get_snapshot_metadata(@snapshots_dir, "non_existent")
     end
 
     test "returns error for corrupt metadata", %{writer: _writer} do
@@ -318,7 +324,8 @@ defmodule Storage.Snapshot.ReaderTest do
       {data_path, _meta_path} = SnapshotWriter.snapshot_paths(@snapshots_dir, snapshot_id)
       File.write!(data_path, "corrupted data")
 
-      assert {:error, :corrupt_snapshot} = SnapshotReader.validate_snapshot(@snapshots_dir, snapshot_id)
+      assert {:error, :corrupt_snapshot} =
+               SnapshotReader.validate_snapshot(@snapshots_dir, snapshot_id)
     end
 
     test "validates without loading all data", %{writer: _writer} do
@@ -331,9 +338,10 @@ defmodule Storage.Snapshot.ReaderTest do
       {:ok, snapshot_id} = SnapshotWriter.create_snapshot(@snapshots_dir, 999)
 
       # Validation should be fast (doesn't decompress)
-      {time_us, result} = :timer.tc(fn ->
-        SnapshotReader.validate_snapshot(@snapshots_dir, snapshot_id)
-      end)
+      {time_us, result} =
+        :timer.tc(fn ->
+          SnapshotReader.validate_snapshot(@snapshots_dir, snapshot_id)
+        end)
 
       assert result == :ok
       # Should complete in under 1 second

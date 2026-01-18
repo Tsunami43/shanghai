@@ -31,7 +31,8 @@ defmodule Storage.WAL.ReaderTest do
       Writer.start_link(
         data_dir: @test_dir,
         node_id: "test_node",
-        segment_size_threshold: 10 * 1024 * 1024,  # 10 MB
+        # 10 MB
+        segment_size_threshold: 10 * 1024 * 1024,
         segment_time_threshold: 3600
       )
 

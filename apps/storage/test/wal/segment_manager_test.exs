@@ -80,12 +80,13 @@ defmodule Storage.WAL.SegmentManagerTest do
       {:ok, pid1} = SegmentManager.start_segment(4, 400, path, create: true)
 
       # Write some data
-      entry = LogEntry.new(
-        LogSequenceNumber.new(400),
-        "test data",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(400),
+          "test data",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       Segment.append_entry(pid1, entry)
 
@@ -136,12 +137,13 @@ defmodule Storage.WAL.SegmentManagerTest do
       {:ok, pid} = SegmentManager.start_segment(7, 700, path)
 
       # Write an entry
-      entry = LogEntry.new(
-        LogSequenceNumber.new(700),
-        "test",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(700),
+          "test",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       Segment.append_entry(pid, entry)
 
@@ -236,12 +238,13 @@ defmodule Storage.WAL.SegmentManagerTest do
 
       {:ok, segment_pid} = SegmentManager.get_segment(13)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(1300),
-        "integrated test",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(1300),
+          "integrated test",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       {:ok, offset} = Segment.append_entry(segment_pid, entry)
       {:ok, read_entry} = Segment.read_entry(segment_pid, offset)
@@ -257,12 +260,13 @@ defmodule Storage.WAL.SegmentManagerTest do
       {:ok, _} = SegmentManager.start_segment(14, 1400, path)
       {:ok, pid1} = SegmentManager.get_segment(14)
 
-      entry = LogEntry.new(
-        LogSequenceNumber.new(1400),
-        "persistent data",
-        %NodeId{value: "node1"},
-        %{}
-      )
+      entry =
+        LogEntry.new(
+          LogSequenceNumber.new(1400),
+          "persistent data",
+          %NodeId{value: "node1"},
+          %{}
+        )
 
       {:ok, offset} = Segment.append_entry(pid1, entry)
 

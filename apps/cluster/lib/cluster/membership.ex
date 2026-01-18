@@ -136,6 +136,7 @@ defmodule Cluster.Membership do
 
         # Emit telemetry metric for membership change
         node_count = State.node_count(cluster_with_no_events)
+
         Observability.Metrics.cluster_membership_changed(
           node_count,
           :node_joined,
@@ -154,6 +155,7 @@ defmodule Cluster.Membership do
           node_id: node.id.value,
           reason: reason
         )
+
         {:reply, error, state}
     end
   end
@@ -167,6 +169,7 @@ defmodule Cluster.Membership do
 
         # Emit telemetry metric for membership change
         node_count = State.node_count(cluster_with_no_events)
+
         Observability.Metrics.cluster_membership_changed(
           node_count,
           :node_left,
@@ -186,6 +189,7 @@ defmodule Cluster.Membership do
           node_id: node_id.value,
           reason: reason
         )
+
         {:reply, error, state}
     end
   end
@@ -243,6 +247,7 @@ defmodule Cluster.Membership do
         Observability.Logger.info("Node marked suspect",
           node_id: node_id.value
         )
+
         {:noreply, %{state | cluster: updated_cluster}}
 
       {:error, _reason} ->
@@ -259,6 +264,7 @@ defmodule Cluster.Membership do
 
         # Emit telemetry metric for membership change
         node_count = State.node_count(cluster_with_no_events)
+
         Observability.Metrics.cluster_membership_changed(
           node_count,
           :node_down,
@@ -284,6 +290,7 @@ defmodule Cluster.Membership do
         Observability.Logger.info("Node marked up",
           node_id: node_id.value
         )
+
         {:noreply, %{state | cluster: updated_cluster}}
 
       {:error, _reason} ->
@@ -296,6 +303,7 @@ defmodule Cluster.Membership do
     Observability.Logger.info("Erlang node up",
       erlang_node: erlang_node
     )
+
     # In future iterations, we'll handle automatic node discovery here
     {:noreply, state}
   end
