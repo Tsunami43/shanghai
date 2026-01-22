@@ -208,8 +208,7 @@ defmodule Replication.ValueObjects.ReplicationOffset do
   """
   @spec average([t(), ...]) :: t()
   def average([_ | _] = offsets) do
-    total = Enum.reduce(offsets, 0, fn %__MODULE__{value: v}, acc -> acc + v end)
-    new(div(total, length(offsets)))
+    new(div(sum(offsets), length(offsets)))
   end
 
   @doc "Returns the later (greater) of two offsets."
