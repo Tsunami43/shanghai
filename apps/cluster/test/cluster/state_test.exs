@@ -316,6 +316,19 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "min_nodes_per_host/1" do
+    test "returns the smallest per-host node count" do
+      assert State.min_nodes_per_host(State.new(NodeId.new("solo"))) == 0
+
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostA", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostB", 4003))
+
+      assert State.min_nodes_per_host(cluster) == 1
+    end
+  end
+
   describe "hosts_with_multiple_nodes/1" do
     test "returns hosts running more than one node, sorted" do
       cluster = State.new(NodeId.new("local"))

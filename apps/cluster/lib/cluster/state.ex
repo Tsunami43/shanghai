@@ -471,6 +471,19 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns the smallest number of nodes on any single host, or `0` for an empty
+  cluster. Together with `max_nodes_per_host/1` it bounds how evenly nodes are
+  spread across machines.
+  """
+  @spec min_nodes_per_host(t()) :: non_neg_integer()
+  def min_nodes_per_host(%__MODULE__{} = cluster) do
+    cluster
+    |> hosts_summary()
+    |> Map.values()
+    |> Enum.min(fn -> 0 end)
+  end
+
+  @doc """
   Returns all nodes in the cluster.
   """
   @spec all_nodes(t()) :: [Node.t()]
