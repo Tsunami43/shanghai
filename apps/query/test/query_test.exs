@@ -1650,4 +1650,19 @@ defmodule QueryTest do
       assert Query.count_values_between(0, 100) == 4
     end
   end
+
+  describe "value_percentile/1" do
+    test "returns nearest-rank percentiles of numeric values" do
+      assert Query.value_percentile(50) == nil
+
+      for {k, v} <- [{"a", 10}, {"b", 20}, {"c", 30}, {"d", 40}, {"e", 50}] do
+        {:ok, _} = Query.write(k, v)
+      end
+
+      assert Query.value_percentile(0) == 10
+      assert Query.value_percentile(50) == 30
+      assert Query.value_percentile(100) == 50
+      assert Query.value_percentile(50) == Query.median_value()
+    end
+  end
 end

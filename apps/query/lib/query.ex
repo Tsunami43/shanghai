@@ -1395,6 +1395,25 @@ defmodule Query do
   end
 
   @doc """
+  Returns the value at the given `percentile` (0..100) of the store's sorted
+  numeric values using the nearest-rank method, or `nil` when there are none.
+  `percentile(50)` matches `median_value/0`. Scans the whole store.
+  """
+  @spec value_percentile(number()) :: number() | nil
+  def value_percentile(percentile)
+      when is_number(percentile) and percentile >= 0 and percentile <= 100 do
+    case numeric_pairs() |> Enum.map(&elem(&1, 1)) |> Enum.sort() do
+      [] ->
+        nil
+
+      sorted ->
+        count = length(sorted)
+        rank = max(round(Float.ceil(percentile / 100 * count)), 1)
+        Enum.at(sorted, min(rank, count) - 1)
+    end
+  end
+
+  @doc """
   Returns the `n` keys nearest to (and at or after) `key` in sorted order — a
   bounded range scan starting at `key`.
   """
