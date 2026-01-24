@@ -107,6 +107,23 @@ Query.get_field("user:1", :name, "?")           #=> "Alice" | "?"
 Query.has_field?("user:1", :name)               #=> true
 Query.fields("user:1")                           #=> [:age, :name]  (sorted)
 Query.field_count("user:1")                      #=> 2
+
+# Numeric analytics over stored values (non-numeric values are ignored)
+Query.value_stats()                              #=> %{count:, sum:, min:, max:, avg:}
+Query.value_variance()                           #=> 8.0
+Query.value_stddev()                             #=> 2.83
+Query.value_range()                              #=> 7          (max - min)
+Query.median_value()                             #=> 30
+Query.value_percentile(90)                       #=> 50         (nearest-rank)
+Query.numeric_ratio()                            #=> 0.5        (fraction numeric)
+Query.count_above(5)                             #=> 2
+Query.count_below(5)                             #=> 1
+Query.count_values_between(5, 10)                #=> 2
+
+# Value-frequency analytics
+Query.most_common_value()                        #=> {"x", 2} | nil
+Query.least_common_value()                       #=> {"y", 1} | nil
+Query.value_frequencies_desc()                   #=> [{"x", 2}, {"y", 1}]
 ```
 
 `read/2` and `write/3` accept a `:consistency` option (`:strong` | `:eventual`
