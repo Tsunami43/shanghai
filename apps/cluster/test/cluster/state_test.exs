@@ -329,6 +329,23 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "balanced?/1" do
+    test "is true when hosts differ by at most one node" do
+      assert State.balanced?(State.new(NodeId.new("solo")))
+
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "hostA", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "hostB", 4002))
+      assert State.balanced?(cluster)
+
+      {:ok, skewed} = State.add_node(cluster, Node.new(NodeId.new("n3"), "hostA", 4003))
+      assert State.balanced?(skewed)
+
+      {:ok, skewed} = State.add_node(skewed, Node.new(NodeId.new("n4"), "hostA", 4004))
+      refute State.balanced?(skewed)
+    end
+  end
+
   describe "hosts_with_multiple_nodes/1" do
     test "returns hosts running more than one node, sorted" do
       cluster = State.new(NodeId.new("local"))

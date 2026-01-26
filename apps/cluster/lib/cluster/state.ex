@@ -484,6 +484,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when nodes are evenly spread across hosts — the busiest and
+  least-busy host differ by at most one node. Always `true` for an empty cluster.
+  """
+  @spec balanced?(t()) :: boolean()
+  def balanced?(%__MODULE__{} = cluster) do
+    max_nodes_per_host(cluster) - min_nodes_per_host(cluster) <= 1
+  end
+
+  @doc """
   Returns all nodes in the cluster.
   """
   @spec all_nodes(t()) :: [Node.t()]
