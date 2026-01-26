@@ -138,6 +138,13 @@ defmodule Cluster do
   def max_nodes_per_host, do: State.max_nodes_per_host(cluster_state())
 
   @doc """
+  Returns `true` when nodes are evenly spread across hosts in the live cluster.
+  See `Cluster.State.balanced?/1`.
+  """
+  @spec balanced?() :: boolean()
+  def balanced?, do: State.balanced?(cluster_state())
+
+  @doc """
   Returns the nodes that are routable — `:up` with a heartbeat within
   `max_age_ms` — sorted by node id. See `Cluster.State.routable_nodes/2`.
   """
