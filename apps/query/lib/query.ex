@@ -2095,7 +2095,12 @@ defmodule Query do
   @spec min_value() :: number() | nil
   def min_value, do: numeric_values() |> extreme(&Enum.min/1)
 
-  defp numeric_values, do: for({_key, value} <- to_list(), is_number(value), do: value)
+  @doc """
+  Returns the store's numeric values as a plain list, ignoring non-numeric
+  values. Scans the whole store — the basis for the numeric aggregates.
+  """
+  @spec numeric_values() :: [number()]
+  def numeric_values, do: for({_key, value} <- to_list(), is_number(value), do: value)
 
   @doc """
   Returns compact aggregate statistics over the store's numeric values:

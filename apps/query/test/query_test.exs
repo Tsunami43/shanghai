@@ -1665,4 +1665,16 @@ defmodule QueryTest do
       assert Query.value_percentile(50) == Query.median_value()
     end
   end
+
+  describe "numeric_values/0" do
+    test "returns only the numeric values" do
+      assert Query.numeric_values() == []
+
+      {:ok, _} = Query.write("a", 3)
+      {:ok, _} = Query.write("b", "text")
+      {:ok, _} = Query.write("c", 7)
+
+      assert Enum.sort(Query.numeric_values()) == [3, 7]
+    end
+  end
 end
