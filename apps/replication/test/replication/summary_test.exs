@@ -356,4 +356,14 @@ defmodule Replication.SummaryTest do
 
     assert Replication.group_sizes() == %{"gs1" => 2, "gs2" => 1}
   end
+
+  test "replica_ids/1 returns sorted follower ids of a group" do
+    assert Replication.replica_ids("unknown") == []
+
+    Monitor.record_leader_offset("ri1", ReplicationOffset.new(10))
+    Monitor.record_follower_offset("ri1", NodeId.new("ri-b"), ReplicationOffset.new(9))
+    Monitor.record_follower_offset("ri1", NodeId.new("ri-a"), ReplicationOffset.new(8))
+
+    assert Enum.map(Replication.replica_ids("ri1"), & &1.value) == ["ri-a", "ri-b"]
+  end
 end

@@ -235,6 +235,21 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the follower ids tracked in `group_id`, sorted, or `[]` when the group
+  is unknown.
+  """
+  @spec replica_ids(String.t()) :: [CoreDomain.Types.NodeId.t()]
+  def replica_ids(group_id) do
+    case get_group_metrics(group_id) do
+      {:ok, group} ->
+        group |> Map.get(:replicas, %{}) |> Map.keys() |> CoreDomain.Types.NodeId.sort()
+
+      {:error, :not_found} ->
+        []
+    end
+  end
+
+  @doc """
   Returns a map of `group_id => replica_count` for every tracked replication
   group.
   """
