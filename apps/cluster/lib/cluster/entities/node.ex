@@ -151,6 +151,12 @@ defmodule Cluster.Entities.Node do
     %{node | metadata: Map.delete(metadata, key)}
   end
 
+  @doc "Returns the node's metadata keys, sorted."
+  @spec metadata_keys(t()) :: [term()]
+  def metadata_keys(%__MODULE__{metadata: metadata}) do
+    metadata |> Map.keys() |> Enum.sort()
+  end
+
   @doc """
   Updates the last_seen_at timestamp to current time.
   """

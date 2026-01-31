@@ -147,6 +147,14 @@ defmodule Cluster.Entities.NodeTest do
     end
   end
 
+  describe "metadata_keys/1" do
+    test "returns sorted metadata keys" do
+      node = Node.new(NodeId.new("node1"), "localhost", 4000, %{zone: "z1", region: "us-west"})
+      assert Node.metadata_keys(node) == [:region, :zone]
+      assert Node.metadata_keys(Node.new(NodeId.new("bare"), "h", 1)) == []
+    end
+  end
+
   describe "touch/1" do
     test "updates last_seen_at timestamp" do
       node_id = NodeId.new("node1")
