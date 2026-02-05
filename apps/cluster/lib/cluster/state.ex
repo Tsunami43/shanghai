@@ -240,6 +240,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns a map of `node_id => "host:port"` for every node — a routing table
+  from ids to addresses.
+  """
+  @spec address_map(t()) :: %{optional(NodeId.t()) => String.t()}
+  def address_map(%__MODULE__{nodes: nodes}) do
+    Map.new(nodes, fn {id, node} -> {id, Node.address(node)} end)
+  end
+
+  @doc """
   Returns the `host:port` addresses of the nodes with the given status, sorted.
   """
   @spec addresses_with_status(t(), atom()) :: [String.t()]

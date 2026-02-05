@@ -195,6 +195,21 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "address_map/1" do
+    test "maps node ids to their addresses" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("na"), "h1", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("nb"), "h2", 4002))
+
+      assert State.address_map(cluster) == %{
+               NodeId.new("na") => "h1:4001",
+               NodeId.new("nb") => "h2:4002"
+             }
+
+      assert State.address_map(State.new(NodeId.new("solo"))) == %{}
+    end
+  end
+
   describe "node_hosts/1" do
     test "returns distinct sorted hosts" do
       cluster = State.new(NodeId.new("local"))
