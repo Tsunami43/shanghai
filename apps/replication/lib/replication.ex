@@ -6,6 +6,7 @@ defmodule Replication do
   and metrics for all replicated shards.
   """
 
+  alias CoreDomain.Types.NodeId
   alias Replication.Monitor
 
   @doc """
@@ -238,11 +239,11 @@ defmodule Replication do
   Returns the follower ids tracked in `group_id`, sorted, or `[]` when the group
   is unknown.
   """
-  @spec replica_ids(String.t()) :: [CoreDomain.Types.NodeId.t()]
+  @spec replica_ids(String.t()) :: [NodeId.t()]
   def replica_ids(group_id) do
     case get_group_metrics(group_id) do
       {:ok, group} ->
-        group |> Map.get(:replicas, %{}) |> Map.keys() |> CoreDomain.Types.NodeId.sort()
+        group |> Map.get(:replicas, %{}) |> Map.keys() |> NodeId.sort()
 
       {:error, :not_found} ->
         []
@@ -336,7 +337,7 @@ defmodule Replication do
   Returns the ids of replicas that are lagging or stale, as `{group_id, node_id}`
   tuples, sorted. Useful for targeted catch-up scheduling.
   """
-  @spec unhealthy_replicas() :: [{String.t(), CoreDomain.Types.NodeId.t()}]
+  @spec unhealthy_replicas() :: [{String.t(), NodeId.t()}]
   def unhealthy_replicas do
     for group <- all_groups(),
         {node_id, replica} <- Map.get(group, :replicas, %{}),
