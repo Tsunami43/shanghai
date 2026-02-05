@@ -1677,4 +1677,17 @@ defmodule QueryTest do
       assert Enum.sort(Query.numeric_values()) == [3, 7]
     end
   end
+
+  describe "keys_longer_than/1" do
+    test "returns keys with a string form longer than n, sorted" do
+      assert Query.keys_longer_than(3) == []
+
+      {:ok, _} = Query.write("ab", 1)
+      {:ok, _} = Query.write("abcd", 2)
+      {:ok, _} = Query.write("abcdef", 3)
+
+      assert Query.keys_longer_than(3) == ["abcd", "abcdef"]
+      assert Query.keys_longer_than(10) == []
+    end
+  end
 end
