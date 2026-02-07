@@ -249,6 +249,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns a map of `node_id => status` (`:up`, `:down`, or `:suspect`) for every
+  node.
+  """
+  @spec status_map(t()) :: %{optional(NodeId.t()) => Node.status()}
+  def status_map(%__MODULE__{nodes: nodes}) do
+    Map.new(nodes, fn {id, node} -> {id, node.status} end)
+  end
+
+  @doc """
   Returns the `host:port` addresses of the nodes with the given status, sorted.
   """
   @spec addresses_with_status(t(), atom()) :: [String.t()]

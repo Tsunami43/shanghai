@@ -210,6 +210,20 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "status_map/1" do
+    test "maps node ids to their status" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("na"), "h1", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("nb"), "h2", 4002))
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("nb"))
+
+      assert State.status_map(cluster) == %{
+               NodeId.new("na") => :up,
+               NodeId.new("nb") => :down
+             }
+    end
+  end
+
   describe "node_hosts/1" do
     test "returns distinct sorted hosts" do
       cluster = State.new(NodeId.new("local"))
