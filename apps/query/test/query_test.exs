@@ -1690,4 +1690,17 @@ defmodule QueryTest do
       assert Query.keys_longer_than(10) == []
     end
   end
+
+  describe "keys_shorter_than/1" do
+    test "returns keys with a string form shorter than n, sorted" do
+      assert Query.keys_shorter_than(3) == []
+
+      {:ok, _} = Query.write("ab", 1)
+      {:ok, _} = Query.write("abcd", 2)
+      {:ok, _} = Query.write("x", 3)
+
+      assert Query.keys_shorter_than(3) == ["ab", "x"]
+      assert Query.keys_shorter_than(1) == []
+    end
+  end
 end

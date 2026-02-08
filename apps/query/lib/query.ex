@@ -1340,6 +1340,17 @@ defmodule Query do
   end
 
   @doc """
+  Returns the keys whose string form is shorter than `length`, sorted. Non-binary
+  keys use their inspected form's length.
+  """
+  @spec keys_shorter_than(non_neg_integer()) :: [term()]
+  def keys_shorter_than(length) when is_integer(length) and length >= 0 do
+    keys()
+    |> Enum.filter(fn key -> String.length(to_key_string(key)) < length end)
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns the product of the numeric values for `keys` (missing or non-numeric
   values are treated as `1`). Empty list yields `1`.
   """
