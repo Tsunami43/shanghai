@@ -13,6 +13,7 @@ defmodule Shanghaictl do
     Info,
     Kv,
     Metrics,
+    Namespaces,
     Node,
     Replicas,
     Shutdown,
@@ -36,7 +37,7 @@ defmodule Shanghaictl do
           :help
           | :version
           | {:status | :replicas | :metrics | :node_join | :node_leave | :shutdown, [String.t()]}
-          | {:health | :info | :config | :compact, [String.t()]}
+          | {:health | :info | :config | :compact | :namespaces, [String.t()]}
           | {:node_get | :kv_get | :kv_count | :kv_keys, [String.t()]}
           | {:snapshot_create | :snapshot_list, [String.t()]}
           | {:unknown, [String.t()]}
@@ -67,6 +68,7 @@ defmodule Shanghaictl do
   def parse(["metrics" | opts]), do: {:metrics, opts}
   def parse(["storage" | opts]), do: {:storage, opts}
   def parse(["topology" | opts]), do: {:topology, opts}
+  def parse(["namespaces" | opts]), do: {:namespaces, opts}
   def parse(["node", "join" | opts]), do: {:node_join, opts}
   def parse(["node", "leave" | opts]), do: {:node_leave, opts}
   def parse(["node", "get" | opts]), do: {:node_get, opts}
@@ -95,6 +97,7 @@ defmodule Shanghaictl do
       metrics           Show performance and operational metrics
       storage           Show a WAL/storage overview
       topology          Show the cluster topology
+      namespaces        Show per-namespace live node counts
       node join <id>    Add a node to the cluster
       node leave <id>   Remove a node from the cluster
       node get <id>     Show details for a single node
@@ -153,6 +156,10 @@ defmodule Shanghaictl do
 
   defp execute({:topology, opts}) do
     Topology.run(opts)
+  end
+
+  defp execute({:namespaces, opts}) do
+    Namespaces.run(opts)
   end
 
   defp execute({:node_join, opts}) do
