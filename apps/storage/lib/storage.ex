@@ -269,6 +269,18 @@ defmodule Storage do
   def snapshot_count, do: length(list_snapshots())
 
   @doc """
+  Returns the LSN of the most recent persisted snapshot (the latest recovery
+  point), or `nil` when there are no snapshots.
+  """
+  @spec latest_snapshot_lsn() :: non_neg_integer() | nil
+  def latest_snapshot_lsn do
+    case list_snapshots() do
+      [] -> nil
+      snapshots -> snapshots |> Enum.map(&Map.get(&1, :lsn, 0)) |> Enum.max()
+    end
+  end
+
+  @doc """
   Returns the average number of bytes per WAL entry across all active segments,
   or `0` when there are no entries. A rough indicator of record size.
   """
