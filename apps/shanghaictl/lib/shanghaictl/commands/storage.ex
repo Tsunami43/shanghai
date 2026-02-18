@@ -47,9 +47,13 @@ defmodule Shanghaictl.Commands.Storage do
       "  Entries: #{Map.get(storage, "entries")}",
       "  Size: #{format_bytes(Map.get(storage, "bytes"))}",
       "  Snapshots: #{Map.get(storage, "snapshots")}",
+      "  Latest Snapshot LSN: #{format_lsn(Map.get(storage, "latest_snapshot_lsn"))}",
       "  Compaction Running: #{format_bool(Map.get(storage, "compaction_running"))}"
     ]
   end
+
+  defp format_lsn(nil), do: "none"
+  defp format_lsn(lsn), do: "#{lsn}"
 
   defp format_bool(value) when is_boolean(value), do: Format.yes_no(value)
   defp format_bool(other), do: "#{other}"
