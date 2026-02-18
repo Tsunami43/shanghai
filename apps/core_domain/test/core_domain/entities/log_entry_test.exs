@@ -402,4 +402,14 @@ defmodule CoreDomain.Entities.LogEntryTest do
       assert LogEntry.until_lsn(entries, LogSequenceNumber.new(0)) == []
     end
   end
+
+  describe "lsn_values/1" do
+    test "projects entries to their integer LSN values in order" do
+      id = %NodeId{value: "n"}
+      entry = fn n -> LogEntry.new(LogSequenceNumber.new(n), "d", id) end
+
+      assert LogEntry.lsn_values([entry.(3), entry.(1), entry.(2)]) == [3, 1, 2]
+      assert LogEntry.lsn_values([]) == []
+    end
+  end
 end

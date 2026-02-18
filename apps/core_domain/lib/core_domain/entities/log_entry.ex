@@ -229,6 +229,15 @@ defmodule CoreDomain.Entities.LogEntry do
     |> Enum.sort_by(& &1.value)
   end
 
+  @doc """
+  Returns the integer LSN values of the entries, in their given order — a plain
+  projection handy for logging or gap analysis.
+  """
+  @spec lsn_values([t()]) :: [non_neg_integer()]
+  def lsn_values(entries) when is_list(entries) do
+    Enum.map(entries, &lsn_value/1)
+  end
+
   @doc "Returns `true` when the entry was produced by `node_id`."
   @spec from_node?(t(), NodeId.t()) :: boolean()
   def from_node?(%__MODULE__{node_id: node_id}, node_id), do: true
