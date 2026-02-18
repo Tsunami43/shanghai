@@ -161,4 +161,13 @@ defmodule CoreDomain.Types.NodeIdTest do
       assert NodeId.longest_common_prefix([NodeId.new("solo")]) == "solo"
     end
   end
+
+  describe "min_of/1 and max_of/1" do
+    test "return the lexicographic extremes" do
+      ids = [NodeId.new("b"), NodeId.new("a"), NodeId.new("c")]
+      assert NodeId.min_of(ids) == NodeId.new("a")
+      assert NodeId.max_of(ids) == NodeId.new("c")
+      assert NodeId.min_of([NodeId.new("solo")]) == NodeId.new("solo")
+    end
+  end
 end

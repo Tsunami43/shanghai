@@ -214,6 +214,20 @@ defmodule CoreDomain.Types.NodeId do
   end
 
   @doc """
+  Returns the lexicographically smallest NodeId in a non-empty list — a
+  deterministic pick (e.g. for tie-breaking a leader). Raises on an empty list.
+  """
+  @spec min_of([t(), ...]) :: t()
+  def min_of([_ | _] = node_ids), do: Enum.min_by(node_ids, & &1.value)
+
+  @doc """
+  Returns the lexicographically largest NodeId in a non-empty list. Raises on an
+  empty list.
+  """
+  @spec max_of([t(), ...]) :: t()
+  def max_of([_ | _] = node_ids), do: Enum.max_by(node_ids, & &1.value)
+
+  @doc """
   Returns the distinct NodeIds from a list, preserving first-seen order.
   Deduplicates by string value.
   """
