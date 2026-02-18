@@ -107,6 +107,7 @@ defmodule StorageTest do
     assert summary.entries == stats.entries
     assert summary.bytes == stats.bytes
     assert is_integer(summary.snapshots)
+    assert summary.latest_snapshot_lsn == Storage.latest_snapshot_lsn()
     assert is_boolean(summary.compaction_running)
   end
 

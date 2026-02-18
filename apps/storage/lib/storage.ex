@@ -324,6 +324,7 @@ defmodule Storage do
           entries: non_neg_integer(),
           bytes: non_neg_integer(),
           snapshots: non_neg_integer(),
+          latest_snapshot_lsn: non_neg_integer() | nil,
           compaction_running: boolean()
         }
   def summary do
@@ -335,6 +336,7 @@ defmodule Storage do
       entries: stats.entries,
       bytes: stats.bytes,
       snapshots: length(list_snapshots()),
+      latest_snapshot_lsn: latest_snapshot_lsn(),
       compaction_running: compaction_running?()
     }
   end
