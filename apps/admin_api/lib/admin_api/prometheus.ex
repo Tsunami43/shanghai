@@ -54,6 +54,11 @@ defmodule AdminApi.Prometheus do
         "shanghai_storage_snapshots",
         "Number of persisted snapshots.",
         Map.get(info, :snapshots, 0)
+      ),
+      gauge(
+        "shanghai_storage_latest_snapshot_lsn",
+        "LSN of the most recent snapshot (latest recovery point).",
+        safe(fn -> Storage.latest_snapshot_lsn() || 0 end, 0)
       )
       | compaction_metrics()
     ]
