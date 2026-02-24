@@ -232,6 +232,19 @@ defmodule Cluster.State do
   def available_node_ids(%__MODULE__{} = cluster), do: node_ids_with_status(cluster, :up)
 
   @doc """
+  Returns a deterministic leader among the `:up` nodes: the one with the
+  lexicographically smallest id, or `nil` when no node is up. Every node computes
+  the same answer from the same membership view — a leaderless tie-break.
+  """
+  @spec deterministic_leader(t()) :: NodeId.t() | nil
+  def deterministic_leader(%__MODULE__{} = cluster) do
+    case available_node_ids(cluster) do
+      [] -> nil
+      ids -> NodeId.min_of(ids)
+    end
+  end
+
+  @doc """
   Returns the `host:port` addresses of all nodes, sorted.
   """
   @spec node_addresses(t()) :: [String.t()]

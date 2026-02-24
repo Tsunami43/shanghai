@@ -475,6 +475,22 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "deterministic_leader/1" do
+    test "picks the lexicographically smallest up node, or nil" do
+      assert State.deterministic_leader(State.new(NodeId.new("local"))) == nil
+
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n3"), "h", 4003))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "h", 4002))
+
+      assert State.deterministic_leader(cluster) == NodeId.new("n1")
+
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n1"))
+      assert State.deterministic_leader(cluster) == NodeId.new("n2")
+    end
+  end
+
   describe "host_count/1" do
     test "counts distinct hosts" do
       cluster = State.new(NodeId.new("local"))
