@@ -86,6 +86,14 @@ defmodule Cluster do
   def node_address(node_id), do: State.address_of(cluster_state(), node_id)
 
   @doc """
+  Returns the deterministic leader of the live cluster — the `:up` node with the
+  lexicographically smallest id, or `nil` when none is up. Every node derives the
+  same answer from the same membership view. See `Cluster.State.deterministic_leader/1`.
+  """
+  @spec deterministic_leader() :: NodeId.t() | nil
+  def deterministic_leader, do: State.deterministic_leader(cluster_state())
+
+  @doc """
   Returns the nodes currently marked `:up`. Useful for routing reads and writes
   to live peers.
   """

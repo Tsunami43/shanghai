@@ -45,6 +45,10 @@ defmodule Cluster.StatusTest do
     assert is_boolean(Cluster.healthy?())
     assert is_boolean(Cluster.degraded?())
     assert is_boolean(Cluster.all_down?())
+
+    assert match?(%NodeId{}, Cluster.deterministic_leader()) or
+             Cluster.deterministic_leader() == nil
+
     assert is_boolean(Cluster.single_node?())
     assert is_float(Cluster.health_ratio())
     assert Cluster.health_ratio() >= 0.0 and Cluster.health_ratio() <= 1.0
