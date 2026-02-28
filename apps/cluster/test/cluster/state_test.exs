@@ -491,6 +491,22 @@ defmodule Cluster.StateTest do
     end
   end
 
+  describe "leader?/2 and local_node_id/1" do
+    test "leader?/2 checks against the deterministic leader" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n2"), "h", 4002))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+
+      assert State.leader?(cluster, NodeId.new("n1"))
+      refute State.leader?(cluster, NodeId.new("n2"))
+      refute State.leader?(State.new(NodeId.new("empty")), NodeId.new("n1"))
+    end
+
+    test "local_node_id/1 returns the local id" do
+      assert State.local_node_id(State.new(NodeId.new("local"))) == NodeId.new("local")
+    end
+  end
+
   describe "host_count/1" do
     test "counts distinct hosts" do
       cluster = State.new(NodeId.new("local"))

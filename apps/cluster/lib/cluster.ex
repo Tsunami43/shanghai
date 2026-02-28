@@ -94,6 +94,17 @@ defmodule Cluster do
   def deterministic_leader, do: State.deterministic_leader(cluster_state())
 
   @doc """
+  Returns the currently elected cluster leader from the live `Cluster.LeaderElection`
+  process, or `nil` when none is up.
+  """
+  @spec leader() :: NodeId.t() | nil
+  def leader, do: Cluster.LeaderElection.leader()
+
+  @doc "Returns `true` when the local node is the currently elected cluster leader."
+  @spec leader?() :: boolean()
+  def leader?, do: Cluster.LeaderElection.leader?()
+
+  @doc """
   Returns the nodes currently marked `:up`. Useful for routing reads and writes
   to live peers.
   """

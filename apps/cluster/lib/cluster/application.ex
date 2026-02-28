@@ -16,8 +16,10 @@ defmodule Cluster.Application do
     Logger.info("Starting Shanghai Cluster application")
 
     children = [
-      # Membership must start first as Heartbeat and Gossip depend on it
+      # Membership must start first as the others depend on it
       {Cluster.Membership, []},
+      # Leader election derives the leader from the membership view
+      {Cluster.LeaderElection, []},
       # Heartbeat monitors node liveness
       {Cluster.Heartbeat, heartbeat_opts()},
       # Gossip propagates events across the cluster

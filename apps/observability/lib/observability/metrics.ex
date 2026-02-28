@@ -167,6 +167,27 @@ defmodule Observability.Metrics do
   end
 
   @doc """
+  Reports that the deterministic cluster leader changed.
+
+  Emits: `[:shanghai, :cluster, :leader_elected]`
+
+  Measurements:
+  - `:up_count` - Number of `:up` nodes at election time
+
+  Metadata:
+  - `:leader` - The elected leader's node id, or `nil` when no node is up
+  - `:previous` - The previous leader's node id, or `nil`
+  """
+  @spec leader_elected(non_neg_integer(), term(), term()) :: :ok
+  def leader_elected(up_count, leader, previous) do
+    :telemetry.execute(
+      [:shanghai, :cluster, :leader_elected],
+      %{up_count: up_count},
+      %{leader: leader, previous: previous}
+    )
+  end
+
+  @doc """
   Reports compaction completion.
 
   Emits: `[:shanghai, :storage, :compaction, :complete]`
@@ -221,6 +242,7 @@ defmodule Observability.Metrics do
       [:shanghai, :replication, :catchup],
       [:shanghai, :cluster, :heartbeat],
       [:shanghai, :cluster, :membership_change],
+      [:shanghai, :cluster, :leader_elected],
       [:shanghai, :storage, :compaction, :complete],
       [:shanghai, :query, :operation]
     ]

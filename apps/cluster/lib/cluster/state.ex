@@ -245,6 +245,15 @@ defmodule Cluster.State do
   end
 
   @doc """
+  Returns `true` when `node_id` is the current `deterministic_leader/1` — useful
+  for gating leader-only work. `false` when no node is up.
+  """
+  @spec leader?(t(), NodeId.t()) :: boolean()
+  def leader?(%__MODULE__{} = cluster, %NodeId{} = node_id) do
+    deterministic_leader(cluster) == node_id
+  end
+
+  @doc """
   Returns the `host:port` addresses of all nodes, sorted.
   """
   @spec node_addresses(t()) :: [String.t()]
@@ -1036,6 +1045,10 @@ defmodule Cluster.State do
   def local_node(%__MODULE__{local_node_id: id, nodes: nodes}) do
     Map.get(nodes, id)
   end
+
+  @doc "Returns the cluster's local node id (may be `nil` when unset)."
+  @spec local_node_id(t()) :: NodeId.t() | nil
+  def local_node_id(%__MODULE__{local_node_id: id}), do: id
 
   @doc "Returns `true` when `node_id` is the cluster's local node id."
   @spec local?(t(), NodeId.t()) :: boolean()
