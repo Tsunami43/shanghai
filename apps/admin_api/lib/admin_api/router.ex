@@ -149,6 +149,7 @@ defmodule AdminApi.Router do
       quorum_available: Cluster.State.quorum_available?(cluster),
       quorum_size: Cluster.State.quorum_size(cluster),
       fault_tolerance: Cluster.State.fault_tolerance(cluster),
+      leader: leader_id_string(Cluster.State.deterministic_leader(cluster)),
       health_ratio: Cluster.State.health_ratio(cluster),
       timestamp: System.system_time(:second)
     }
@@ -500,6 +501,9 @@ defmodule AdminApi.Router do
       {:error, _reason} -> inspect(value)
     end
   end
+
+  defp leader_id_string(nil), do: nil
+  defp leader_id_string(leader), do: NodeId.to_string(leader)
 
   defp send_json(conn, status, data) do
     conn

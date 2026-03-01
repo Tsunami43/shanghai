@@ -118,6 +118,7 @@ defmodule AdminApi.RouterTest do
     assert is_boolean(body["quorum_available"])
     assert is_integer(body["quorum_size"])
     assert is_integer(body["fault_tolerance"])
+    assert is_nil(body["leader"]) or is_binary(body["leader"])
     assert is_number(body["health_ratio"])
     assert is_integer(body["node_count"])
     assert is_integer(body["nodes_up"])
@@ -368,6 +369,7 @@ defmodule AdminApi.RouterTest do
     assert body =~ "# TYPE shanghai_cluster_fault_tolerance gauge"
     assert body =~ "# TYPE shanghai_cluster_quorum_size gauge"
     assert body =~ "# TYPE shanghai_cluster_max_nodes_per_host gauge"
+    assert body =~ "# TYPE shanghai_cluster_has_leader gauge"
     assert body =~ "# TYPE shanghai_replication_max_lag gauge"
     assert body =~ "# TYPE shanghai_replication_sync_ratio gauge"
   end
