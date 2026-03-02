@@ -35,6 +35,7 @@ defmodule Shanghaictl.Commands.Status do
       quorum_available: info.quorum_available,
       quorum_size: info.quorum_size,
       fault_tolerance: Map.get(info, :fault_tolerance),
+      leader: Map.get(info, :leader),
       nodes:
         Enum.map(info.nodes, fn node ->
           %{
@@ -58,7 +59,8 @@ defmodule Shanghaictl.Commands.Status do
          local_node_id: status["local_node_id"],
          quorum_available: status["quorum_available"],
          quorum_size: status["quorum_size"],
-         fault_tolerance: status["fault_tolerance"]
+         fault_tolerance: status["fault_tolerance"],
+         leader: status["leader"]
        }}
     else
       {:ok, %{status: status}} ->
@@ -102,12 +104,18 @@ defmodule Shanghaictl.Commands.Status do
     "Fault Tolerance: #{tolerance} node(s)"
   end
 
+  @doc false
+  @spec leader_line(String.t() | nil) :: String.t()
+  def leader_line(nil), do: "Leader:        (none)"
+  def leader_line(leader), do: "Leader:        #{leader}"
+
   defp display_cluster_info(info) do
     IO.puts("Cluster State: #{format_state(info.cluster_state)}")
 
     if line = local_node_line(info.local_node_id), do: IO.puts(line)
     if line = quorum_line(info.quorum_available, info.quorum_size), do: IO.puts(line)
     if line = fault_tolerance_line(info.fault_tolerance), do: IO.puts(line)
+    IO.puts(leader_line(Map.get(info, :leader)))
 
     IO.puts("")
     IO.puts("Nodes:")

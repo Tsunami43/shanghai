@@ -204,6 +204,13 @@ defmodule ShanghaictlTest do
     end
   end
 
+  describe "Status.leader_line/1" do
+    test "renders the leader id or (none)" do
+      assert Status.leader_line("node-1") == "Leader:        node-1"
+      assert Status.leader_line(nil) == "Leader:        (none)"
+    end
+  end
+
   describe "Options" do
     test "format/1 detects json in either form" do
       assert Options.format(["--json"]) == :json
@@ -344,6 +351,7 @@ defmodule ShanghaictlTest do
         quorum_available: true,
         quorum_size: 2,
         fault_tolerance: 1,
+        leader: "node-1",
         nodes: [%{id: "node-1", status: :up, heartbeat_age: 50}]
       }
 
@@ -354,6 +362,7 @@ defmodule ShanghaictlTest do
       assert decoded["quorum_available"] == true
       assert decoded["quorum_size"] == 2
       assert decoded["fault_tolerance"] == 1
+      assert decoded["leader"] == "node-1"
       assert [node] = decoded["nodes"]
       assert node["id"] == "node-1"
       assert node["status"] == "up"
