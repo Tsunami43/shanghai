@@ -194,4 +194,43 @@ defmodule Cluster.MembershipTest do
       assert Enum.all?(nodes, fn n -> n.id != node2.id end)
     end
   end
+
+  describe "Erlang distribution recovery" do
+    test "nodeup marks a known down member back up and emits NodeRecovered" do
+      node_id = NodeId.new("n1")
+      :ok = Membership.join_node(Node.new(node_id, "localhost", 4000))
+
+      Membership.subscribe()
+
+      # Simulate the distribution connection dropping, then coming back.
+      send(Membership, {:nodedown, :n1@localhost, %{}})
+      assert_receive {:cluster_event, %Cluster.Events.NodeDetectedDown{node_id: ^node_id}}
+      {:ok, down} = Membership.get_node(node_id)
+      assert down.status == :down
+
+      send(Membership, {:nodeup, :n1@localhost, %{}})
+      assert_receive {:cluster_event, %Cluster.Events.NodeRecovered{node_id: ^node_id}}
+      {:ok, recovered} = Membership.get_node(node_id)
+      assert recovered.status == :up
+    end
+
+    test "nodeup for an already-up member emits no event" do
+      node_id = NodeId.new("n2")
+      :ok = Membership.join_node(Node.new(node_id, "localhost", 4001))
+
+      Membership.subscribe()
+      send(Membership, {:nodeup, :n2@localhost, %{}})
+
+      refute_receive {:cluster_event, %Cluster.Events.NodeRecovered{}}, 100
+      {:ok, node} = Membership.get_node(node_id)
+      assert node.status == :up
+    end
+
+    test "nodeup for an unknown Erlang node is ignored" do
+      Membership.subscribe()
+      send(Membership, {:nodeup, :ghost@nowhere, %{}})
+
+      refute_receive {:cluster_event, _}, 100
+    end
+  end
 end

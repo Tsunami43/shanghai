@@ -14,6 +14,7 @@ defmodule Cluster.Membership do
   require Logger
 
   alias Cluster.Entities.Node
+  alias Cluster.Events.NodeRecovered
   alias Cluster.State
   alias CoreDomain.Types.NodeId
 
@@ -299,13 +300,24 @@ defmodule Cluster.Membership do
   end
 
   @impl true
-  def handle_info({:nodeup, erlang_node, _info}, state) do
+  def handle_info({:nodeup, erlang_node, _info}, %{cluster: cluster} = state) do
     Observability.Logger.info("Erlang node up",
       erlang_node: erlang_node
     )
 
-    # In future iterations, we'll handle automatic node discovery here
-    {:noreply, state}
+    # A known member's distribution connection came back: mark it up again so the
+    # membership view reflects reality and subscribers (e.g. leader election) can
+    # react. Unknown Erlang nodes are ignored until they explicitly join.
+    updated_state =
+      case find_node_by_erlang_name(cluster, erlang_node) do
+        nil ->
+          state
+
+        node_id ->
+          recover_node(state, cluster, node_id)
+      end
+
+    {:noreply, updated_state}
   end
 
   @impl true
@@ -379,6 +391,30 @@ defmodule Cluster.Membership do
         send(subscriber, {:cluster_event, event})
       end)
     end)
+  end
+
+  # Marks a known node up on connection recovery. No-op (returns state unchanged)
+  # when the node is already up, so a flapping connection does not spam events.
+  defp recover_node(state, cluster, node_id) do
+    already_up? =
+      case State.get_node(cluster, node_id) do
+        {:ok, node} -> Node.up?(node)
+        {:error, _} -> false
+      end
+
+    if already_up? do
+      state
+    else
+      case State.mark_node_up(cluster, node_id) do
+        {:ok, updated_cluster} ->
+          event = NodeRecovered.new(node_id, :connection_restored)
+          broadcast_events([event], state.subscribers)
+          %{state | cluster: updated_cluster}
+
+        {:error, _reason} ->
+          state
+      end
+    end
   end
 
   defp find_node_by_erlang_name(cluster, erlang_node) do
