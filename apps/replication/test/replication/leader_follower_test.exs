@@ -126,4 +126,41 @@ defmodule Replication.LeaderFollowerTest do
       assert offset3.value == 3
     end
   end
+
+  describe "write acknowledgement timeout" do
+    test "returns {:error, :timeout} and cleans up when quorum is never reached" do
+      group_id = "timeout-group-#{:rand.uniform(10000)}"
+      leader_id = NodeId.new("leader")
+
+      # replica_count 3 => :quorum needs 2 acks; with no followers reporting the
+      # leader's single self-ack never reaches quorum.
+      start_supervised!({Leader, [group_id: group_id, node_id: leader_id, replica_count: 3]})
+
+      assert {:error, :timeout} =
+               Leader.write(group_id, "data", consistency_level: :quorum, timeout: 100)
+
+      [{pid, _}] = Registry.lookup(Replication.Registry, {:leader, group_id})
+      state = :sys.get_state(pid)
+      assert state.pending_writes == %{}
+    end
+
+    test "a satisfied write leaves no pending entry and is not falsely timed out" do
+      group_id = "timeout-ok-group-#{:rand.uniform(10000)}"
+      leader_id = NodeId.new("leader")
+
+      start_supervised!({Leader, [group_id: group_id, node_id: leader_id, replica_count: 1]})
+
+      assert {:ok, offset} =
+               Leader.write(group_id, "data", consistency_level: :local, timeout: 100)
+
+      assert offset.value == 1
+
+      # Wait past the timeout window; the write must not be reported as timed out.
+      Process.sleep(150)
+
+      [{pid, _}] = Registry.lookup(Replication.Registry, {:leader, group_id})
+      state = :sys.get_state(pid)
+      assert state.pending_writes == %{}
+    end
+  end
 end

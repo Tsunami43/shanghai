@@ -55,7 +55,15 @@ defmodule Replication.Leader do
     timeout = Keyword.get(opts, :timeout, 5000)
 
     with {:ok, consistency_level} <- validate_consistency_level(opts) do
-      GenServer.call(via_tuple(group_id), {:write, data, consistency_level}, timeout)
+      # The leader enforces the replication `timeout` itself and replies
+      # `{:error, :timeout}` when consistency is not met in time. We give the
+      # surrounding call a small buffer so the server's clean reply wins the race
+      # against the client-side call timeout.
+      GenServer.call(
+        via_tuple(group_id),
+        {:write, data, consistency_level, timeout},
+        timeout + 1000
+      )
     end
   end
 
@@ -98,7 +106,7 @@ defmodule Replication.Leader do
   end
 
   @impl true
-  def handle_call({:write, data, consistency_level}, from, state) do
+  def handle_call({:write, data, consistency_level, timeout}, from, state) do
     # Generate write reference
     write_ref = make_ref()
 
@@ -107,6 +115,10 @@ defmodule Replication.Leader do
 
     # Calculate required acks based on consistency level
     required_acks = ConsistencyLevel.required_acks(consistency_level, state.replica_count)
+
+    # Arm a server-side timeout so a write that never reaches its ack quorum is
+    # cleaned up (no leaked pending entry) and the client gets `{:error, :timeout}`.
+    timer_ref = Process.send_after(self(), {:write_timeout, write_ref}, timeout)
 
     # Store pending write
     pending_write = %{
@@ -117,6 +129,7 @@ defmodule Replication.Leader do
       acks: [state.node_id],
       consistency_level: consistency_level,
       required_acks: required_acks,
+      timer_ref: timer_ref,
       timestamp: System.monotonic_time(:millisecond)
     }
 
@@ -170,7 +183,33 @@ defmodule Replication.Leader do
     {:noreply, updated_state}
   end
 
+  @impl true
+  def handle_info({:write_timeout, write_ref}, state) do
+    case Map.get(state.pending_writes, write_ref) do
+      nil ->
+        # Already acknowledged and removed; nothing to do.
+        {:noreply, state}
+
+      write ->
+        Logger.warning(
+          "Write at offset #{write.offset.value} timed out " <>
+            "(#{length(write.acks)}/#{write.required_acks} acks)"
+        )
+
+        GenServer.reply(write.from, {:error, :timeout})
+        {:noreply, %{state | pending_writes: Map.delete(state.pending_writes, write_ref)}}
+    end
+  end
+
   # Private Functions
+
+  # Cancels a pending write's server-side timeout timer, if still armed.
+  defp cancel_write_timer(%{timer_ref: timer_ref}) when is_reference(timer_ref) do
+    Process.cancel_timer(timer_ref)
+    :ok
+  end
+
+  defp cancel_write_timer(_write), do: :ok
 
   # Appends the write to the storage WAL when it is running; otherwise a no-op
   # so replication still works in in-memory (single-node/test) mode.
@@ -248,6 +287,7 @@ defmodule Replication.Leader do
             "Write at offset #{write.offset.value} satisfied #{ConsistencyLevel.to_string(write.consistency_level)} (#{ack_count}/#{write.required_acks} acks)"
           )
 
+          cancel_write_timer(write)
           GenServer.reply(write.from, {:ok, write.offset})
 
           # Remove from pending

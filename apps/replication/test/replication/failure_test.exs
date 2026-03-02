@@ -43,8 +43,9 @@ defmodule Replication.FailureTest do
       # 3 replicas but only leader - can't reach quorum
       start_supervised!({Leader, [group_id: group_id, node_id: leader_id, replica_count: 3]})
 
-      # Should timeout
-      assert catch_exit(Leader.write(group_id, "data", consistency_level: :quorum, timeout: 100))
+      # The leader enforces the timeout and returns a clean error.
+      assert {:error, :timeout} =
+               Leader.write(group_id, "data", consistency_level: :quorum, timeout: 100)
     end
   end
 
