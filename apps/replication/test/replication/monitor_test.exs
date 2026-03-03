@@ -103,6 +103,33 @@ defmodule Replication.MonitorTest do
       {:ok, metrics} = Monitor.get_group_metrics(group_id)
       assert metrics.replicas[follower_id].status == :stale
     end
+
+    test "emits [:shanghai, :replication, :replica_stale] on the stale transition" do
+      group_id = "stale-telemetry-group"
+      follower_id = NodeId.new("follower-tele")
+      test_pid = self()
+
+      :telemetry.attach(
+        "monitor-stale-test",
+        [:shanghai, :replication, :replica_stale],
+        fn _event, measurements, metadata, _config ->
+          send(test_pid, {:replica_stale, measurements, metadata})
+        end,
+        nil
+      )
+
+      Monitor.record_leader_offset(group_id, ReplicationOffset.new(10))
+      Monitor.record_follower_offset(group_id, follower_id, ReplicationOffset.new(5))
+
+      # The stale transition fires from a health check after the threshold passes.
+      assert_receive {:replica_stale, %{age_ms: age_ms, lag: 5},
+                      %{group_id: ^group_id, node_id: ^follower_id}},
+                     2500
+
+      assert age_ms >= 1000
+    after
+      :telemetry.detach("monitor-stale-test")
+    end
   end
 
   describe "Querying metrics" do

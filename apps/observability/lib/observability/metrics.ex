@@ -103,6 +103,29 @@ defmodule Observability.Metrics do
   end
 
   @doc """
+  Reports that a replica transitioned to the `:stale` state (no update within the
+  staleness threshold).
+
+  Emits: `[:shanghai, :replication, :replica_stale]`
+
+  Measurements:
+  - `:age_ms` - Milliseconds since the replica last reported
+  - `:lag` - The replica's last known offset lag
+
+  Metadata:
+  - `:group_id` - The replication group id
+  - `:node_id` - The stale replica's node id
+  """
+  @spec replica_became_stale(non_neg_integer(), non_neg_integer(), String.t(), term()) :: :ok
+  def replica_became_stale(age_ms, lag, group_id, node_id) do
+    :telemetry.execute(
+      [:shanghai, :replication, :replica_stale],
+      %{age_ms: age_ms, lag: lag},
+      %{group_id: group_id, node_id: node_id}
+    )
+  end
+
+  @doc """
   Reports follower catch-up event.
 
   Emits: `[:shanghai, :replication, :catchup]`
@@ -240,6 +263,7 @@ defmodule Observability.Metrics do
       [:shanghai, :storage, :wal, :sync],
       [:shanghai, :replication, :lag],
       [:shanghai, :replication, :catchup],
+      [:shanghai, :replication, :replica_stale],
       [:shanghai, :cluster, :heartbeat],
       [:shanghai, :cluster, :membership_change],
       [:shanghai, :cluster, :leader_elected],

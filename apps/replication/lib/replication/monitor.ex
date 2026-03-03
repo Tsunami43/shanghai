@@ -246,9 +246,14 @@ defmodule Replication.Monitor do
             status = calculate_status(replica.lag, replica.last_update_at, now, state)
 
             if status != replica.status and status == :stale do
+              age_ms = now - replica.last_update_at
+
               Logger.warning(
-                "Replica #{node_id.value} in group #{group_id} became stale (last update: #{now - replica.last_update_at}ms ago)"
+                "Replica #{node_id.value} in group #{group_id} became stale (last update: #{age_ms}ms ago)"
               )
+
+              # Make the stale transition observable, not just a log line.
+              Observability.Metrics.replica_became_stale(age_ms, replica.lag, group_id, node_id)
             end
 
             {node_id, %{replica | status: status}}
