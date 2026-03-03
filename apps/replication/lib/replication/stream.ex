@@ -215,18 +215,16 @@ defmodule Replication.Stream do
       # Convert queue to list for processing
       entries = :queue.to_list(queue)
 
-      # Broadcast to all followers
-      Enum.each(state.followers, fn {follower_id, follower_state} ->
-        send_entries_to_follower(state.group_id, follower_id, follower_state, entries)
-      end)
-
-      # Update last_sent_offset for all followers
-      last_offset = entries |> List.last() |> elem(0)
-
+      # Deliver to each follower and advance its last_sent_offset only by what was
+      # actually sent to it — never fabricate progress for a follower that received
+      # nothing or whose delivery failed.
       updated_followers =
-        Map.new(state.followers, fn {node_id, follower_state} ->
-          {node_id, %{follower_state | last_sent_offset: last_offset}}
+        Map.new(state.followers, fn {follower_id, follower_state} ->
+          {follower_id,
+           send_entries_to_follower(state.group_id, follower_id, follower_state, entries)}
         end)
+
+      last_offset = entries |> List.last() |> elem(0)
 
       Logger.debug(
         "Flushed #{length(entries)} entries to #{map_size(state.followers)} followers, last_offset=#{last_offset.value}"
@@ -236,30 +234,42 @@ defmodule Replication.Stream do
     end
   end
 
+  # Delivers the entries a follower has not yet received and returns its updated
+  # state. `last_sent_offset` advances only to the last offset actually sent, and
+  # stays put when nothing is sent or delivery fails, so undelivered entries are
+  # re-attempted on the next flush.
   defp send_entries_to_follower(group_id, follower_id, follower_state, entries) do
-    # Filter entries that follower hasn't received yet
     entries_to_send =
       Enum.filter(entries, fn {offset, _data} ->
         ReplicationOffset.compare(offset, follower_state.last_sent_offset) == :gt
       end)
 
-    if entries_to_send != [] do
-      # In real implementation, this would be an RPC call to follower node
-      # For now, send to local follower process if it exists
-      try do
-        Enum.each(entries_to_send, fn {offset, data} ->
-          Replication.Follower.apply_entry(group_id, offset, data)
-        end)
+    case entries_to_send do
+      [] ->
+        follower_state
 
-        Logger.debug("Sent #{length(entries_to_send)} entries to follower #{follower_id.value}")
-      catch
-        :exit, reason ->
-          Logger.warning(
-            "Failed to send entries to follower #{follower_id.value}: #{inspect(reason)}"
-          )
-      end
+      to_send ->
+        deliver_entries(group_id, follower_id, follower_state, to_send)
     end
+  end
 
-    :ok
+  defp deliver_entries(group_id, follower_id, follower_state, entries_to_send) do
+    # In real implementation, this would be an RPC call to the follower node.
+    # For now, send to the local follower process if it exists.
+    Enum.each(entries_to_send, fn {offset, data} ->
+      Replication.Follower.apply_entry(group_id, offset, data)
+    end)
+
+    last_sent = entries_to_send |> List.last() |> elem(0)
+    Logger.debug("Sent #{length(entries_to_send)} entries to follower #{follower_id.value}")
+    %{follower_state | last_sent_offset: last_sent}
+  catch
+    :exit, reason ->
+      Logger.warning(
+        "Failed to send entries to follower #{follower_id.value}: #{inspect(reason)}"
+      )
+
+      # Do not advance last_sent_offset — the entries were not delivered.
+      follower_state
   end
 end

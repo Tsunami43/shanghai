@@ -137,6 +137,40 @@ defmodule Replication.StreamTest do
       assert offset.value == 2
     end
 
+    test "advances last_sent_offset per follower and does not regress on stale re-append" do
+      group_id = "test-group-#{:rand.uniform(10000)}"
+      leader_id = NodeId.new("leader")
+      follower_id = NodeId.new("follower1")
+
+      start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id, batch_size: 2]})
+      start_supervised!({Follower, [group_id: group_id, node_id: follower_id]})
+      Stream.add_follower(group_id, follower_id)
+
+      Stream.append_entry(group_id, ReplicationOffset.new(1), "d1")
+      Stream.append_entry(group_id, ReplicationOffset.new(2), "d2")
+      Process.sleep(50)
+
+      states = Stream.get_follower_states(group_id)
+      assert states[follower_id].last_sent_offset.value == 2
+
+      # A stale/duplicate re-append (offsets already delivered) must not regress
+      # the follower's last_sent_offset back to the batch's (lower) last offset.
+      Stream.append_entry(group_id, ReplicationOffset.new(1), "d1-dup")
+      Stream.append_entry(group_id, ReplicationOffset.new(1), "d1-dup2")
+      Process.sleep(50)
+
+      states = Stream.get_follower_states(group_id)
+      assert states[follower_id].last_sent_offset.value == 2
+
+      # Genuinely newer entries still advance it.
+      Stream.append_entry(group_id, ReplicationOffset.new(3), "d3")
+      Stream.append_entry(group_id, ReplicationOffset.new(4), "d4")
+      Process.sleep(50)
+
+      states = Stream.get_follower_states(group_id)
+      assert states[follower_id].last_sent_offset.value == 4
+    end
+
     test "tracks multiple followers in state" do
       group_id = "test-group-#{:rand.uniform(10000)}"
       leader_id = NodeId.new("leader")
