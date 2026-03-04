@@ -229,6 +229,21 @@ defmodule AdminApi.Prometheus do
         "shanghai_replication_sync_ratio",
         "Fraction of tracked replicas fully caught up (0.0..1.0).",
         safe(fn -> Replication.sync_ratio() end, 1.0)
+      ),
+      gauge(
+        "shanghai_replication_lagging_replicas",
+        "Number of replicas lagging behind their leader beyond the threshold.",
+        safe(fn -> Replication.lagging_count() end, 0)
+      ),
+      gauge(
+        "shanghai_replication_stale_replicas",
+        "Number of replicas that have not reported within the staleness threshold.",
+        safe(fn -> Replication.stale_count() end, 0)
+      ),
+      gauge(
+        "shanghai_replication_unhealthy_groups",
+        "Number of replication groups with at least one lagging or stale replica.",
+        safe(fn -> Replication.unhealthy_group_count() end, 0)
       )
     ]
 
