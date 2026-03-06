@@ -133,6 +133,22 @@ defmodule Cluster.StateTest do
       assert [%NodeDetectedDown{node_id: ^node_id, detection_method: :heartbeat_failure}] =
                updated_cluster.events
     end
+
+    test "is idempotent: marking an already-down node emits no new event" do
+      cluster = State.new(NodeId.new("local"))
+      {:ok, cluster} = State.add_node(cluster, Node.new(NodeId.new("n1"), "h", 4001))
+      {_events, cluster} = State.take_events(cluster)
+
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n1"))
+      {events, cluster} = State.take_events(cluster)
+      assert [%NodeDetectedDown{}] = events
+
+      # Second mark_down while already down: no state change, no event.
+      {:ok, cluster} = State.mark_node_down(cluster, NodeId.new("n1"))
+      assert cluster.events == []
+      {:ok, node} = State.get_node(cluster, NodeId.new("n1"))
+      assert node.status == :down
+    end
   end
 
   describe "mark_node_suspect/2" do

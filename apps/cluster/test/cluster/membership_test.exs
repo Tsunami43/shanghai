@@ -232,5 +232,19 @@ defmodule Cluster.MembershipTest do
 
       refute_receive {:cluster_event, _}, 100
     end
+
+    test "repeated nodedown for an already-down node does not re-broadcast" do
+      node_id = NodeId.new("n1")
+      :ok = Membership.join_node(Node.new(node_id, "localhost", 4000))
+
+      Membership.subscribe()
+
+      send(Membership, {:nodedown, :n1@localhost, %{}})
+      assert_receive {:cluster_event, %Cluster.Events.NodeDetectedDown{node_id: ^node_id}}
+
+      # A second nodedown while already down must be a no-op — no spurious event.
+      send(Membership, {:nodedown, :n1@localhost, %{}})
+      refute_receive {:cluster_event, %Cluster.Events.NodeDetectedDown{}}, 100
+    end
   end
 end

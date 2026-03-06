@@ -263,19 +263,21 @@ defmodule Cluster.Membership do
         {events, cluster_with_no_events} = State.take_events(updated_cluster)
         broadcast_events(events, state.subscribers)
 
-        # Emit telemetry metric for membership change
-        node_count = State.node_count(cluster_with_no_events)
+        # Only emit telemetry/log on an actual transition — mark_node_down is a
+        # no-op (no events) when the node is already down, and a periodic detector
+        # must not spam a membership change every check.
+        if events != [] do
+          Observability.Metrics.cluster_membership_changed(
+            State.node_count(cluster_with_no_events),
+            :node_down,
+            node_id.value
+          )
 
-        Observability.Metrics.cluster_membership_changed(
-          node_count,
-          :node_down,
-          node_id.value
-        )
-
-        Observability.Logger.warning("Node marked down",
-          node_id: node_id.value,
-          detection_method: detection_method
-        )
+          Observability.Logger.warning("Node marked down",
+            node_id: node_id.value,
+            detection_method: detection_method
+          )
+        end
 
         {:noreply, %{state | cluster: cluster_with_no_events}}
 

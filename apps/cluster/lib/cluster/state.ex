@@ -94,6 +94,12 @@ defmodule Cluster.State do
         detection_method \\ :heartbeat_failure
       ) do
     case Map.fetch(nodes, node_id) do
+      # Already down: marking it down again is not a new detection, so make it a
+      # no-op with no event. This keeps periodic failure detectors from emitting a
+      # spurious NodeDetectedDown every check while a node stays down.
+      {:ok, %Node{status: :down}} ->
+        {:ok, cluster}
+
       {:ok, node} ->
         updated_node = Node.mark_down(node)
         event = NodeDetectedDown.new(node_id, detection_method)
