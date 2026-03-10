@@ -152,6 +152,22 @@ defmodule Cluster.GossipTest do
       assert {:ok, hb} = Heartbeat.get_last_heartbeat(node_id)
       assert hb.sequence == 5
     end
+
+    test "dedups by content: a repeated message does not grow the seen set" do
+      # A message with unique content, delivered twice from different senders.
+      message = {:membership_sync, %{version: 42}}
+
+      s0 = MapSet.size(:sys.get_state(Gossip).seen_messages)
+      Gossip.receive_gossip(:sender_a@localhost, message)
+      s1 = MapSet.size(:sys.get_state(Gossip).seen_messages)
+      Gossip.receive_gossip(:sender_b@localhost, message)
+      s2 = MapSet.size(:sys.get_state(Gossip).seen_messages)
+
+      # First delivery is new (seen grows by one); the second is a content
+      # duplicate and must not be recorded again.
+      assert s1 == s0 + 1
+      assert s2 == s1
+    end
   end
 
   describe "integration with membership" do

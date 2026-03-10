@@ -213,8 +213,13 @@ defmodule Cluster.Gossip do
   end
 
   defp generate_message_id(message) do
-    # Generate a unique ID for the message to detect duplicates
-    :erlang.phash2({message, System.monotonic_time()})
+    # The id must be a deterministic function of the message *content* only.
+    # Distinct messages already differ in content (heartbeats carry a sequence and
+    # timestamp; events carry their own timestamp), so hashing the content dedups
+    # duplicates while keeping genuinely different messages distinct. Mixing in a
+    # call-time clock (as a previous version did) gave the same message a new id on
+    # every hash, defeating dedup and causing unbounded re-propagation.
+    :erlang.phash2(message)
   end
 
   defp cleanup_seen_messages(seen_messages) do
