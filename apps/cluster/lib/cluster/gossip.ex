@@ -14,6 +14,7 @@ defmodule Cluster.Gossip do
 
   alias Cluster.Membership
   alias Cluster.ValueObjects.Heartbeat
+  alias CoreDomain.Types.NodeId
 
   @default_fanout 3
   @default_interval_ms 1_000
@@ -168,13 +169,19 @@ defmodule Cluster.Gossip do
   end
 
   defp select_gossip_targets(fanout) do
-    # Get all nodes from membership
-    all_nodes = Membership.all_nodes()
+    gossip_targets(Membership.all_nodes(), Membership.local_node_id(), fanout)
+  end
 
-    # Filter out local node and select random subset
-    all_nodes
-    |> Enum.filter(&(&1.status == :up))
-    |> Enum.take_random(min(fanout, length(all_nodes)))
+  @doc false
+  # Selects up to `fanout` random `:up` peers to gossip to, excluding the local
+  # node (gossiping to self is wasted work and re-delivers our own messages).
+  @spec gossip_targets([Cluster.Entities.Node.t()], NodeId.t(), non_neg_integer()) :: [
+          Cluster.Entities.Node.t()
+        ]
+  def gossip_targets(nodes, local_id, fanout) do
+    nodes
+    |> Enum.filter(&(&1.status == :up and &1.id != local_id))
+    |> Enum.take_random(fanout)
   end
 
   defp send_gossip_to_node(node, messages) do

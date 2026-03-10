@@ -186,4 +186,34 @@ defmodule Cluster.GossipTest do
       assert Process.whereis(Cluster.Gossip) != nil
     end
   end
+
+  describe "gossip_targets/3" do
+    alias Cluster.Entities.Node
+
+    test "excludes the local node and non-up nodes" do
+      local_id = NodeId.new("local")
+
+      nodes = [
+        %{Node.new(local_id, "h", 4000) | status: :up},
+        %{Node.new(NodeId.new("up1"), "h", 4001) | status: :up},
+        %{Node.new(NodeId.new("up2"), "h", 4002) | status: :up},
+        %{Node.new(NodeId.new("down1"), "h", 4003) | status: :down}
+      ]
+
+      targets = Gossip.gossip_targets(nodes, local_id, 10)
+      ids = Enum.map(targets, & &1.id.value) |> Enum.sort()
+
+      assert ids == ["up1", "up2"]
+    end
+
+    test "returns at most fanout peers" do
+      local_id = NodeId.new("local")
+
+      nodes =
+        for n <- 1..5, do: %{Node.new(NodeId.new("n#{n}"), "h", 4000 + n) | status: :up}
+
+      assert length(Gossip.gossip_targets(nodes, local_id, 2)) == 2
+      assert Gossip.gossip_targets([], local_id, 3) == []
+    end
+  end
 end
