@@ -10,7 +10,7 @@ import Config
 # in-memory mode, so `:data_root` is deliberately left unset under `:test`.
 if config_env() != :test do
   data_root =
-    System.get_env("SHANGHAI_DATA_ROOT") ||
+    System.get_env("SHANGHAI_DATA_DIR") ||
       Path.join(System.tmp_dir!(), "shanghai")
 
   config :storage, data_root: data_root
