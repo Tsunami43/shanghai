@@ -160,6 +160,7 @@ defmodule Storage.Index.SegmentIndex do
   @impl true
   def init(opts) do
     data_dir = Keyword.fetch!(opts, :data_dir)
+    segments_dir = Keyword.get(opts, :segments_dir)
     flush_threshold = Keyword.get(opts, :flush_threshold, @flush_threshold)
     flush_interval = Keyword.get(opts, :flush_interval, @flush_interval)
 
@@ -183,8 +184,14 @@ defmodule Storage.Index.SegmentIndex do
       flush_interval: flush_interval
     }
 
-    # Load index from disk
-    state = load_index(state)
+    # Load index from disk, then rebuild from the WAL segments if the persisted
+    # index is missing/empty (e.g. after a crash before the last flush). The
+    # segments are the source of truth, so recovery must not depend on the index
+    # file having been flushed.
+    state =
+      state
+      |> load_index()
+      |> maybe_rebuild_from_segments(segments_dir)
 
     # Schedule periodic flush
     schedule_flush(flush_interval)
@@ -192,6 +199,29 @@ defmodule Storage.Index.SegmentIndex do
     Logger.info("SegmentIndex initialized with #{:ets.info(table, :size)} entries")
 
     {:ok, state}
+  end
+
+  # Rebuilds the index from the on-disk segments when it is empty and segment
+  # files exist — the crash-recovery path where the flushed index was lost.
+  defp maybe_rebuild_from_segments(state, nil), do: state
+
+  defp maybe_rebuild_from_segments(state, segments_dir) do
+    if :ets.info(state.table, :size) == 0 and segment_files?(segments_dir) do
+      case rebuild_impl(state.table, segments_dir) do
+        {:ok, count} when count > 0 ->
+          Logger.info("SegmentIndex rebuilt #{count} entries from segments (index recovery)")
+          %{state | insert_count: 0}
+
+        _ ->
+          state
+      end
+    else
+      state
+    end
+  end
+
+  defp segment_files?(segments_dir) do
+    match?({:ok, [_ | _]}, FileBackend.list_files(segments_dir, "*.wal"))
   end
 
   @impl true

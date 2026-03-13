@@ -281,6 +281,50 @@ defmodule Storage.Index.SegmentIndexTest do
     end
   end
 
+  describe "auto-rebuild on init (crash recovery)" do
+    test "rebuilds from segments when the index file is missing", %{
+      index: existing,
+      test_dir: dir
+    } do
+      # The default-named index from setup must stop before we start our own.
+      GenServer.stop(existing)
+
+      # Simulate a crash that persisted segments but not the index file.
+      segments_dir = Path.join(dir, "seg_recovery")
+      File.mkdir_p!(segments_dir)
+
+      create_mock_segment(segments_dir, "segment_0000000000000001.wal", [
+        {10, "a"},
+        {11, "b"}
+      ])
+
+      index_dir = Path.join(dir, "idx_recovery")
+      {:ok, pid} = SegmentIndex.start_link(data_dir: index_dir, segments_dir: segments_dir)
+
+      # Without any explicit rebuild call, the index recovered from the segments.
+      {:ok, stats} = SegmentIndex.stats(pid)
+      assert stats.entry_count == 2
+      assert {:ok, {1, _offset}} = SegmentIndex.lookup(pid, 10)
+
+      GenServer.stop(pid)
+    end
+
+    test "stays empty when there are no segments", %{index: existing, test_dir: dir} do
+      GenServer.stop(existing)
+
+      segments_dir = Path.join(dir, "seg_empty")
+      File.mkdir_p!(segments_dir)
+      index_dir = Path.join(dir, "idx_empty")
+
+      {:ok, pid} = SegmentIndex.start_link(data_dir: index_dir, segments_dir: segments_dir)
+
+      {:ok, stats} = SegmentIndex.stats(pid)
+      assert stats.entry_count == 0
+
+      GenServer.stop(pid)
+    end
+  end
+
   describe "concurrent access" do
     test "handles concurrent inserts", %{index: pid} do
       tasks =

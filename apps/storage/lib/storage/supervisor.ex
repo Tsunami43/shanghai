@@ -68,7 +68,10 @@ defmodule Storage.Supervisor do
 
     [
       # Registry + SegmentManager are started by init/1 as base children.
-      {Storage.Index.SegmentIndex, [data_dir: index_dir]},
+      # `segments_dir` points at where the Writer stores segment files so the
+      # index can rebuild itself from them after a crash that lost the index file.
+      {Storage.Index.SegmentIndex,
+       [data_dir: index_dir, segments_dir: Path.join(segments_dir, "segments")]},
 
       # WAL Writer and Reader
       {Storage.WAL.Writer,
