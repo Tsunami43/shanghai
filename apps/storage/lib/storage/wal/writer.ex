@@ -148,13 +148,24 @@ defmodule Storage.WAL.Writer do
 
     node_id = %NodeId{value: node_id_str}
 
-    # Load or create metadata
-    {current_lsn, current_segment_id} = load_metadata(metadata_path)
+    # Load metadata, then reconcile with the actual segments. The metadata file
+    # is only persisted periodically/at shutdown, so after a crash it can be
+    # missing or stale; the segment index (rebuilt from the segments on its own
+    # start-up) is authoritative for how far the log actually got.
+    {meta_lsn, meta_segment_id} = load_metadata(metadata_path)
+    {current_lsn, current_segment_id} = recover_position(meta_lsn, meta_segment_id)
 
     # Start current segment
     segment_path = segment_file_path(segments_dir, current_segment_id)
 
-    case SegmentManager.start_segment(current_segment_id, current_lsn, segment_path) do
+    # Open an existing segment in recovery mode (create: false) so it resumes at
+    # the end of the file instead of overwriting the records already there; only
+    # a brand-new segment file is created.
+    create = not FileBackend.file_exists?(segment_path)
+
+    case SegmentManager.start_segment(current_segment_id, current_lsn, segment_path,
+           create: create
+         ) do
       {:ok, segment_pid} ->
         state = %State{
           current_lsn: current_lsn,
@@ -244,6 +255,42 @@ defmodule Storage.WAL.Writer do
   end
 
   ## Private Functions
+
+  # Reconciles the loaded metadata with the segment index (which rebuilds itself
+  # from the segments on start-up). When the index holds an LSN at or beyond the
+  # metadata's, the metadata is missing/stale after a crash, so the next write
+  # position is one past the highest indexed LSN, in the segment that holds it.
+  @spec recover_position(non_neg_integer(), non_neg_integer()) ::
+          {non_neg_integer(), non_neg_integer()}
+  defp recover_position(meta_lsn, meta_segment_id) do
+    case index_max_lsn() do
+      max_lsn when is_integer(max_lsn) and max_lsn >= meta_lsn ->
+        segment_id = index_segment_of(max_lsn, meta_segment_id)
+
+        Logger.info(
+          "WAL recovering position from segments: LSN #{meta_lsn} -> #{max_lsn + 1}, " <>
+            "segment #{segment_id}"
+        )
+
+        {max_lsn + 1, segment_id}
+
+      _ ->
+        {meta_lsn, meta_segment_id}
+    end
+  end
+
+  defp index_max_lsn do
+    SegmentIndex.max_lsn()
+  catch
+    :exit, _ -> nil
+  end
+
+  defp index_segment_of(lsn, default_segment_id) do
+    case SegmentIndex.lookup(lsn) do
+      {:ok, {segment_id, _offset}} -> segment_id
+      _ -> default_segment_id
+    end
+  end
 
   @spec load_metadata(String.t()) :: {non_neg_integer(), non_neg_integer()}
   defp load_metadata(metadata_path) do

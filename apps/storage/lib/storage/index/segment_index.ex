@@ -124,6 +124,15 @@ defmodule Storage.Index.SegmentIndex do
   end
 
   @doc """
+  Returns the highest indexed LSN, or `nil` when the index is empty. Used on
+  startup to recover the next write position from the log.
+  """
+  @spec max_lsn(GenServer.server()) :: non_neg_integer() | nil
+  def max_lsn(server \\ __MODULE__) do
+    GenServer.call(server, :max_lsn)
+  end
+
+  @doc """
   Deletes all entries for a specific segment.
 
   Used during compaction when segments are merged/deleted.
@@ -263,6 +272,11 @@ defmodule Storage.Index.SegmentIndex do
       {:ok, new_state} -> {:reply, :ok, new_state}
       {:error, _reason} = error -> {:reply, error, state}
     end
+  end
+
+  def handle_call(:max_lsn, _from, state) do
+    max = :ets.foldl(fn {lsn, _loc}, acc -> max(lsn, acc) end, -1, state.table)
+    {:reply, if(max < 0, do: nil, else: max), state}
   end
 
   def handle_call(:stats, _from, state) do
