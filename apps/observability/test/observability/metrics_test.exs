@@ -64,7 +64,7 @@ defmodule Observability.MetricsTest do
 
   test "domain_event_counts/0 counts events per domain" do
     counts = Metrics.domain_event_counts()
-    assert counts[:query] == 1
+    assert counts[:query] == 2
     assert counts[:storage] >= 1
     assert Enum.sum(Map.values(counts)) == Metrics.event_count()
   end
@@ -78,7 +78,8 @@ defmodule Observability.MetricsTest do
 
   test "events_for_domain/1 filters by the second path segment" do
     query = Metrics.events_for_domain(:query)
-    assert query == [[:shanghai, :query, :operation]]
+    assert [:shanghai, :query, :operation] in query
+    assert [:shanghai, :query, :recovery] in query
 
     storage = Metrics.events_for_domain(:storage)
     assert Enum.all?(storage, fn [:shanghai, :storage | _] -> true end)

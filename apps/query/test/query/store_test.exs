@@ -145,6 +145,32 @@ defmodule Query.StoreTest do
     :ok = GenServer.stop(store_b)
   end
 
+  test "recovery emits [:shanghai, :query, :recovery] telemetry" do
+    {:ok, store_a} = Query.Store.start_link(name: :store_ta, table: :qs_test_ta)
+    {:ok, :written} = Query.Store.put(store_a, "t:1", 1)
+    {:ok, :written} = Query.Store.put(store_a, "t:2", 2)
+    :ok = GenServer.stop(store_a)
+
+    test_pid = self()
+
+    :telemetry.attach(
+      "query-recovery-test",
+      [:shanghai, :query, :recovery],
+      fn _event, measurements, _metadata, _config ->
+        send(test_pid, {:query_recovery, measurements})
+      end,
+      nil
+    )
+
+    {:ok, store_b} = Query.Store.start_link(name: :store_tb, table: :qs_test_tb)
+
+    assert_receive {:query_recovery, %{records: records}}, 1000
+    assert records >= 2
+
+    :telemetry.detach("query-recovery-test")
+    :ok = GenServer.stop(store_b)
+  end
+
   # Starts a process, tolerating the case where it is already running.
   defp ensure_started(fun) do
     case fun.() do

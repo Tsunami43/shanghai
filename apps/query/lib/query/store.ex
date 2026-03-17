@@ -837,6 +837,7 @@ defmodule Query.Store do
       Enum.each(entries, fn %{data: record} -> apply_record(state.table, record) end)
       count = length(entries)
       Logger.info("Query.Store recovered #{count} WAL record(s)")
+      Observability.Metrics.query_recovered(count)
       %{state | recovered: count}
     else
       _ -> state

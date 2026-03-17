@@ -254,6 +254,19 @@ defmodule Observability.Metrics do
   end
 
   @doc """
+  Reports that the query store rebuilt its state from the WAL on start-up.
+
+  Emits: `[:shanghai, :query, :recovery]`
+
+  Measurements:
+  - `:records` - Number of WAL records replayed during recovery
+  """
+  @spec query_recovered(non_neg_integer()) :: :ok
+  def query_recovered(records) do
+    :telemetry.execute([:shanghai, :query, :recovery], %{records: records}, %{})
+  end
+
+  @doc """
   Returns a list of all defined telemetry event names.
   """
   @spec event_names() :: [[atom()]]
@@ -268,7 +281,8 @@ defmodule Observability.Metrics do
       [:shanghai, :cluster, :membership_change],
       [:shanghai, :cluster, :leader_elected],
       [:shanghai, :storage, :compaction, :complete],
-      [:shanghai, :query, :operation]
+      [:shanghai, :query, :operation],
+      [:shanghai, :query, :recovery]
     ]
   end
 
