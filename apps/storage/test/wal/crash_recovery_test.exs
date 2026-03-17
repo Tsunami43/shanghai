@@ -28,11 +28,15 @@ defmodule Storage.WAL.CrashRecoveryTest do
   defp segments_dir, do: Path.join(@test_dir, "segments")
   defp index_dir, do: Path.join(@test_dir, "index")
 
-  defp start_stack do
+  defp start_stack(segment_size_threshold \\ 1024) do
     {:ok, index} = SegmentIndex.start_link(data_dir: index_dir(), segments_dir: segments_dir())
 
     {:ok, writer} =
-      Writer.start_link(data_dir: @test_dir, node_id: "test_node", segment_size_threshold: 1024)
+      Writer.start_link(
+        data_dir: @test_dir,
+        node_id: "test_node",
+        segment_size_threshold: segment_size_threshold
+      )
 
     {:ok, reader} = Reader.start_link([])
     %{index: index, writer: writer, reader: reader}
@@ -83,5 +87,43 @@ defmodule Storage.WAL.CrashRecoveryTest do
     assert Enum.map(entries, & &1.data) == ["rec-a", "rec-b", "rec-c", "rec-d"]
 
     stop_stack(_stack2)
+  end
+
+  test "recovers across multiple segments after rotation" do
+    # A small threshold forces the WAL to rotate into several segments.
+    stack = start_stack(256)
+
+    payload = String.duplicate("x", 200)
+
+    lsns =
+      for i <- 0..7,
+          do:
+            (fn ->
+               {:ok, lsn} = Writer.append(payload <> "-#{i}")
+               lsn
+             end).()
+
+    assert lsns == Enum.to_list(0..7)
+
+    # Rotation actually produced more than one segment.
+    assert length(SegmentManager.list_segments()) > 1
+
+    stop_stack(stack)
+    simulate_crash_loss()
+
+    stack2 = start_stack(256)
+
+    # Position is recovered to just past the last record, in the last segment.
+    assert {:ok, %{current_lsn: 8}} = Writer.info()
+    assert SegmentIndex.max_lsn() == 7
+
+    # Every record across every segment is readable after recovery.
+    assert {:ok, entries} = Reader.read_range(0, 7)
+    assert Enum.map(entries, & &1.data) == for(i <- 0..7, do: payload <> "-#{i}")
+
+    # A new append continues after the recovered records.
+    assert {:ok, 8} = Writer.append("after")
+
+    stop_stack(stack2)
   end
 end

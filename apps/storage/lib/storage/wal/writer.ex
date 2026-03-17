@@ -155,12 +155,12 @@ defmodule Storage.WAL.Writer do
     {meta_lsn, meta_segment_id} = load_metadata(metadata_path)
     {current_lsn, current_segment_id} = recover_position(meta_lsn, meta_segment_id)
 
-    # Start current segment
+    # Reopen every existing segment (not just the active one) so historical reads
+    # after a restart work, then open/create the current segment as the writable
+    # one. Existing segments open in recovery mode (create: false) and resume at
+    # end-of-file rather than overwriting the records already on disk.
+    reopen_older_segments(segments_dir, current_segment_id)
     segment_path = segment_file_path(segments_dir, current_segment_id)
-
-    # Open an existing segment in recovery mode (create: false) so it resumes at
-    # the end of the file instead of overwriting the records already there; only
-    # a brand-new segment file is created.
     create = not FileBackend.file_exists?(segment_path)
 
     case SegmentManager.start_segment(current_segment_id, current_lsn, segment_path,
@@ -289,6 +289,42 @@ defmodule Storage.WAL.Writer do
     case SegmentIndex.lookup(lsn) do
       {:ok, {segment_id, _offset}} -> segment_id
       _ -> default_segment_id
+    end
+  end
+
+  # Reopens every existing segment other than the current one (read-only, from
+  # its file) so records in older, already-rotated segments remain readable after
+  # a restart. A segment that fails to reopen is logged and skipped.
+  defp reopen_older_segments(segments_dir, current_segment_id) do
+    for id <- existing_segment_ids(segments_dir), id != current_segment_id do
+      path = segment_file_path(segments_dir, id)
+
+      case SegmentManager.start_segment(id, 0, path, create: false) do
+        {:ok, _pid} -> :ok
+        {:error, reason} -> Logger.warning("Could not reopen segment #{id}: #{inspect(reason)}")
+      end
+    end
+
+    :ok
+  end
+
+  defp existing_segment_ids(segments_dir) do
+    case FileBackend.list_files(segments_dir, "segment_*.wal") do
+      {:ok, files} ->
+        files
+        |> Enum.map(&parse_segment_id/1)
+        |> Enum.reject(&is_nil/1)
+        |> Enum.sort()
+
+      _ ->
+        []
+    end
+  end
+
+  defp parse_segment_id(path) do
+    case Regex.run(~r/segment_(\d+)\.wal$/, Path.basename(path)) do
+      [_, digits] -> String.to_integer(digits)
+      _ -> nil
     end
   end
 
