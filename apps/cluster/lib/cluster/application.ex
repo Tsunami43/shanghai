@@ -20,6 +20,8 @@ defmodule Cluster.Application do
       {Cluster.Membership, []},
       # Leader election derives the leader from the membership view
       {Cluster.LeaderElection, []},
+      # Discovery connects to configured seed nodes over Erlang distribution
+      {Cluster.Discovery, []},
       # Heartbeat monitors node liveness
       {Cluster.Heartbeat, heartbeat_opts()},
       # Gossip propagates events across the cluster

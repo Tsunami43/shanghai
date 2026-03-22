@@ -14,4 +14,15 @@ if config_env() != :test do
       Path.join(System.tmp_dir!(), "shanghai")
 
   config :storage, data_root: data_root
+
+  # Seed nodes for Erlang-distribution discovery, from a comma-separated list of
+  # `name@host` entries (e.g. "node-1@10.0.1.10,node-2@10.0.1.11").
+  seed_nodes =
+    "SHANGHAI_CLUSTER_NODES"
+    |> System.get_env("")
+    |> String.split(",", trim: true)
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+
+  config :cluster, seed_nodes: seed_nodes
 end
