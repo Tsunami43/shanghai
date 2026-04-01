@@ -14,7 +14,7 @@ defmodule Cluster.Membership do
   require Logger
 
   alias Cluster.Entities.Node
-  alias Cluster.Events.NodeRecovered
+  alias Cluster.Events.{NodeDetectedDown, NodeJoined, NodeLeft, NodeRecovered}
   alias Cluster.State
   alias CoreDomain.Types.NodeId
 
@@ -102,6 +102,16 @@ defmodule Cluster.Membership do
   @spec unsubscribe() :: :ok
   def unsubscribe do
     GenServer.call(__MODULE__, {:unsubscribe, self()})
+  end
+
+  @doc """
+  Applies a cluster event received from a peer (via gossip) to the local
+  membership view. Idempotent, and notifies local subscribers so leader election
+  reacts — but it does not re-emit the event to gossip, so it cannot loop.
+  """
+  @spec apply_remote_event(struct()) :: :ok
+  def apply_remote_event(event) do
+    GenServer.cast(__MODULE__, {:apply_remote_event, event})
   end
 
   # Server Callbacks
@@ -287,6 +297,22 @@ defmodule Cluster.Membership do
   end
 
   @impl true
+  def handle_cast({:apply_remote_event, event}, %{cluster: cluster} = state) do
+    case apply_remote(cluster, event) do
+      {:ok, updated_cluster} ->
+        {events, cluster_without_events} = State.take_events(updated_cluster)
+        # Notify local subscribers (e.g. leader election) but do NOT push back to
+        # gossip — the gossip layer re-propagates the original message itself, and
+        # re-emitting here would create a loop.
+        broadcast_events(events, state.subscribers)
+        {:noreply, %{state | cluster: cluster_without_events}}
+
+      :ignore ->
+        {:noreply, state}
+    end
+  end
+
+  @impl true
   def handle_cast({:mark_up, node_id}, %{cluster: cluster} = state) do
     case State.mark_node_up(cluster, node_id) do
       {:ok, updated_cluster} ->
@@ -394,6 +420,35 @@ defmodule Cluster.Membership do
       end)
     end)
   end
+
+  # Applies a received event to the cluster state, returning `{:ok, cluster}` on a
+  # real change or `:ignore` when it is a duplicate/unknown. Idempotent.
+  defp apply_remote(cluster, %NodeJoined{node: %Node{} = node}) do
+    case State.add_node(cluster, node) do
+      {:ok, updated} -> {:ok, updated}
+      {:error, :node_already_exists} -> :ignore
+    end
+  end
+
+  defp apply_remote(cluster, %NodeLeft{node_id: node_id}) do
+    case State.remove_node(cluster, node_id, :graceful) do
+      {:ok, updated} -> {:ok, updated}
+      {:error, :node_not_found} -> :ignore
+    end
+  end
+
+  defp apply_remote(cluster, %NodeDetectedDown{node_id: node_id, detection_method: method}) do
+    normalize_apply(State.mark_node_down(cluster, node_id, method))
+  end
+
+  defp apply_remote(cluster, %NodeRecovered{node_id: node_id}) do
+    normalize_apply(State.mark_node_up(cluster, node_id))
+  end
+
+  defp apply_remote(_cluster, _event), do: :ignore
+
+  defp normalize_apply({:ok, updated}), do: {:ok, updated}
+  defp normalize_apply({:error, _reason}), do: :ignore
 
   # Marks a known node up on connection recovery. No-op (returns state unchanged)
   # when the node is already up, so a flapping connection does not spam events.

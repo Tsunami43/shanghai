@@ -233,6 +233,39 @@ defmodule Cluster.MembershipTest do
       refute_receive {:cluster_event, _}, 100
     end
 
+    test "apply_remote_event/1 applies a peer's membership changes idempotently" do
+      alias Cluster.Events.{NodeDetectedDown, NodeJoined, NodeLeft, NodeRecovered}
+
+      node_id = NodeId.new("remote-1")
+      node = Node.new(node_id, "10.0.0.9", 4000)
+
+      # Join from a peer.
+      Membership.apply_remote_event(NodeJoined.new(node))
+      assert {:ok, joined} = Membership.get_node(node_id)
+      assert joined.host == "10.0.0.9"
+
+      # Duplicate join is ignored (idempotent, no crash).
+      Membership.apply_remote_event(NodeJoined.new(node))
+      assert length(Membership.all_nodes()) == 1
+
+      # Down / recovered transitions.
+      Membership.apply_remote_event(NodeDetectedDown.new(node_id, :network_partition))
+      assert {:ok, down} = Membership.get_node(node_id)
+      assert down.status == :down
+
+      Membership.apply_remote_event(NodeRecovered.new(node_id))
+      assert {:ok, up} = Membership.get_node(node_id)
+      assert up.status == :up
+
+      # Leave removes it; a repeat and unknown events are ignored.
+      Membership.apply_remote_event(NodeLeft.new(node_id, :graceful))
+      assert {:error, :not_found} = Membership.get_node(node_id)
+
+      Membership.apply_remote_event(NodeLeft.new(node_id, :graceful))
+      Membership.apply_remote_event(%{type: :bogus})
+      assert Membership.all_nodes() == []
+    end
+
     test "repeated nodedown for an already-down node does not re-broadcast" do
       node_id = NodeId.new("n1")
       :ok = Membership.join_node(Node.new(node_id, "localhost", 4000))

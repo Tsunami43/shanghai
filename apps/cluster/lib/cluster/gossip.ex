@@ -204,9 +204,10 @@ defmodule Cluster.Gossip do
   end
 
   defp process_gossip_message({:cluster_event, event}) do
-    # Cluster events are handled by the membership process
-    # In a real implementation, we'd have subscribers for these events
+    # Apply the peer's membership change to our local view. Idempotent and does
+    # not re-emit to gossip, so it cannot loop.
     Logger.debug("Received cluster event via gossip: #{inspect(event)}")
+    Membership.apply_remote_event(event)
   end
 
   defp process_gossip_message({:membership_sync, _membership_data}) do
