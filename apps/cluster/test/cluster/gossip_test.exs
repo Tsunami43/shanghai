@@ -185,6 +185,20 @@ defmodule Cluster.GossipTest do
       Process.sleep(100)
       assert Process.whereis(Cluster.Gossip) != nil
     end
+
+    test "local membership changes are propagated to gossip" do
+      before = MapSet.size(:sys.get_state(Gossip).seen_messages)
+
+      # A locally-originated join must be pushed into the gossip layer for peers.
+      node = Cluster.Entities.Node.new(NodeId.new("gossip-out"), "localhost", 4000)
+      :ok = Membership.join_node(node)
+
+      # Let the async cast into Gossip.broadcast settle.
+      _ = :sys.get_state(Membership)
+      after_join = MapSet.size(:sys.get_state(Gossip).seen_messages)
+
+      assert after_join > before
+    end
   end
 
   describe "gossip_targets/3" do

@@ -304,7 +304,7 @@ defmodule Cluster.Membership do
         # Notify local subscribers (e.g. leader election) but do NOT push back to
         # gossip — the gossip layer re-propagates the original message itself, and
         # re-emitting here would create a loop.
-        broadcast_events(events, state.subscribers)
+        notify_local(events, state.subscribers)
         {:noreply, %{state | cluster: cluster_without_events}}
 
       :ignore ->
@@ -413,12 +413,30 @@ defmodule Cluster.Membership do
     end
   end
 
-  defp broadcast_events(events, subscribers) do
+  # Notifies local subscribers of events. Used for locally-originated changes
+  # (which also gossip, see below) and for remote-applied changes (which must
+  # not re-gossip).
+  defp notify_local(events, subscribers) do
     Enum.each(events, fn event ->
       Enum.each(subscribers, fn subscriber ->
         send(subscriber, {:cluster_event, event})
       end)
     end)
+  end
+
+  # Notifies local subscribers AND propagates the events to peers via gossip.
+  # Used only for locally-originated membership changes.
+  defp broadcast_events(events, subscribers) do
+    notify_local(events, subscribers)
+    Enum.each(events, &gossip_event/1)
+  end
+
+  defp gossip_event(event) do
+    if Process.whereis(Cluster.Gossip) do
+      Cluster.Gossip.broadcast({:cluster_event, event})
+    end
+
+    :ok
   end
 
   # Applies a received event to the cluster state, returning `{:ok, cluster}` on a
