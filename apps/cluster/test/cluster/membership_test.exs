@@ -266,6 +266,30 @@ defmodule Cluster.MembershipTest do
       assert Membership.all_nodes() == []
     end
 
+    test "merge_membership/1 adds unknown peer nodes idempotently (anti-entropy)" do
+      # A node already known locally.
+      local_known = Node.new(NodeId.new("known-1"), "h", 4001)
+      :ok = Membership.join_node(local_known)
+
+      # A peer's view including the known node plus two we have never seen.
+      peer_nodes = [
+        local_known,
+        Node.new(NodeId.new("peer-a"), "10.0.0.1", 4000),
+        Node.new(NodeId.new("peer-b"), "10.0.0.2", 4000)
+      ]
+
+      Membership.merge_membership(peer_nodes)
+
+      ids = Membership.all_nodes() |> Enum.map(& &1.id.value) |> Enum.sort()
+      assert ids == ["known-1", "peer-a", "peer-b"]
+      assert {:ok, a} = Membership.get_node(NodeId.new("peer-a"))
+      assert a.host == "10.0.0.1"
+
+      # Merging again changes nothing.
+      Membership.merge_membership(peer_nodes)
+      assert length(Membership.all_nodes()) == 3
+    end
+
     test "repeated nodedown for an already-down node does not re-broadcast" do
       node_id = NodeId.new("n1")
       :ok = Membership.join_node(Node.new(node_id, "localhost", 4000))

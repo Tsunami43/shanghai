@@ -210,10 +210,15 @@ defmodule Cluster.Gossip do
     Membership.apply_remote_event(event)
   end
 
-  defp process_gossip_message({:membership_sync, _membership_data}) do
-    # Handle membership synchronization messages
-    # This would be used for anti-entropy and state reconciliation
-    Logger.debug("Received membership sync via gossip")
+  defp process_gossip_message({:membership_sync, %{nodes: nodes}}) when is_list(nodes) do
+    # Anti-entropy: merge the peer's node list into our view so a node that just
+    # joined converges on the current membership, not only future events.
+    Logger.debug("Received membership sync via gossip (#{length(nodes)} nodes)")
+    Membership.merge_membership(nodes)
+  end
+
+  defp process_gossip_message({:membership_sync, _other}) do
+    Logger.debug("Received membership sync via gossip (ignored: unexpected shape)")
   end
 
   defp process_gossip_message(message) do

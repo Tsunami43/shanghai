@@ -114,6 +114,16 @@ defmodule Cluster.Membership do
     GenServer.cast(__MODULE__, {:apply_remote_event, event})
   end
 
+  @doc """
+  Merges a peer's node list into the local membership view (anti-entropy). Nodes
+  not already known are added; existing nodes are left untouched. Idempotent and
+  does not re-gossip, so it converges without looping.
+  """
+  @spec merge_membership([Node.t()]) :: :ok
+  def merge_membership(nodes) when is_list(nodes) do
+    GenServer.cast(__MODULE__, {:merge_membership, nodes})
+  end
+
   # Server Callbacks
 
   @impl true
@@ -297,6 +307,26 @@ defmodule Cluster.Membership do
   end
 
   @impl true
+  def handle_cast({:merge_membership, nodes}, %{cluster: cluster} = state) do
+    {updated_cluster, added_events} =
+      Enum.reduce(nodes, {cluster, []}, fn node, {acc_cluster, acc_events} ->
+        case State.add_node(acc_cluster, node) do
+          {:ok, updated} ->
+            {events, without_events} = State.take_events(updated)
+            {without_events, acc_events ++ events}
+
+          {:error, :node_already_exists} ->
+            {acc_cluster, acc_events}
+        end
+      end)
+
+    # Notify local subscribers of newly learned nodes; do not re-gossip (the sync
+    # message propagates through the gossip layer itself).
+    notify_local(added_events, state.subscribers)
+    {:noreply, %{state | cluster: updated_cluster}}
+  end
+
+  @impl true
   def handle_cast({:apply_remote_event, event}, %{cluster: cluster} = state) do
     case apply_remote(cluster, event) do
       {:ok, updated_cluster} ->
@@ -344,6 +374,10 @@ defmodule Cluster.Membership do
         node_id ->
           recover_node(state, cluster, node_id)
       end
+
+    # Anti-entropy: share our membership with the peer that just connected so a
+    # newly-joined node converges on the current view, not just future events.
+    gossip_membership_sync(updated_state.cluster)
 
     {:noreply, updated_state}
   end
@@ -434,6 +468,14 @@ defmodule Cluster.Membership do
   defp gossip_event(event) do
     if Process.whereis(Cluster.Gossip) do
       Cluster.Gossip.broadcast({:cluster_event, event})
+    end
+
+    :ok
+  end
+
+  defp gossip_membership_sync(cluster) do
+    if Process.whereis(Cluster.Gossip) do
+      Cluster.Gossip.broadcast({:membership_sync, %{nodes: State.all_nodes(cluster)}})
     end
 
     :ok

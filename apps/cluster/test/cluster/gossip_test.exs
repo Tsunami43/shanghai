@@ -186,6 +186,17 @@ defmodule Cluster.GossipTest do
       assert Process.whereis(Cluster.Gossip) != nil
     end
 
+    test "a peer connecting (nodeup) triggers a membership_sync into gossip" do
+      before = MapSet.size(:sys.get_state(Gossip).seen_messages)
+
+      # Simulate a distribution connection coming up.
+      send(Membership, {:nodeup, :peer@somewhere, %{}})
+      _ = :sys.get_state(Membership)
+      after_up = MapSet.size(:sys.get_state(Gossip).seen_messages)
+
+      assert after_up > before
+    end
+
     test "local membership changes are propagated to gossip" do
       before = MapSet.size(:sys.get_state(Gossip).seen_messages)
 
