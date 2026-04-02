@@ -100,25 +100,33 @@ defmodule Cluster.Gossip do
 
   @impl true
   def handle_cast({:receive_gossip, from_node, message}, state) do
+    # A gossip round sends a *batch* (the sender's message buffer) in one RPC, so
+    # normalize to a list and process each message individually. A single message
+    # (List.wrap keeps it a one-element list) works the same way.
+    new_state =
+      message
+      |> List.wrap()
+      |> Enum.reduce(state, fn msg, acc -> receive_one(from_node, msg, acc) end)
+
+    {:noreply, new_state}
+  end
+
+  defp receive_one(from_node, message, state) do
     message_id = generate_message_id(message)
 
-    # Check if we've already seen this message
     if MapSet.member?(state.seen_messages, message_id) do
       Logger.debug("Ignoring duplicate gossip message from #{from_node}")
-      {:noreply, state}
+      state
     else
-      # Process the message
       process_gossip_message(message)
-
-      # Mark as seen
-      updated_seen = MapSet.put(state.seen_messages, message_id)
-
-      # Re-gossip to other nodes (propagation)
-      updated_buffer = [message | state.message_buffer]
 
       Logger.debug("Received gossip message from #{from_node}: #{inspect(message)}")
 
-      {:noreply, %{state | message_buffer: updated_buffer, seen_messages: updated_seen}}
+      %{
+        state
+        | seen_messages: MapSet.put(state.seen_messages, message_id),
+          message_buffer: [message | state.message_buffer]
+      }
     end
   end
 

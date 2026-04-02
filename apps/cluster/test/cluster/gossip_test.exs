@@ -57,6 +57,27 @@ defmodule Cluster.GossipTest do
       assert recorded_hb.sequence == 1
     end
 
+    test "processes a batch of messages (as a gossip round delivers them)" do
+      # A gossip round RPCs the whole message buffer as one list; the receiver
+      # must process each message, not treat the list as a single message.
+      batch = [
+        {:heartbeat, HeartbeatVO.new(NodeId.new("batch-1"), 7)},
+        {:heartbeat, HeartbeatVO.new(NodeId.new("batch-2"), 9)}
+      ]
+
+      before = MapSet.size(:sys.get_state(Gossip).seen_messages)
+      assert :ok = Gossip.receive_gossip(:peer@localhost, batch)
+      Process.sleep(50)
+
+      after_batch = MapSet.size(:sys.get_state(Gossip).seen_messages)
+      assert after_batch == before + 2
+
+      assert {:ok, hb1} = Heartbeat.get_last_heartbeat(NodeId.new("batch-1"))
+      assert hb1.sequence == 7
+      assert {:ok, hb2} = Heartbeat.get_last_heartbeat(NodeId.new("batch-2"))
+      assert hb2.sequence == 9
+    end
+
     test "ignores duplicate messages" do
       from_node = :other_node@localhost
       node_id = NodeId.new("node1")
