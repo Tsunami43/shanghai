@@ -207,15 +207,14 @@ defmodule Cluster.GossipTest do
       assert Process.whereis(Cluster.Gossip) != nil
     end
 
-    test "a peer connecting (nodeup) triggers a membership_sync into gossip" do
-      before = MapSet.size(:sys.get_state(Gossip).seen_messages)
-
-      # Simulate a distribution connection coming up.
+    test "a peer connecting (nodeup) is a safe no-op when the node is unreachable" do
+      # On :nodeup we send a membership snapshot directly to the connecting node
+      # via RPC. When that node is unreachable the cast simply drops — no crash,
+      # and the local view is unchanged.
       send(Membership, {:nodeup, :peer@somewhere, %{}})
       _ = :sys.get_state(Membership)
-      after_up = MapSet.size(:sys.get_state(Gossip).seen_messages)
 
-      assert after_up > before
+      assert Process.alive?(Process.whereis(Membership))
     end
 
     test "local membership changes are propagated to gossip" do

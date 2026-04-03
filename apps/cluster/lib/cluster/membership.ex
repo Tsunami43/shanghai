@@ -25,6 +25,8 @@ defmodule Cluster.Membership do
           monitors: %{pid() => reference()}
         }
 
+  @anti_entropy_interval_ms 5_000
+
   # Client API
 
   @doc """
@@ -144,6 +146,11 @@ defmodule Cluster.Membership do
     }
 
     Logger.info("Membership server started with node_id=#{local_node_id.value}")
+
+    # Periodic anti-entropy: push our membership to every connected node so all
+    # nodes converge on the union view regardless of start-up ordering or a
+    # dropped message. Robust and simple — no request/response handshake needed.
+    schedule_anti_entropy()
 
     {:ok, state}
   end
@@ -323,6 +330,7 @@ defmodule Cluster.Membership do
     # Notify local subscribers of newly learned nodes; do not re-gossip (the sync
     # message propagates through the gossip layer itself).
     notify_local(added_events, state.subscribers)
+
     {:noreply, %{state | cluster: updated_cluster}}
   end
 
@@ -375,11 +383,21 @@ defmodule Cluster.Membership do
           recover_node(state, cluster, node_id)
       end
 
-    # Anti-entropy: share our membership with the peer that just connected so a
-    # newly-joined node converges on the current view, not just future events.
-    gossip_membership_sync(updated_state.cluster)
+    # Push our membership straight to the peer that just connected for a fast
+    # initial exchange; the periodic anti-entropy sweep converges it either way.
+    push_membership_to(erlang_node, updated_state.cluster)
 
     {:noreply, updated_state}
+  end
+
+  @impl true
+  def handle_info(:anti_entropy, %{cluster: cluster} = state) do
+    Enum.each(:erlang.nodes(:visible), fn erlang_node ->
+      push_membership_to(erlang_node, cluster)
+    end)
+
+    schedule_anti_entropy()
+    {:noreply, state}
   end
 
   @impl true
@@ -473,12 +491,25 @@ defmodule Cluster.Membership do
     :ok
   end
 
-  defp gossip_membership_sync(cluster) do
-    if Process.whereis(Cluster.Gossip) do
-      Cluster.Gossip.broadcast({:membership_sync, %{nodes: State.all_nodes(cluster)}})
-    end
+  # Delivers our current membership straight to a specific Erlang node (the one
+  # that just connected), bypassing gossip's member-based targeting. Best-effort
+  # and non-blocking, so an unreachable node cannot stall us.
+  # Pushes our current membership straight to a specific Erlang node, bypassing
+  # gossip's member-based targeting (a not-yet-member peer would not be a target).
+  # Best-effort and non-blocking.
+  defp push_membership_to(erlang_node, cluster) do
+    payload = %{nodes: State.all_nodes(cluster)}
+
+    :rpc.cast(erlang_node, Cluster.Gossip, :receive_gossip, [
+      node(),
+      [{:membership_sync, payload}]
+    ])
 
     :ok
+  end
+
+  defp schedule_anti_entropy do
+    Process.send_after(self(), :anti_entropy, @anti_entropy_interval_ms)
   end
 
   # Applies a received event to the cluster state, returning `{:ok, cluster}` on a

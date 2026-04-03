@@ -216,8 +216,8 @@ defmodule Cluster.Gossip do
   end
 
   defp process_gossip_message({:membership_sync, %{nodes: nodes}}) when is_list(nodes) do
-    # Anti-entropy: merge the peer's node list into our view so a node that just
-    # joined converges on the current membership, not only future events.
+    # Anti-entropy: merge the peer's node list into our view so a node converges
+    # on the union membership, not only future events.
     Logger.debug("Received membership sync via gossip (#{length(nodes)} nodes)")
     Membership.merge_membership(nodes)
   end
