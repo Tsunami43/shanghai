@@ -193,17 +193,14 @@ defmodule Cluster.Gossip do
   end
 
   defp send_gossip_to_node(node, messages) do
-    # Get the Erlang node name for the target
     erlang_node = Cluster.Entities.Node.erlang_node_name(node)
 
-    # Send messages to the gossip process on the target node
-    case :rpc.call(erlang_node, __MODULE__, :receive_gossip, [node(), messages]) do
-      {:badrpc, reason} ->
-        Logger.warning("Failed to gossip to #{erlang_node}: #{inspect(reason)}")
-
-      _ ->
-        :ok
-    end
+    # Fire-and-forget: gossip is best-effort, and a blocking `:rpc.call` to an
+    # unreachable member would stall the whole round (and thus delivery to the
+    # healthy peers) on the distribution connect timeout. `:rpc.cast` returns
+    # immediately and simply drops when the node is unreachable.
+    :rpc.cast(erlang_node, __MODULE__, :receive_gossip, [node(), messages])
+    :ok
   end
 
   defp process_gossip_message({:heartbeat, heartbeat}) do
