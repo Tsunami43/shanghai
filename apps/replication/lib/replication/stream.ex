@@ -254,10 +254,13 @@ defmodule Replication.Stream do
   end
 
   defp deliver_entries(group_id, follower_id, follower_state, entries_to_send) do
-    # In real implementation, this would be an RPC call to the follower node.
-    # For now, send to the local follower process if it exists.
+    # Deliver to the follower on its own node: a local cast when it is us (or when
+    # the node is unknown, e.g. single-node/test), an `:rpc.cast` to the follower's
+    # node otherwise. Resolved once per batch from the cluster view.
+    target = follower_node(follower_id)
+
     Enum.each(entries_to_send, fn {offset, data} ->
-      Replication.Follower.apply_entry(group_id, offset, data)
+      deliver_to(target, group_id, offset, data)
     end)
 
     last_sent = entries_to_send |> List.last() |> elem(0)
@@ -271,5 +274,27 @@ defmodule Replication.Stream do
 
       # Do not advance last_sent_offset — the entries were not delivered.
       follower_state
+  end
+
+  # Resolves the follower's Erlang node from the cluster, or `nil` when unknown
+  # (no membership process, or the follower isn't a known member) — in which case
+  # delivery falls back to the local follower process.
+  defp follower_node(follower_id) do
+    if Process.whereis(Cluster.Membership) do
+      case Cluster.Membership.get_node(follower_id) do
+        {:ok, node} -> Cluster.Entities.Node.erlang_node_name(node)
+        _ -> nil
+      end
+    else
+      nil
+    end
+  end
+
+  defp deliver_to(target, group_id, offset, data) when target in [nil, node()] do
+    Replication.Follower.apply_entry(group_id, offset, data)
+  end
+
+  defp deliver_to(target, group_id, offset, data) do
+    :rpc.cast(target, Replication.Follower, :apply_entry, [group_id, offset, data])
   end
 end
