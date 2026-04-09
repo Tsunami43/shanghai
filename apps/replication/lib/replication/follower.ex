@@ -195,22 +195,41 @@ defmodule Replication.Follower do
   end
 
   defp report_to_leader(state) do
-    # Report current offset to leader
-    # In real implementation, this would be an RPC call to leader node
     Logger.debug("Follower #{state.node_id.value} reporting offset #{state.current_offset.value}")
 
-    # Try to report to local leader process if it exists
-    try do
-      Replication.Leader.report_offset(
-        state.group_id,
-        state.node_id,
-        state.current_offset
-      )
-    catch
-      :exit, _ -> :ok
-    end
+    # Report to the leader on its own node: a local cast when the leader is us (or
+    # its node is unknown — single-node/test), an `:rpc.cast` to the leader's node
+    # otherwise so a remote follower's acks reach the leader's quorum tracking.
+    report_offset_to(
+      leader_node(state.leader_node_id),
+      state.group_id,
+      state.node_id,
+      state.current_offset
+    )
 
     :ok
+  end
+
+  # Resolves the leader's Erlang node from the cluster, or `nil` when unknown.
+  defp leader_node(leader_node_id) do
+    if Process.whereis(Cluster.Membership) do
+      case Cluster.Membership.get_node(leader_node_id) do
+        {:ok, node} -> Cluster.Entities.Node.erlang_node_name(node)
+        _ -> nil
+      end
+    else
+      nil
+    end
+  end
+
+  defp report_offset_to(target, group_id, follower_id, offset) when target in [nil, node()] do
+    Replication.Leader.report_offset(group_id, follower_id, offset)
+  catch
+    :exit, _ -> :ok
+  end
+
+  defp report_offset_to(target, group_id, follower_id, offset) do
+    :rpc.cast(target, Replication.Leader, :report_offset, [group_id, follower_id, offset])
   end
 
   defp request_catch_up(state) do
