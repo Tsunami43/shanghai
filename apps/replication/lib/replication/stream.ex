@@ -35,6 +35,10 @@ defmodule Replication.Stream do
   @default_batch_size 100
   @default_flush_interval_ms 50
 
+  # How many recently-delivered entries to retain for re-sending to a follower
+  # that fell behind and requested catch-up.
+  @max_history 1_000
+
   # Client API
 
   @doc """
@@ -100,6 +104,7 @@ defmodule Replication.Stream do
       leader_node_id: leader_node_id,
       followers: %{},
       pending_entries: :queue.new(),
+      history: [],
       batch_size: batch_size,
       flush_interval_ms: flush_interval_ms
     }
@@ -168,16 +173,31 @@ defmodule Replication.Stream do
         {:noreply, state}
 
       follower_state ->
-        # In production, would fetch missing entries from WAL storage
-        # For now, mark follower as needing catch-up
-        updated_follower = %{follower_state | last_ack_offset: from_offset}
-        updated_followers = Map.put(state.followers, follower_node_id, updated_follower)
+        # Re-send the retained entries at or after the requested offset, in order.
+        missing =
+          Enum.filter(state.history, fn {offset, _data} ->
+            ReplicationOffset.compare(offset, from_offset) != :lt
+          end)
 
-        Logger.info(
-          "Follower #{follower_node_id.value} catch-up initiated from offset #{from_offset.value}"
-        )
+        case missing do
+          [] ->
+            Logger.info(
+              "No buffered entries to catch up follower #{follower_node_id.value} from #{from_offset.value}"
+            )
 
-        {:noreply, %{state | followers: updated_followers}}
+            {:noreply, state}
+
+          entries ->
+            Logger.info(
+              "Catching up follower #{follower_node_id.value} with #{length(entries)} entries from #{from_offset.value}"
+            )
+
+            updated_follower =
+              deliver_entries(state.group_id, follower_node_id, follower_state, entries)
+
+            updated_followers = Map.put(state.followers, follower_node_id, updated_follower)
+            {:noreply, %{state | followers: updated_followers}}
+        end
     end
   end
 
@@ -230,7 +250,11 @@ defmodule Replication.Stream do
         "Flushed #{length(entries)} entries to #{map_size(state.followers)} followers, last_offset=#{last_offset.value}"
       )
 
-      %{state | pending_entries: :queue.new(), followers: updated_followers}
+      # Retain the delivered entries (bounded) so a follower that falls behind can
+      # be caught up without going back to the WAL.
+      history = Enum.take(state.history ++ entries, -@max_history)
+
+      %{state | pending_entries: :queue.new(), followers: updated_followers, history: history}
     end
   end
 

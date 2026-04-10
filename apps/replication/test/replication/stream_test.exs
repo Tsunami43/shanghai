@@ -245,23 +245,31 @@ defmodule Replication.StreamTest do
       assert offset.value == 0
     end
 
-    test "stream handles catch-up request" do
+    test "catch-up re-sends buffered entries to a lagging follower" do
       group_id = "test-group-#{:rand.uniform(10000)}"
       leader_id = NodeId.new("leader")
       follower_id = NodeId.new("follower")
 
-      start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id]})
+      start_supervised!(
+        {Stream, [group_id: group_id, leader_node_id: leader_id, flush_interval_ms: 30]}
+      )
 
+      start_supervised!({Follower, [group_id: group_id, node_id: follower_id]})
+
+      # Entries are appended before the follower is registered, so it misses them;
+      # they are retained in the stream's history.
+      Stream.append_entry(group_id, ReplicationOffset.new(1), "d1")
+      Stream.append_entry(group_id, ReplicationOffset.new(2), "d2")
+      Stream.append_entry(group_id, ReplicationOffset.new(3), "d3")
+      Process.sleep(100)
+
+      # The follower registers late and is behind; catch-up replays 1..3 to it.
       Stream.add_follower(group_id, follower_id)
+      Stream.request_catch_up(group_id, follower_id, ReplicationOffset.new(1))
+      Process.sleep(100)
 
-      # Request catch-up
-      Stream.request_catch_up(group_id, follower_id, ReplicationOffset.new(5))
-
-      Process.sleep(50)
-
-      # Stream should have updated follower state
-      states = Stream.get_follower_states(group_id)
-      assert states[follower_id].last_ack_offset.value == 5
+      assert Follower.current_offset(group_id).value == 3
+      assert Stream.get_follower_states(group_id)[follower_id].last_sent_offset.value == 3
     end
 
     test "stream ignores catch-up for unknown follower" do
