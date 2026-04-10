@@ -93,6 +93,29 @@ defmodule Replication.LeaderFollowerTest do
       # (This is verified indirectly through logs in real implementation)
       assert true
     end
+
+    test "applying an entry emits [:shanghai, :replication, :applied] telemetry" do
+      group_id = "applied-#{:rand.uniform(10000)}"
+      follower_id = NodeId.new("follower")
+      start_supervised!({Follower, [group_id: group_id, node_id: follower_id]})
+
+      test_pid = self()
+
+      :telemetry.attach(
+        "applied-test-#{group_id}",
+        [:shanghai, :replication, :applied],
+        fn _event, measurements, metadata, _config ->
+          send(test_pid, {:applied, measurements, metadata})
+        end,
+        nil
+      )
+
+      Follower.apply_entry(group_id, ReplicationOffset.new(1), "data")
+
+      assert_receive {:applied, %{offset: 1}, %{group_id: ^group_id, node_id: ^follower_id}}, 1000
+
+      :telemetry.detach("applied-test-#{group_id}")
+    end
   end
 
   describe "Write coordination" do

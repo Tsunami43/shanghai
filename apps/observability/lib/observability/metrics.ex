@@ -267,6 +267,27 @@ defmodule Observability.Metrics do
   end
 
   @doc """
+  Reports that a follower applied a replicated entry.
+
+  Emits: `[:shanghai, :replication, :applied]`
+
+  Measurements:
+  - `:offset` - The applied entry's replication offset
+
+  Metadata:
+  - `:group_id` - The replication group id
+  - `:node_id` - The follower's node id
+  """
+  @spec replica_applied(non_neg_integer(), String.t(), term()) :: :ok
+  def replica_applied(offset, group_id, node_id) do
+    :telemetry.execute(
+      [:shanghai, :replication, :applied],
+      %{offset: offset},
+      %{group_id: group_id, node_id: node_id}
+    )
+  end
+
+  @doc """
   Returns a list of all defined telemetry event names.
   """
   @spec event_names() :: [[atom()]]
@@ -277,6 +298,7 @@ defmodule Observability.Metrics do
       [:shanghai, :replication, :lag],
       [:shanghai, :replication, :catchup],
       [:shanghai, :replication, :replica_stale],
+      [:shanghai, :replication, :applied],
       [:shanghai, :cluster, :heartbeat],
       [:shanghai, :cluster, :membership_change],
       [:shanghai, :cluster, :leader_elected],

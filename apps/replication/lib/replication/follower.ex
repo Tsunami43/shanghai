@@ -101,7 +101,8 @@ defmodule Replication.Follower do
             # Update current offset
             updated_state = %{state | current_offset: offset}
 
-            # Report to leader and monitor
+            # Make applied replication observable, then report to leader and monitor.
+            Observability.Metrics.replica_applied(offset.value, state.group_id, state.node_id)
             report_to_leader(updated_state)
             report_to_monitor(updated_state)
 
