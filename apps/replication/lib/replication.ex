@@ -7,7 +7,42 @@ defmodule Replication do
   """
 
   alias CoreDomain.Types.NodeId
-  alias Replication.Monitor
+  alias Replication.{Follower, GroupSupervisor, Leader, Monitor, Stream}
+
+  @doc """
+  Starts a replication group leader on this node: the `Stream` (which fans out to
+  followers) and the `Leader` (which accepts writes), supervised under
+  `Replication.GroupSupervisor`.
+
+  Options are forwarded to `Leader` (e.g. `:node_id`, `:replica_count`) and, where
+  relevant, to `Stream` (`:batch_size`, `:flush_interval_ms`).
+  """
+  @spec start_leader(String.t(), keyword()) :: {:ok, pid()} | {:error, term()}
+  def start_leader(group_id, opts \\ []) when is_binary(group_id) do
+    stream_opts = [group_id: group_id] ++ Keyword.take(opts, [:batch_size, :flush_interval_ms])
+
+    with {:ok, _stream} <- start_group_child({Stream, stream_opts}) do
+      start_group_child({Leader, [group_id: group_id] ++ opts})
+    end
+  end
+
+  @doc """
+  Starts a replication group follower on this node, supervised under
+  `Replication.GroupSupervisor`. Options are forwarded to `Follower` (e.g.
+  `:node_id`, `:leader_node_id`).
+  """
+  @spec start_follower(String.t(), keyword()) :: {:ok, pid()} | {:error, term()}
+  def start_follower(group_id, opts \\ []) when is_binary(group_id) do
+    start_group_child({Follower, [group_id: group_id] ++ opts})
+  end
+
+  defp start_group_child(child_spec) do
+    case DynamicSupervisor.start_child(GroupSupervisor, child_spec) do
+      {:ok, pid} -> {:ok, pid}
+      {:error, {:already_started, pid}} -> {:ok, pid}
+      other -> other
+    end
+  end
 
   @doc """
   Gets all replication groups with their current metrics.

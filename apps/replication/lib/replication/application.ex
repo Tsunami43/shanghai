@@ -28,7 +28,10 @@ defmodule Replication.Application do
     children =
       [
         # Registry for leader and follower processes
-        {Registry, keys: :unique, name: Replication.Registry}
+        {Registry, keys: :unique, name: Replication.Registry},
+        # Dynamic supervisor under which per-group leader/stream/follower processes
+        # are started via Replication.start_leader/2 and start_follower/2.
+        {DynamicSupervisor, strategy: :one_for_one, name: Replication.GroupSupervisor}
       ] ++ monitor_children
 
     opts = [strategy: :one_for_one, name: Replication.Supervisor]
