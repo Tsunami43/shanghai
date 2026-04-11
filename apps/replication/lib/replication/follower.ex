@@ -234,25 +234,30 @@ defmodule Replication.Follower do
   end
 
   defp request_catch_up(state) do
-    # Request catch-up from stream
-    # In real implementation, this would be an RPC call to leader/stream on leader node
     Logger.info(
       "Follower #{state.node_id.value} requesting catch-up from offset #{state.current_offset.value}"
     )
 
-    try do
-      Replication.Stream.request_catch_up(
-        state.group_id,
-        state.node_id,
-        state.current_offset
-      )
-    catch
-      :exit, reason ->
-        Logger.warning("Failed to request catch-up: #{inspect(reason)}")
-        :ok
-    end
+    # The Stream runs on the leader's node, so send the request there (an
+    # `:rpc.cast`), falling back to a local cast when the leader is us/unknown.
+    request_catch_up_to(
+      leader_node(state.leader_node_id),
+      state.group_id,
+      state.node_id,
+      state.current_offset
+    )
 
     :ok
+  end
+
+  defp request_catch_up_to(target, group_id, follower_id, offset) when target in [nil, node()] do
+    Replication.Stream.request_catch_up(group_id, follower_id, offset)
+  catch
+    :exit, _ -> :ok
+  end
+
+  defp request_catch_up_to(target, group_id, follower_id, offset) do
+    :rpc.cast(target, Replication.Stream, :request_catch_up, [group_id, follower_id, offset])
   end
 
   defp report_to_monitor(state) do
