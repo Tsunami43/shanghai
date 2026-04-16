@@ -23,7 +23,8 @@ defmodule Replication.Leader do
           current_offset: ReplicationOffset.t(),
           pending_writes: %{reference() => map()},
           follower_offsets: %{NodeId.t() => ReplicationOffset.t()},
-          replica_count: pos_integer()
+          replica_count: pos_integer(),
+          persist_wal: boolean()
         }
 
   # Client API
@@ -97,7 +98,11 @@ defmodule Replication.Leader do
       current_offset: ReplicationOffset.zero(),
       pending_writes: %{},
       follower_offsets: %{},
-      replica_count: replica_count
+      replica_count: replica_count,
+      # When false, the leader does not persist writes to the storage WAL — a
+      # higher layer (e.g. the query store) owns durability and the WAL would
+      # otherwise hold a duplicate copy of every replicated record.
+      persist_wal: Keyword.get(opts, :persist_wal, true)
     }
 
     Logger.info("Leader started for group #{group_id} on node #{node_id.value}")
@@ -138,9 +143,9 @@ defmodule Replication.Leader do
     Logger.debug("Leader received write, offset=#{new_offset.value}")
 
     # Persist to the local WAL for durability before acknowledging, when the WAL
-    # is running (a configured deployment). Without a WAL the leader keeps only
-    # its in-memory replication log (single-node/test mode).
-    case persist_to_wal(data) do
+    # is running and this leader owns durability. Without a WAL (or with
+    # `persist_wal: false`) the leader keeps only its in-memory replication log.
+    case persist_to_wal(state, data) do
       :ok ->
         # Broadcast to followers (will be implemented with Stream)
         broadcast_to_followers(state.group_id, new_offset, data)
@@ -213,7 +218,9 @@ defmodule Replication.Leader do
 
   # Appends the write to the storage WAL when it is running; otherwise a no-op
   # so replication still works in in-memory (single-node/test) mode.
-  defp persist_to_wal(data) do
+  defp persist_to_wal(%{persist_wal: false}, _data), do: :ok
+
+  defp persist_to_wal(%{persist_wal: true}, data) do
     if is_pid(Process.whereis(Writer)) do
       case Writer.append(data) do
         {:ok, _lsn} -> :ok

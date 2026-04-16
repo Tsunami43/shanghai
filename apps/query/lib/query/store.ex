@@ -434,7 +434,14 @@ defmodule Query.Store do
     table_name = Keyword.get(opts, :table, @default_table)
     table = :ets.new(table_name, [:named_table, :set, :protected, read_concurrency: true])
 
-    state = %{table: table, durable: wal_running?(), recovered: 0}
+    state = %{
+      table: table,
+      durable: wal_running?(),
+      recovered: 0,
+      # When set, mutating writes are forwarded to this replication group's leader
+      # for propagation to followers.
+      replication_group: Keyword.get(opts, :replication_group)
+    }
 
     state =
       if state.durable do
@@ -467,7 +474,7 @@ defmodule Query.Store do
   def handle_call({:apply_replicated, record}, _from, state) do
     # Apply a record received from replication: persist it to this node's WAL for
     # durability and materialize it into the table. It is not re-replicated.
-    case append(state, record) do
+    case persist(state, record) do
       :ok ->
         apply_record(state.table, record)
         {:reply, :ok, state}
@@ -845,13 +852,38 @@ defmodule Query.Store do
   end
 
   # Appends a record to the WAL when durable; a no-op in in-memory mode.
-  defp append(%{durable: false}, _record), do: :ok
+  # Persists a record to the WAL (when durable) and, when the store belongs to a
+  # replication group, forwards it to the group leader for propagation to
+  # followers. Used by all mutating operations.
+  defp append(state, record) do
+    with :ok <- persist(state, record) do
+      maybe_replicate(state, record)
+      :ok
+    end
+  end
 
-  defp append(%{durable: true}, record) do
+  # WAL persistence only — no replication. Used both by `append/2` and by
+  # `apply_replicated` (which must not re-replicate a record it received).
+  defp persist(%{durable: false}, _record), do: :ok
+
+  defp persist(%{durable: true}, record) do
     case Writer.append(record) do
       {:ok, _lsn} -> :ok
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp maybe_replicate(%{replication_group: nil}, _record), do: :ok
+
+  defp maybe_replicate(%{replication_group: group}, record) do
+    Replication.Leader.write(group, record, consistency_level: :local)
+  catch
+    # Replication is best-effort from the store's view: the local write is already
+    # durable, and followers converge via catch-up. Never fail a write on it.
+    _kind, _reason -> :ok
+  else
+    {:ok, _offset} -> :ok
+    _other -> :ok
   end
 
   # Rebuilds the in-memory index by replaying the WAL from LSN 0.
