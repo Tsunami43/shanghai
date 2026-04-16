@@ -74,7 +74,12 @@ defmodule Replication.Follower do
       node_id: node_id,
       leader_node_id: leader_node_id,
       current_offset: ReplicationOffset.zero(),
-      last_report_at: System.monotonic_time(:millisecond)
+      last_report_at: System.monotonic_time(:millisecond),
+      # Optional `{module, function, args}` invoked as `apply(m, f, args ++ [data])`
+      # to apply each entry. Lets a higher layer (e.g. the query store) receive
+      # replicated writes without the follower knowing about it. When nil, the
+      # entry is persisted to the storage WAL instead.
+      on_apply: Keyword.get(opts, :on_apply)
     }
 
     # Schedule periodic offset reporting
@@ -92,9 +97,9 @@ defmodule Replication.Follower do
 
     cond do
       ReplicationOffset.compare(offset, expected_offset) == :eq ->
-        # Apply the replicated entry to the local WAL when it is running; without
-        # a WAL the follower only advances its in-memory offset (test mode).
-        case persist_to_wal(data) do
+        # Apply the entry: via the configured `on_apply` callback if set (e.g. the
+        # query store), otherwise persist to the local storage WAL.
+        case apply_data(state, data) do
           :ok ->
             Logger.debug("Follower applying entry at offset #{offset.value}")
 
@@ -166,6 +171,12 @@ defmodule Replication.Follower do
 
   # Persists a replicated entry to the storage WAL when it is running; a no-op
   # otherwise so replication still works in in-memory (test) mode.
+  defp apply_data(%{on_apply: {module, function, args}}, data) do
+    apply(module, function, args ++ [data])
+  end
+
+  defp apply_data(%{on_apply: nil}, data), do: persist_to_wal(data)
+
   defp persist_to_wal(data) do
     if is_pid(Process.whereis(Writer)) do
       case Writer.append(data) do

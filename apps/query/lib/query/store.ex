@@ -276,6 +276,16 @@ defmodule Query.Store do
   def delete(server \\ __MODULE__, key), do: GenServer.call(server, {:delete, key})
 
   @doc """
+  Applies a replicated write `record` (`%{op: :put | :delete | :clear | :txn, …}`)
+  to the store: persisted to the local WAL and materialized into the table,
+  without being re-replicated. Used by a replication follower to apply entries it
+  receives from the leader.
+  """
+  @spec apply_replicated(GenServer.server(), map()) :: :ok | {:error, term()}
+  def apply_replicated(server \\ __MODULE__, record),
+    do: GenServer.call(server, {:apply_replicated, record})
+
+  @doc """
   Atomically reads and removes `key` (a pop). Returns `{:ok, value}` when the
   key existed, or `{:error, :not_found}`.
   """
@@ -447,6 +457,20 @@ defmodule Query.Store do
       :ok ->
         :ets.insert(state.table, {key, value})
         {:reply, {:ok, :written}, state}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:apply_replicated, record}, _from, state) do
+    # Apply a record received from replication: persist it to this node's WAL for
+    # durability and materialize it into the table. It is not re-replicated.
+    case append(state, record) do
+      :ok ->
+        apply_record(state.table, record)
+        {:reply, :ok, state}
 
       {:error, reason} ->
         {:reply, {:error, reason}, state}
