@@ -45,6 +45,92 @@ defmodule Replication.OrchestrationTest do
     assert %{value: 0} = Follower.current_offset(group_id)
   end
 
+  test "start_group/2 on the leader member brings up the leader and registers followers" do
+    group_id = "orch-group-lead-#{:rand.uniform(1_000_000)}"
+    members = [NodeId.new("n1"), NodeId.new("n2"), NodeId.new("n3")]
+
+    # n1 is the smallest id, so it is the deterministic leader.
+    assert {:ok, pid} =
+             Replication.start_group(group_id,
+               members: members,
+               this_node: NodeId.new("n1"),
+               batch_size: 1
+             )
+
+    assert is_pid(pid)
+    on_exit(fn -> stop_group_children() end)
+
+    # The leader is up and accepts writes.
+    assert %{value: 0} = Leader.current_offset(group_id)
+    assert {:ok, %{value: 1}} = Leader.write(group_id, "data", consistency_level: :local)
+
+    # The other two members are registered as follower targets on the stream.
+    follower_ids =
+      group_id
+      |> Stream.get_follower_states()
+      |> Map.keys()
+      |> Enum.map(& &1.value)
+      |> Enum.sort()
+
+    assert follower_ids == ["n2", "n3"]
+  end
+
+  test "start_group/2 on a non-leader member brings up a follower" do
+    group_id = "orch-group-fol-#{:rand.uniform(1_000_000)}"
+    members = [NodeId.new("n1"), NodeId.new("n2")]
+
+    assert {:ok, pid} =
+             Replication.start_group(group_id, members: members, this_node: NodeId.new("n2"))
+
+    assert is_pid(pid)
+    on_exit(fn -> stop_group_children() end)
+
+    # A follower is running for the group; no leader/stream was started here.
+    assert %{value: 0} = Follower.current_offset(group_id)
+    assert catch_exit(Leader.current_offset(group_id))
+  end
+
+  test "start_group/2 on a non-member starts nothing" do
+    group_id = "orch-group-none-#{:rand.uniform(1_000_000)}"
+    members = [NodeId.new("n1"), NodeId.new("n2")]
+
+    assert {:ok, :not_a_member} =
+             Replication.start_group(group_id, members: members, this_node: NodeId.new("n9"))
+
+    assert [] = DynamicSupervisor.which_children(Replication.GroupSupervisor)
+  end
+
+  test "start_group/2 with no members returns an error" do
+    assert {:error, :no_members} = Replication.start_group("orch-group-empty", members: [])
+  end
+
+  test "start_group/2 honours an explicit leader_id over the smallest id" do
+    group_id = "orch-group-explicit-#{:rand.uniform(1_000_000)}"
+    members = [NodeId.new("n1"), NodeId.new("n2"), NodeId.new("n3")]
+
+    # Force n2 as leader even though n1 has the smallest id.
+    assert {:ok, _pid} =
+             Replication.start_group(group_id,
+               members: members,
+               leader_id: NodeId.new("n2"),
+               this_node: NodeId.new("n2"),
+               batch_size: 1
+             )
+
+    on_exit(fn -> stop_group_children() end)
+
+    assert %{value: 0} = Leader.current_offset(group_id)
+
+    follower_ids =
+      group_id
+      |> Stream.get_follower_states()
+      |> Map.keys()
+      |> Enum.map(& &1.value)
+      |> Enum.sort()
+
+    assert follower_ids == ["n1", "n3"]
+  end
+
   defp ensure_started(start_fun) do
     case start_fun.() do
       {:ok, _pid} -> :ok

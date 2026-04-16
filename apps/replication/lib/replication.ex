@@ -36,6 +36,79 @@ defmodule Replication do
     start_group_child({Follower, [group_id: group_id] ++ opts})
   end
 
+  @doc """
+  Starts the correct replication role for `group_id` on this node from a shared
+  group descriptor, so every node in the group can call this with the same
+  arguments and self-assign its role deterministically.
+
+  The leader is the member with the smallest node id — the same deterministic
+  rule the cluster uses for leader election — unless `:leader_id` is given. On the
+  leader node this starts the `Stream` and `Leader` and registers every other
+  member as a follower target; on another member it starts a `Follower` that
+  follows the leader. A node that is not a member starts nothing and returns
+  `{:ok, :not_a_member}`.
+
+  Options:
+  - `:members` - list of `NodeId.t()` in the group (required, non-empty)
+  - `:leader_id` - `NodeId.t()` of the group leader (default: smallest member id)
+  - `:this_node` - `NodeId.t()` of the local node (default: derived from `node()`)
+  - remaining options are forwarded to `Leader`/`Stream` on the leader node and to
+    `Follower` on a follower node (e.g. `:replica_count`, `:batch_size`,
+    `:on_apply`, `:persist_wal`). `:replica_count` defaults to the member count.
+  """
+  @spec start_group(String.t(), keyword()) ::
+          {:ok, pid()} | {:ok, :not_a_member} | {:error, term()}
+  def start_group(group_id, opts) when is_binary(group_id) do
+    case Keyword.get(opts, :members, []) do
+      [] ->
+        {:error, :no_members}
+
+      members ->
+        this_node = Keyword.get(opts, :this_node) || local_node_id()
+        leader_id = Keyword.get(opts, :leader_id) || NodeId.min_of(members)
+        role_opts = Keyword.drop(opts, [:members, :leader_id, :this_node])
+
+        start_group_role(group_id, members, leader_id, this_node, role_opts)
+    end
+  end
+
+  defp start_group_role(group_id, members, leader_id, this_node, opts) do
+    cond do
+      not Enum.any?(members, &NodeId.equal?(&1, this_node)) ->
+        {:ok, :not_a_member}
+
+      NodeId.equal?(this_node, leader_id) ->
+        start_group_leader_role(group_id, members, leader_id, opts)
+
+      true ->
+        follower_opts =
+          opts |> Keyword.put(:node_id, this_node) |> Keyword.put(:leader_node_id, leader_id)
+
+        start_follower(group_id, follower_opts)
+    end
+  end
+
+  defp start_group_leader_role(group_id, members, leader_id, opts) do
+    leader_opts =
+      opts
+      |> Keyword.put_new(:replica_count, length(members))
+      |> Keyword.put(:node_id, leader_id)
+
+    with {:ok, pid} <- start_leader(group_id, leader_opts) do
+      # Register every other member as a follower target so the Stream fans out to
+      # it; the follower process itself runs on that member's own node.
+      members
+      |> Enum.reject(&NodeId.equal?(&1, leader_id))
+      |> Enum.each(fn follower_id -> Stream.add_follower(group_id, follower_id) end)
+
+      {:ok, pid}
+    end
+  end
+
+  defp local_node_id do
+    node() |> Atom.to_string() |> NodeId.new()
+  end
+
   defp start_group_child(child_spec) do
     case DynamicSupervisor.start_child(GroupSupervisor, child_spec) do
       {:ok, pid} -> {:ok, pid}
