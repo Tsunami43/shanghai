@@ -109,6 +109,23 @@ defmodule Replication do
     node() |> Atom.to_string() |> NodeId.new()
   end
 
+  @doc """
+  Stops every process for `group_id` on this node — the `Leader`, `Stream` and
+  `Follower`, whichever are present — terminating them under
+  `Replication.GroupSupervisor`. Returns `:ok`, and is safe to call when the group
+  has no processes on this node. Used to tear a role down before switching to
+  another (e.g. on a leader failover).
+  """
+  @spec stop_group(String.t()) :: :ok
+  def stop_group(group_id) when is_binary(group_id) do
+    for role <- [:leader, :follower, :stream],
+        {pid, _value} <- Registry.lookup(Replication.Registry, {role, group_id}) do
+      DynamicSupervisor.terminate_child(GroupSupervisor, pid)
+    end
+
+    :ok
+  end
+
   defp start_group_child(child_spec) do
     case DynamicSupervisor.start_child(GroupSupervisor, child_spec) do
       {:ok, pid} -> {:ok, pid}
