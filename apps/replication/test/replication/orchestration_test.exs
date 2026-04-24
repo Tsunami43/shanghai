@@ -131,6 +131,30 @@ defmodule Replication.OrchestrationTest do
     assert follower_ids == ["n1", "n3"]
   end
 
+  test "configured_groups/0 normalizes and filters the :groups config" do
+    previous = Application.get_env(:replication, :groups)
+
+    Application.put_env(:replication, :groups, [
+      [id: "g1", batch_size: 5],
+      %{id: "g2", persist_wal: false},
+      [batch_size: 9],
+      [group_id: "g3"]
+    ])
+
+    on_exit(fn ->
+      if previous,
+        do: Application.put_env(:replication, :groups, previous),
+        else: Application.delete_env(:replication, :groups)
+    end)
+
+    groups = Replication.configured_groups()
+
+    # The entry with neither :id nor :group_id is dropped; :id becomes :group_id.
+    assert Enum.map(groups, &Keyword.fetch!(&1, :group_id)) == ["g1", "g2", "g3"]
+    assert Keyword.fetch!(hd(groups), :batch_size) == 5
+    refute Keyword.has_key?(hd(groups), :id)
+  end
+
   defp ensure_started(start_fun) do
     case start_fun.() do
       {:ok, _pid} -> :ok

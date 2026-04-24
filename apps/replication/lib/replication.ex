@@ -110,6 +110,33 @@ defmodule Replication do
   end
 
   @doc """
+  Returns the replication groups configured via `config :replication, :groups`,
+  each as a normalized keyword list ready to pass to `GroupCoordinator.start_link/1`
+  (its `:group_id` is filled in from the entry's `:id` or `:group_id`). Entries
+  without a group id are dropped. Accepts entries given as keyword lists or maps.
+  """
+  @spec configured_groups() :: [keyword()]
+  def configured_groups do
+    :replication
+    |> Application.get_env(:groups, [])
+    |> Enum.map(&normalize_group_opts/1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp normalize_group_opts(opts) when is_map(opts) do
+    opts |> Map.to_list() |> normalize_group_opts()
+  end
+
+  defp normalize_group_opts(opts) when is_list(opts) do
+    case Keyword.get(opts, :group_id) || Keyword.get(opts, :id) do
+      nil -> nil
+      group_id -> opts |> Keyword.delete(:id) |> Keyword.put(:group_id, group_id)
+    end
+  end
+
+  defp normalize_group_opts(_opts), do: nil
+
+  @doc """
   Stops every process for `group_id` on this node — the `Leader`, `Stream` and
   `Follower`, whichever are present — terminating them under
   `Replication.GroupSupervisor`. Returns `:ok`, and is safe to call when the group

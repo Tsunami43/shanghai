@@ -24,7 +24,9 @@ defmodule Replication.GroupCoordinator do
 
   alias CoreDomain.Types.NodeId
 
-  @role_opt_keys [:group_id, :this_node, :members, :up_nodes]
+  @role_opt_keys [:group_id, :this_node, :members, :up_nodes, :refresh_interval_ms]
+
+  @default_refresh_interval_ms 5_000
 
   # Client API
 
@@ -39,6 +41,10 @@ defmodule Replication.GroupCoordinator do
     nodes" when omitted.
   - `:up_nodes` - a `[NodeId.t()]` or a zero-arity function returning one, used as
     the membership source (default: `Cluster.Membership`).
+  - `:refresh_interval_ms` - how often to re-subscribe (if not yet subscribed)
+    and re-reconcile as a safety net against a missed event or a coordinator that
+    started before `Cluster.Membership`. Default `#{@default_refresh_interval_ms}`;
+    set to `nil` or `0` to disable.
   - remaining options are forwarded to `Replication.start_group/2` for the chosen
     role (e.g. `:on_apply`, `:persist_wal`, `:batch_size`, `:replica_count`).
   """
@@ -78,10 +84,13 @@ defmodule Replication.GroupCoordinator do
       up_nodes: Keyword.get(opts, :up_nodes),
       role_opts: Keyword.drop(opts, @role_opt_keys),
       role: :none,
-      leader_id: nil
+      leader_id: nil,
+      subscribed: false,
+      refresh_ms: Keyword.get(opts, :refresh_interval_ms, @default_refresh_interval_ms)
     }
 
-    if Process.whereis(Cluster.Membership), do: Cluster.Membership.subscribe()
+    state = ensure_subscribed(state)
+    schedule_refresh(state)
 
     {:ok, do_reconcile(state)}
   end
@@ -102,7 +111,33 @@ defmodule Replication.GroupCoordinator do
     {:noreply, do_reconcile(state)}
   end
 
+  def handle_info(:refresh, state) do
+    # Safety net: subscribe if we couldn't at init (membership started later) and
+    # re-reconcile in case a membership event was missed.
+    state = state |> ensure_subscribed() |> do_reconcile()
+    schedule_refresh(state)
+    {:noreply, state}
+  end
+
   def handle_info(_msg, state), do: {:noreply, state}
+
+  # Subscribes to membership once it is available; a no-op once subscribed.
+  defp ensure_subscribed(%{subscribed: true} = state), do: state
+
+  defp ensure_subscribed(state) do
+    if Process.whereis(Cluster.Membership) do
+      Cluster.Membership.subscribe()
+      %{state | subscribed: true}
+    else
+      state
+    end
+  end
+
+  defp schedule_refresh(%{refresh_ms: ms}) when is_integer(ms) and ms > 0 do
+    Process.send_after(self(), :refresh, ms)
+  end
+
+  defp schedule_refresh(_state), do: :ok
 
   # Reconciliation
 

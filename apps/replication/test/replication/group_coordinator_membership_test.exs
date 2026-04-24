@@ -19,11 +19,11 @@ defmodule Replication.GroupCoordinatorMembershipTest do
       DynamicSupervisor.start_link(strategy: :one_for_one, name: Replication.GroupSupervisor)
     end)
 
-    start_supervised!({Membership, node_id: NodeId.new("n2")})
     :ok
   end
 
   test "role follows real membership join/leave events" do
+    start_supervised!({Membership, node_id: NodeId.new("n2")})
     [n1, n2, n3] = [NodeId.new("n1"), NodeId.new("n2"), NodeId.new("n3")]
     for id <- [n1, n2, n3], do: :ok = Membership.join_node(Node.new(id, "localhost", 0))
 
@@ -46,6 +46,30 @@ defmodule Replication.GroupCoordinatorMembershipTest do
 
     # n1 rejoins: n2 is demoted back to a follower.
     :ok = Membership.join_node(Node.new(n1, "localhost", 0))
+    assert wait_until(fn -> GroupCoordinator.current_role(group_id) == :follower end)
+  end
+
+  test "a coordinator started before membership picks up its role via refresh" do
+    [n1, n2] = [NodeId.new("n1"), NodeId.new("n2")]
+    group_id = "coord-boot-#{:rand.uniform(1_000_000)}"
+
+    # Coordinator starts while Cluster.Membership is not running yet: it cannot
+    # subscribe and sees no members, so it takes no role initially.
+    {:ok, coord} =
+      GroupCoordinator.start_link(group_id: group_id, this_node: n2, refresh_interval_ms: 25)
+
+    on_exit(fn ->
+      if Process.alive?(coord), do: GenServer.stop(coord)
+      stop_group_children()
+    end)
+
+    assert GroupCoordinator.current_role(group_id) == :none
+
+    # Membership comes up afterwards; the periodic refresh subscribes and
+    # reconciles, so the coordinator adopts its role without a restart.
+    start_supervised!({Membership, node_id: n2})
+    for id <- [n1, n2], do: :ok = Membership.join_node(Node.new(id, "localhost", 0))
+
     assert wait_until(fn -> GroupCoordinator.current_role(group_id) == :follower end)
   end
 

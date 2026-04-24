@@ -32,10 +32,21 @@ defmodule Replication.Application do
         # Dynamic supervisor under which per-group leader/stream/follower processes
         # are started via Replication.start_leader/2 and start_follower/2.
         {DynamicSupervisor, strategy: :one_for_one, name: Replication.GroupSupervisor}
-      ] ++ monitor_children
+      ] ++ monitor_children ++ coordinator_children()
 
     opts = [strategy: :one_for_one, name: Replication.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  # One GroupCoordinator per group configured via `config :replication, :groups`.
+  # Each keeps its group's role on this node in step with cluster membership
+  # (leader failover). Started after the Registry and GroupSupervisor they use.
+  defp coordinator_children do
+    for opts <- Replication.configured_groups() do
+      Supervisor.child_spec({Replication.GroupCoordinator, opts},
+        id: {Replication.GroupCoordinator, opts[:group_id]}
+      )
+    end
   end
 
   @doc """
