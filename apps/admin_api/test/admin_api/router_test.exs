@@ -9,6 +9,7 @@ defmodule AdminApi.RouterTest do
 
   alias Cluster.Entities.Node
   alias CoreDomain.Types.NodeId
+  alias Replication.GroupCoordinator
   alias Replication.ValueObjects.ReplicationOffset
 
   @opts AdminApi.Router.init([])
@@ -375,5 +376,24 @@ defmodule AdminApi.RouterTest do
     assert body =~ "# TYPE shanghai_replication_lagging_replicas gauge"
     assert body =~ "# TYPE shanghai_replication_stale_replicas gauge"
     assert body =~ "# TYPE shanghai_replication_unhealthy_groups gauge"
+    assert body =~ "# TYPE shanghai_replication_group_role gauge"
+  end
+
+  test "GET /metrics exposes this node's role per coordinated replication group" do
+    {:ok, coord} =
+      GroupCoordinator.start_link(
+        group_id: "prom-role-group",
+        this_node: NodeId.new("n1"),
+        up_nodes: [NodeId.new("n1"), NodeId.new("n2")]
+      )
+
+    on_exit(fn ->
+      if Process.alive?(coord), do: GenServer.stop(coord)
+      Replication.stop_group("prom-role-group")
+    end)
+
+    # n1 is the smallest member, so this node leads the group: role value 2.
+    body = get("/metrics").resp_body
+    assert body =~ ~s(shanghai_replication_group_role{group="prom-role-group"} 2)
   end
 end

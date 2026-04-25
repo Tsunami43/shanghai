@@ -247,8 +247,30 @@ defmodule AdminApi.Prometheus do
       )
     ]
 
-    [header, rows | extra]
+    [header, rows, extra | role_metrics()]
   end
+
+  # This node's role in each replication group it coordinates, as a labeled gauge
+  # (2=leader, 1=follower, 0=none). Makes leader elections/failovers observable.
+  defp role_metrics do
+    roles = safe(fn -> Replication.local_group_roles() end, %{})
+
+    header = [
+      "# HELP shanghai_replication_group_role This node's role per replication group (0=none, 1=follower, 2=leader).\n",
+      "# TYPE shanghai_replication_group_role gauge\n"
+    ]
+
+    rows =
+      Enum.map(roles, fn {group_id, role} ->
+        ["shanghai_replication_group_role{group=\"", group_id, "\"} ", num(role_value(role)), "\n"]
+      end)
+
+    [header | rows]
+  end
+
+  defp role_value(:leader), do: 2
+  defp role_value(:follower), do: 1
+  defp role_value(_role), do: 0
 
   # --- Heartbeat metrics (aggregated RTT per node link) ---
 
