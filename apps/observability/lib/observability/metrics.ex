@@ -211,6 +211,29 @@ defmodule Observability.Metrics do
   end
 
   @doc """
+  Reports that this node's role in a replication group changed (e.g. a failover
+  promotion to leader, a demotion to follower, or dropping the group).
+
+  Emits: `[:shanghai, :replication, :role_changed]`
+
+  Measurements:
+  - `:count` - Always `1`, for counting role changes.
+
+  Metadata:
+  - `:group_id` - The replication group id
+  - `:role` - The new role (`:leader`, `:follower` or `:none`)
+  - `:leader` - The group's leader id as a string, or `nil` when none
+  """
+  @spec replication_role_changed(String.t(), atom(), String.t() | nil) :: :ok
+  def replication_role_changed(group_id, role, leader) do
+    :telemetry.execute(
+      [:shanghai, :replication, :role_changed],
+      %{count: 1},
+      %{group_id: group_id, role: role, leader: leader}
+    )
+  end
+
+  @doc """
   Reports compaction completion.
 
   Emits: `[:shanghai, :storage, :compaction, :complete]`

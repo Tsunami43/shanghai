@@ -7,7 +7,7 @@ defmodule Replication do
   """
 
   alias CoreDomain.Types.NodeId
-  alias Replication.{Follower, GroupSupervisor, Leader, Monitor, Stream}
+  alias Replication.{Follower, GroupCoordinator, GroupSupervisor, Leader, Monitor, Stream}
 
   @doc """
   Starts a replication group leader on this node: the `Stream` (which fans out to
@@ -135,6 +135,19 @@ defmodule Replication do
   end
 
   defp normalize_group_opts(_opts), do: nil
+
+  @doc """
+  Returns this node's role in every replication group it coordinates, as a map of
+  `group_id => role` (`:leader`, `:follower` or `:none`). Only groups with a
+  `GroupCoordinator` running on this node are included; groups started directly
+  via `start_leader/2`/`start_follower/2` (no coordinator) are not listed.
+  """
+  @spec local_group_roles() :: %{optional(String.t()) => :leader | :follower | :none}
+  def local_group_roles do
+    Replication.Registry
+    |> Registry.select([{{{:coordinator, :"$1"}, :_, :_}, [], [:"$1"]}])
+    |> Map.new(fn group_id -> {group_id, GroupCoordinator.current_role(group_id)} end)
+  end
 
   @doc """
   Stops every process for `group_id` on this node — the `Leader`, `Stream` and

@@ -86,6 +86,40 @@ defmodule Replication.GroupCoordinatorTest do
     assert leader_pid(group_id) == leader_pid
   end
 
+  test "emits role_changed telemetry and reports roles via local_group_roles/0" do
+    group_id = "coord-obs-#{:rand.uniform(1_000_000)}"
+    [n1, n2] = [NodeId.new("n1"), NodeId.new("n2")]
+
+    handler_id = "role-changed-#{:rand.uniform(1_000_000)}"
+    test_pid = self()
+
+    :telemetry.attach(
+      handler_id,
+      [:shanghai, :replication, :role_changed],
+      fn _event, measurements, metadata, _cfg ->
+        send(test_pid, {:role_changed, measurements, metadata})
+      end,
+      nil
+    )
+
+    on_exit(fn -> :telemetry.detach(handler_id) end)
+
+    {:ok, coord} =
+      GroupCoordinator.start_link(group_id: group_id, this_node: n1, up_nodes: [n1, n2])
+
+    on_exit(fn ->
+      if Process.alive?(coord), do: GenServer.stop(coord)
+      stop_group_children()
+    end)
+
+    # n1 is the smallest member, so this node becomes the leader — one event.
+    assert_receive {:role_changed, %{count: 1},
+                    %{group_id: ^group_id, role: :leader, leader: "n1"}}
+
+    # The role is queryable across this node's coordinators.
+    assert Replication.local_group_roles()[group_id] == :leader
+  end
+
   defp follower_ids(group_id) do
     group_id |> Stream.get_follower_states() |> Map.keys() |> Enum.map(& &1.value) |> Enum.sort()
   end

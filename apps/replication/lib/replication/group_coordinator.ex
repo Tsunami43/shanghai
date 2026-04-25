@@ -170,6 +170,12 @@ defmodule Replication.GroupCoordinator do
         start_role(state, leader_id, members)
     end
 
+    Observability.Metrics.replication_role_changed(
+      state.group_id,
+      desired,
+      leader_id_value(leader_id)
+    )
+
     %{state | role: desired, leader_id: leader_id}
   end
 
