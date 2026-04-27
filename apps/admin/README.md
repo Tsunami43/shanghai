@@ -19,5 +19,5 @@ Other operational surfaces are provided today by:
 - **`shanghaictl`** — command-line control tool.
 - **`observability`** — telemetry metrics, structured logging, aggregation.
 
-Planned here (see `docs/ROADMAP_1000.md`): dynamic config management with hot
-reload, aggregate health checking, and a monitoring dashboard.
+Planned here: dynamic config management with hot reload, aggregate health
+checking, and a monitoring dashboard.

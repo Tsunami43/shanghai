@@ -27,8 +27,7 @@ Shanghai follows a **Domain-Driven Design** approach with clear bounded contexts
 
 This document describes the **target** architecture. Some component and module
 names below are aspirational — they express the intended design, not all of
-which is built yet. The table maps intent to what exists today; the full path to
-completion is tracked in [`docs/ROADMAP_1000.md`](docs/ROADMAP_1000.md).
+which is built yet. The table maps intent to what exists today.
 
 | Context | Status | Reality today |
 |---|---|---|

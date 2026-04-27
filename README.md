@@ -238,11 +238,8 @@ Shanghai runs **single-node today**: storage/WAL and the query layer are
 durable and real, while cluster membership and replication currently operate as
 in-node coordination. The path to a fully distributed v1.0 — networked
 replication with quorums and anti-entropy, sharding, consensus, a wire protocol,
-security and deployment — is tracked commit-by-commit in
-[`docs/ROADMAP_1000.md`](docs/ROADMAP_1000.md) and
-[`docs/COMMIT_PLAN.md`](docs/COMMIT_PLAN.md). Items marked ✅ above are
-implemented at single-node scope; Prometheus export and gRPC remain on the
-roadmap.
+security and deployment — is being built out incrementally. Items marked ✅ above
+are implemented at single-node scope; Prometheus export and gRPC remain planned.
 
 ## Contributing
 

@@ -160,4 +160,4 @@ The read cache tracks hit/miss counters; `Query.info/0` surfaces the
 
 Operations resolve on the local node today. Partition-aware routing, quorum
 consistency and cross-node transactions are layered on top of this store in the
-replication phase of the roadmap (`docs/ROADMAP_1000.md`).
+replication phase.
