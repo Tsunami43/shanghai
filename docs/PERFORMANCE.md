@@ -222,10 +222,10 @@ Leader                                    Follower
 **Impact:** Limits unbatched throughput to ~250 writes/sec.
 
 **Solutions:**
-- ✅ Use BatchWriter (batching amortizes fsync)
-- ✅ Upgrade to NVMe SSD (2x faster fsync)
-- ⚠️ Use XFS with nobarrier (unsafe, not recommended)
-- ⚠️ Disable fsync (data loss on crash)
+- Use BatchWriter (batching amortizes fsync)
+- Upgrade to NVMe SSD (2x faster fsync)
+- Use XFS with nobarrier (unsafe, not recommended)
+- Disable fsync (data loss on crash)
 
 ### 2. Network Bandwidth
 
@@ -234,9 +234,9 @@ Leader                                    Follower
 **Impact:** Limits cluster-wide throughput.
 
 **Solutions:**
-- ✅ Use 10 Gbps network
-- ✅ Compress replication batches (future feature)
-- ✅ Reduce replication fanout
+- Use 10 Gbps network
+- Compress replication batches (future feature)
+- Reduce replication fanout
 
 ### 3. Erlang Distribution Overhead
 
@@ -245,9 +245,9 @@ Leader                                    Follower
 **Impact:** Limits replication throughput.
 
 **Solutions:**
-- ✅ Batch replication messages (already done)
-- ✅ Use compression (future)
-- ⚠️ Use alternative RPC (gRPC) (v2.0)
+- Batch replication messages (already done)
+- Use compression (future)
+- Use alternative RPC (gRPC) (v2.0)
 
 ### 4. GenServer Contention
 
@@ -256,8 +256,8 @@ Leader                                    Follower
 **Impact:** Limits concurrent write throughput.
 
 **Solutions:**
-- ✅ Use multiple segments (shard by hash)
-- ⚠️ Use ETS for concurrent access (complex)
+- Use multiple segments (shard by hash)
+- Use ETS for concurrent access (complex)
 
 ## Optimization Strategies
 

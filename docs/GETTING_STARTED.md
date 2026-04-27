@@ -335,7 +335,7 @@ For high throughput workloads, use `BatchWriter`:
 # BatchWriter automatically batches for 10ms or 100 entries
 {:ok, lsn} = Storage.WAL.BatchWriter.append(data)
 
-# Same API, but 60x faster throughput!
+# Same API, ~60x higher throughput
 ```
 
 **When to use batching:**

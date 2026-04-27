@@ -31,13 +31,13 @@ which is built yet. The table maps intent to what exists today.
 
 | Context | Status | Reality today |
 |---|---|---|
-| Core Domain | ✅ implemented | LSN, NodeId, ConsistencyLevel, LogEntry, Event |
-| Storage (WAL) | ✅ implemented | segments, index, rotation, snapshots, compaction; write/sync telemetry |
-| Query | ✅ single-node | `Query.Store` (WAL-backed KV + recovery) and `Query.Cache` (hit-ratio metrics, config); conditional writes (`put_new`/`replace`/`getset`/`cas`), atomic bulk ops (`mset`/`mget`/`mdelete`/`delete_prefix`), `update`/`update_existing`/`get_or_store`, `scan`/`exists?`/`count_prefix`; routing/quorum are on the roadmap |
-| Cluster | 🟡 in-node | `Cluster.Membership`/`Heartbeat`/`Gossip` (not the SWIM/phi-accrual/discovery module tree named below) |
-| Replication | 🟡 in-node | `Leader`/`Follower`/`Stream`/`Monitor` with quorum acks; leader and follower persist to the WAL when it is running; not yet networked |
-| Observability | ✅ implemented | telemetry + `MetricsReporter`; Admin HTTP API and Prometheus `/metrics` live in `admin_api` |
-| Admin/Ops | 🟡 partial | `admin_api` HTTP surface (`/health`, `/ready`, `/metrics`, `/api/v1/{info,status,nodes,nodes/:id,replicas,snapshots,kv,kv/:key,metrics}`, per-request logging) + `shanghaictl` (`status`/`health`/`info`/`metrics`/`replicas`/`node`/`kv`, `--format json`); config hot-reload, dashboards, deploy are on the roadmap |
+| Core Domain | implemented | LSN, NodeId, ConsistencyLevel, LogEntry, Event |
+| Storage (WAL) | implemented | segments, index, rotation, snapshots, compaction; write/sync telemetry |
+| Query | single-node | `Query.Store` (WAL-backed KV + recovery) and `Query.Cache` (hit-ratio metrics, config); conditional writes (`put_new`/`replace`/`getset`/`cas`), atomic bulk ops (`mset`/`mget`/`mdelete`/`delete_prefix`), `update`/`update_existing`/`get_or_store`, `scan`/`exists?`/`count_prefix`; routing/quorum are on the roadmap |
+| Cluster | in-node | `Cluster.Membership`/`Heartbeat`/`Gossip` (not the SWIM/phi-accrual/discovery module tree named below) |
+| Replication | in-node | `Leader`/`Follower`/`Stream`/`Monitor` with quorum acks; leader and follower persist to the WAL when it is running; not yet networked |
+| Observability | implemented | telemetry + `MetricsReporter`; Admin HTTP API and Prometheus `/metrics` live in `admin_api` |
+| Admin/Ops | partial | `admin_api` HTTP surface (`/health`, `/ready`, `/metrics`, `/api/v1/{info,status,nodes,nodes/:id,replicas,snapshots,kv,kv/:key,metrics}`, per-request logging) + `shanghaictl` (`status`/`health`/`info`/`metrics`/`replicas`/`node`/`kv`, `--format json`); config hot-reload, dashboards, deploy are on the roadmap |
 
 Module names such as `Cluster.Membership.Registry`, `Cluster.Discovery.*`,
 `Cluster.FailureDetection.*`, `Replication.LogShipping.*`, `Replication.Sync.*`,

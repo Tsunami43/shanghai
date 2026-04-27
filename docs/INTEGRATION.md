@@ -22,14 +22,14 @@ Shanghai can be integrated into your application in several ways:
 
 ### When to Use Shanghai
 
-✅ **Good fit:**
+**Good fit:**
 - Event sourcing / CQRS applications
 - Audit logging and compliance
 - Change data capture (CDC)
 - Distributed messaging
 - Replicated state machines
 
-❌ **Not a good fit:**
+**Not a good fit:**
 - Complex queries (use PostgreSQL)
 - Document storage (use MongoDB)
 - Key-value with TTL (use Redis)

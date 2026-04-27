@@ -200,33 +200,33 @@ iex> Query.delete("user:1")
 
 ### What's Implemented
 
-✅ **Storage Layer**
+**Storage Layer**
 - Write-Ahead Log with segment management
 - Crash recovery with torn write detection
 - Segment compaction (segment selection; merge/reclaim on the roadmap)
 
-🚧 **Storage (in progress)**
+**Storage (in progress)**
 - Batch writer component (not yet wired into the default write path)
 
-✅ **Cluster Management**
+**Cluster Management**
 - Heartbeat-based failure detection
 - Membership state management
 - Event notification system
 - Erlang distribution integration
 
-✅ **Replication**
+**Replication**
 - Leader-follower replication
 - Credit-based flow control
 - Automatic backpressure
 - Lag monitoring
 
-✅ **Query Layer**
+**Query Layer**
 - `read`/`write`/`delete`/`transact` over a WAL-backed KV store
 - Crash recovery by WAL replay on startup
 - Read-through cache with consistent invalidation
 - `scan`/`keys`/`count` collection access
 
-✅ **Observability**
+**Observability**
 - Telemetry integration throughout (incl. `[:shanghai, :query, :operation]`)
 - Structured logging
 - Admin HTTP API (`/api/v1/status|nodes|replicas|metrics`)
@@ -238,8 +238,8 @@ Shanghai runs **single-node today**: storage/WAL and the query layer are
 durable and real, while cluster membership and replication currently operate as
 in-node coordination. The path to a fully distributed v1.0 — networked
 replication with quorums and anti-entropy, sharding, consensus, a wire protocol,
-security and deployment — is being built out incrementally. Items marked ✅ above
-are implemented at single-node scope; Prometheus export and gRPC remain planned.
+security and deployment — is being built out incrementally. The features listed
+above are implemented at single-node scope; gRPC remains planned.
 
 ## Contributing
 
