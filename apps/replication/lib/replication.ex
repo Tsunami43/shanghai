@@ -8,6 +8,7 @@ defmodule Replication do
 
   alias CoreDomain.Types.NodeId
   alias Replication.{Follower, GroupCoordinator, GroupSupervisor, Leader, Monitor, Stream}
+  alias Replication.ValueObjects.ReplicationOffset
 
   @doc """
   Starts a replication group leader on this node: the `Stream` (which fans out to
@@ -164,6 +165,69 @@ defmodule Replication do
     end
 
     :ok
+  end
+
+  @doc """
+  Writes `data` to `group_id`'s leader wherever it runs — a location-transparent
+  write. When the leader is on this node the write is issued locally; otherwise it
+  is routed to the leader's node (resolved via the local `GroupCoordinator` and
+  cluster membership). Returns `{:error, :no_leader}` when no leader is known here,
+  so a write on a non-leader node without a routable leader fails loudly instead of
+  being silently dropped.
+
+  `opts` are forwarded to `Leader.write/3` (e.g. `:consistency_level`, `:timeout`).
+  """
+  @spec write(String.t(), term(), keyword()) ::
+          {:ok, ReplicationOffset.t()} | {:error, term()}
+  def write(group_id, data, opts \\ []) when is_binary(group_id) do
+    case leader_location(group_id) do
+      :local -> Leader.write(group_id, data, opts)
+      {:remote, erlang_node} -> remote_write(erlang_node, group_id, data, opts)
+      :unknown -> {:error, :no_leader}
+    end
+  end
+
+  # Resolves where `group_id`'s leader runs: `:local` when a Leader is registered
+  # on this node, `{:remote, node}` when the coordinator + membership point at
+  # another node, or `:unknown` when no leader can be determined.
+  defp leader_location(group_id) do
+    case Registry.lookup(Replication.Registry, {:leader, group_id}) do
+      [{_pid, _value}] -> :local
+      [] -> resolve_remote_leader(group_id)
+    end
+  end
+
+  defp resolve_remote_leader(group_id) do
+    with leader_id when not is_nil(leader_id) <- coordinator_leader(group_id),
+         erlang_node when not is_nil(erlang_node) <- leader_erlang_node(leader_id),
+         true <- erlang_node != node() do
+      {:remote, erlang_node}
+    else
+      _ -> :unknown
+    end
+  end
+
+  defp coordinator_leader(group_id) do
+    case Registry.lookup(Replication.Registry, {:coordinator, group_id}) do
+      [{_pid, _value}] -> GroupCoordinator.leader(group_id)
+      [] -> nil
+    end
+  end
+
+  defp leader_erlang_node(leader_id) do
+    if Process.whereis(Cluster.Membership) do
+      case Cluster.Membership.get_node(leader_id) do
+        {:ok, node} -> Cluster.Entities.Node.erlang_node_name(node)
+        _ -> nil
+      end
+    end
+  end
+
+  defp remote_write(erlang_node, group_id, data, opts) do
+    case :rpc.call(erlang_node, Leader, :write, [group_id, data, opts]) do
+      {:badrpc, reason} -> {:error, {:badrpc, reason}}
+      result -> result
+    end
   end
 
   defp start_group_child(child_spec) do

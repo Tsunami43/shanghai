@@ -876,7 +876,7 @@ defmodule Query.Store do
   defp maybe_replicate(%{replication_group: nil}, _record), do: :ok
 
   defp maybe_replicate(%{replication_group: group}, record) do
-    Replication.Leader.write(group, record, consistency_level: :local)
+    Replication.write(group, record, consistency_level: :local)
   catch
     # Replication is best-effort from the store's view: the local write is already
     # durable, and followers converge via catch-up. Never fail a write on it.

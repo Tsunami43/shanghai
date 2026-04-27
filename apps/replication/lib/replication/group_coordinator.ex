@@ -71,6 +71,15 @@ defmodule Replication.GroupCoordinator do
     GenServer.call(via_tuple(group_id), :current_role)
   end
 
+  @doc """
+  Returns the group's current leader id as tracked by the coordinator, or `nil`
+  when no leader is known (e.g. no members are up).
+  """
+  @spec leader(String.t()) :: NodeId.t() | nil
+  def leader(group_id) do
+    GenServer.call(via_tuple(group_id), :leader)
+  end
+
   # Server callbacks
 
   @impl true
@@ -104,6 +113,10 @@ defmodule Replication.GroupCoordinator do
   @impl true
   def handle_call(:current_role, _from, state) do
     {:reply, state.role, state}
+  end
+
+  def handle_call(:leader, _from, state) do
+    {:reply, state.leader_id, state}
   end
 
   @impl true

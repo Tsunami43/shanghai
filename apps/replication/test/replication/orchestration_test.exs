@@ -131,6 +131,26 @@ defmodule Replication.OrchestrationTest do
     assert follower_ids == ["n1", "n3"]
   end
 
+  test "write/3 issues a local write when the leader is on this node" do
+    group_id = "orch-write-#{:rand.uniform(1_000_000)}"
+
+    assert {:ok, _leader} =
+             Replication.start_leader(group_id,
+               node_id: NodeId.new("l"),
+               replica_count: 1,
+               batch_size: 1
+             )
+
+    on_exit(fn -> stop_group_children() end)
+
+    assert {:ok, %{value: 1}} = Replication.write(group_id, "d", consistency_level: :local)
+  end
+
+  test "write/3 returns {:error, :no_leader} when no leader is known here" do
+    assert {:error, :no_leader} =
+             Replication.write("orch-write-missing-#{:rand.uniform(1_000_000)}", "d")
+  end
+
   test "configured_groups/0 normalizes and filters the :groups config" do
     previous = Application.get_env(:replication, :groups)
 

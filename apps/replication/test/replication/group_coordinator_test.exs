@@ -79,6 +79,7 @@ defmodule Replication.GroupCoordinatorTest do
     end)
 
     assert GroupCoordinator.current_role(group_id) == :leader
+    assert GroupCoordinator.leader(group_id) == n1
     leader_pid = leader_pid(group_id)
 
     # Reconciling against the same membership must not restart the leader.
