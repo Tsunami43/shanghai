@@ -230,7 +230,7 @@ defmodule AdminApi.Router do
   end
 
   # List keys under an optional `?prefix=`, bounded by `?limit=` (default 100).
-  # Keys only — values are not returned, keeping responses small.
+  # Keys only; values are not returned, keeping responses small.
   get "/api/v1/keys" do
     conn = fetch_query_params(conn)
     prefix = conn.query_params["prefix"] || ""

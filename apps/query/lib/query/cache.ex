@@ -77,7 +77,7 @@ defmodule Query.Cache do
   def invalidate(key), do: GenServer.call(__MODULE__, {:invalidate, key})
 
   @doc """
-  Removes several keys from the cache in one call. Synchronous — once it returns,
+  Removes several keys from the cache in one call. Synchronous; once it returns,
   a direct `get/1` for any of the keys will miss. More efficient than repeated
   `invalidate/1` for bulk mutations.
   """

@@ -16,10 +16,10 @@ No deprecations in this release.
 
 ### v1.2.0 (Released 2025-06)
 
-#### Direct Segment Access — internal API (not deprecated)
+#### Direct Segment Access: internal API (not deprecated)
 
 `Storage.WAL.Segment.append_entry/2` is an **internal** primitive used by the
-WAL `Writer` and `BatchWriter`. It is not deprecated and will not be removed —
+WAL `Writer` and `BatchWriter`. It is not deprecated and will not be removed,
 but application code should not call segments directly.
 
 **Prefer** the higher-level APIs:

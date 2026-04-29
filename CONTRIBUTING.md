@@ -1,6 +1,6 @@
 # Contributing to Shanghai
 
-Thanks for your interest in Shanghai — a distributed, replicated log storage
+Thanks for your interest in Shanghai, a distributed, replicated log storage
 system built on the BEAM. This is a learning/research project; contributions are
 welcome.
 
@@ -48,8 +48,8 @@ mix credo --strict                 # linting
 The `mix quality` alias runs format/credo/dialyzer together; `mix test.all`
 runs every app's tests.
 
-- **English only.** All repository content — code, comments, docstrings, commit
-  messages, and documentation — must be in English. CI enforces this.
+- **English only.** All repository content (code, comments, docstrings, commit
+  messages, and documentation) must be in English. CI enforces this.
 - **Keep docs honest.** When you change behavior, update the relevant docs so
   they match the code (config keys, telemetry event names, protocol specs).
 

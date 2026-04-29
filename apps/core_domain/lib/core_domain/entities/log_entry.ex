@@ -183,7 +183,7 @@ defmodule CoreDomain.Entities.LogEntry do
 
   @doc """
   Returns the entries whose LSN is at or after `lsn` (inclusive), in their given
-  order — useful for streaming a follower everything from a checkpoint onward.
+  order, useful for streaming a follower everything from a checkpoint onward.
   """
   @spec since_lsn([t()], LogSequenceNumber.t()) :: [t()]
   def since_lsn(entries, lsn) when is_list(entries) do
@@ -192,7 +192,7 @@ defmodule CoreDomain.Entities.LogEntry do
 
   @doc """
   Returns the entries whose LSN is at or before `lsn` (inclusive), in their given
-  order — the entries covered by a checkpoint up to `lsn`.
+  order, the entries covered by a checkpoint up to `lsn`.
   """
   @spec until_lsn([t()], LogSequenceNumber.t()) :: [t()]
   def until_lsn(entries, lsn) when is_list(entries) do
@@ -230,7 +230,7 @@ defmodule CoreDomain.Entities.LogEntry do
   end
 
   @doc """
-  Returns the integer LSN values of the entries, in their given order — a plain
+  Returns the integer LSN values of the entries, in their given order, a plain
   projection handy for logging or gap analysis.
   """
   @spec lsn_values([t()]) :: [non_neg_integer()]

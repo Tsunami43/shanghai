@@ -388,7 +388,7 @@ defmodule Observability.Metrics do
   end
 
   @doc """
-  Returns a map of `domain => event_count` — how many telemetry events each
+  Returns a map of `domain => event_count`, how many telemetry events each
   domain emits.
 
   ## Examples

@@ -17,7 +17,7 @@ config :storage, Storage.WAL.BatchWriter,
 > **Note:** `Storage.WAL.BatchWriter` is not yet wired into the default write
 > path (the WAL `Writer` fsyncs per append today), and it reads its settings
 > from `start_link/1` options rather than application config. The keys above
-> have no effect until the batch writer is integrated — this is on the roadmap.
+> have no effect until the batch writer is integrated; this is on the roadmap.
 
 **Recommendations:**
 - **High throughput workload**: Increase `batch_size` to 200-500

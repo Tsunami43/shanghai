@@ -236,7 +236,7 @@ defmodule Replication.Stream do
       entries = :queue.to_list(queue)
 
       # Deliver to each follower and advance its last_sent_offset only by what was
-      # actually sent to it — never fabricate progress for a follower that received
+      # actually sent to it; never fabricate progress for a follower that received
       # nothing or whose delivery failed.
       updated_followers =
         Map.new(state.followers, fn {follower_id, follower_state} ->
@@ -296,12 +296,12 @@ defmodule Replication.Stream do
         "Failed to send entries to follower #{follower_id.value}: #{inspect(reason)}"
       )
 
-      # Do not advance last_sent_offset — the entries were not delivered.
+      # Do not advance last_sent_offset; the entries were not delivered.
       follower_state
   end
 
   # Resolves the follower's Erlang node from the cluster, or `nil` when unknown
-  # (no membership process, or the follower isn't a known member) — in which case
+  # (no membership process, or the follower isn't a known member), in which case
   # delivery falls back to the local follower process.
   defp follower_node(follower_id) do
     if Process.whereis(Cluster.Membership) do

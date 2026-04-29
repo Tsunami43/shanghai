@@ -9,7 +9,7 @@ defmodule Storage.WALTestInfra do
   `{:error, {:already_started, _}}` and a naive `{:ok, _} = ...` match crashes
   the whole module's `setup_all`.
 
-  Call `ensure_started/0` from `setup_all` instead — it starts each process if
+  Call `ensure_started/0` from `setup_all` instead; it starts each process if
   needed and tolerates one that is already running.
   """
 

@@ -17,7 +17,7 @@ This document provides practical examples and tutorials for common Shanghai use 
 
 The `Query` module is the user-facing key/value API. It is durable when the
 storage WAL is configured (writes are appended to the log and replayed on
-recovery) and always observable — every operation emits
+recovery) and always observable, every operation emits
 `[:shanghai, :query, :operation]` telemetry.
 
 ### Basic reads and writes
@@ -32,7 +32,7 @@ recovery) and always observable — every operation emits
 ### Atomic transactions
 
 A transaction is persisted as a single WAL record, so on a single node it is
-atomic — all operations survive a crash, or none do.
+atomic: all operations survive a crash, or none do.
 
 ```elixir
 {:ok, :committed} =

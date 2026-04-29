@@ -58,7 +58,7 @@ defmodule Storage.WAL.CrashRecoveryTest do
 
   defp simulate_crash_loss do
     # A crash before the periodic flush leaves neither the metadata nor the index
-    # file on disk — only the segments.
+    # file on disk, only the segments.
     File.rm(Path.join(@test_dir, "wal_metadata.dat"))
     File.rm_rf(index_dir())
   end

@@ -10,11 +10,11 @@ defmodule Query.Store do
 
   ## Durability modes
 
-  - **Durable** — when `Storage.WAL.Writer`/`Storage.WAL.Reader` are running
+  - **Durable**: when `Storage.WAL.Writer`/`Storage.WAL.Reader` are running
     (i.e. `:storage` is configured with a `:data_root`), every mutation is
     appended to the WAL before it becomes visible, and the store recovers its
     state from the WAL on restart.
-  - **In-memory** — when the WAL is not running, the store still works as a
+  - **In-memory**: when the WAL is not running, the store still works as a
     fast in-memory KV, but data is not persisted. This keeps the umbrella and
     the test suite usable without a configured data directory.
 
@@ -862,7 +862,7 @@ defmodule Query.Store do
     end
   end
 
-  # WAL persistence only — no replication. Used both by `append/2` and by
+  # WAL persistence only, no replication. Used both by `append/2` and by
   # `apply_replicated` (which must not re-replicate a record it received).
   defp persist(%{durable: false}, _record), do: :ok
 

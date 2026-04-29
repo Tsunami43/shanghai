@@ -7,7 +7,7 @@ This document provides a comprehensive overview of Shanghai's architecture, desi
 > and the **implementation-status table** (what is built vs. targeted), see the
 > repository-root [`ARCHITECTURE.md`](../ARCHITECTURE.md). Parts of this document
 > describe target capabilities (e.g. multi-master replication, batched
-> throughput) that are not yet fully implemented — treat capability claims as
+> throughput) that are not yet fully implemented; treat capability claims as
 > design intent unless confirmed by the status table.
 
 ## Table of Contents

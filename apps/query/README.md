@@ -17,7 +17,7 @@ Query.transact([
   {:delete, "account:2"}
 ])                                              #=> {:ok, :committed}
 
-# Atomic get-and-delete (pop) — useful for queues
+# Atomic get-and-delete (pop), useful for queues
 Query.take("job:1")                             #=> {:ok, %{...}}  (and removes the key)
 
 # Atomic rename (move value to a new key)
@@ -140,7 +140,7 @@ Query  (public API, telemetry, consistency validation)
 
 - **`Query.Store`** keeps an in-memory index (ETS memtable) and, when the storage
   WAL is running, write-through appends every mutation for durability. On start
-  it replays the WAL to rebuild state — crash recovery for free. Without a
+  it replays the WAL to rebuild state: crash recovery for free. Without a
   configured WAL it runs as a fast in-memory KV (e.g. in the test suite).
 - **`Query.Cache`** serves reads from ETS; every mutation invalidates the
   affected keys, so a single node never serves a stale read.
@@ -148,7 +148,7 @@ Query  (public API, telemetry, consistency validation)
 ## Observability
 
 Every operation emits `[:shanghai, :query, :operation]` with
-`%{duration_ms}` measurements and `%{operation, result}` metadata — one event
+`%{duration_ms}` measurements and `%{operation, result}` metadata, one event
 per public operation (`:read`, `:write`, `:delete`, `:transact`, `:cas`,
 `:getset`, `:mset`, `:mdelete`, `:delete_prefix`, and so on).
 

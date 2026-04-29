@@ -210,7 +210,7 @@ defmodule Replication.Follower do
     Logger.debug("Follower #{state.node_id.value} reporting offset #{state.current_offset.value}")
 
     # Report to the leader on its own node: a local cast when the leader is us (or
-    # its node is unknown — single-node/test), an `:rpc.cast` to the leader's node
+    # its node is unknown, i.e. single-node/test), an `:rpc.cast` to the leader's node
     # otherwise so a remote follower's acks reach the leader's quorum tracking.
     report_offset_to(
       leader_node(state.leader_node_id),

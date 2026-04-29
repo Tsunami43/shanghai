@@ -9,7 +9,7 @@ defmodule Replication.GroupCoordinator do
   and reconciles this node's role via `Replication.start_group/2`:
 
   - promotes this node to leader when it becomes the smallest up member (e.g. the
-    previous leader went down — a failover),
+    previous leader went down, a failover),
   - demotes it to a follower when a smaller member comes back up,
   - restarts it as a follower of the new leader after a leader change,
   - stops the group here entirely when this node is no longer a member.

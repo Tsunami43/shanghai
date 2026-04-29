@@ -33,7 +33,7 @@ defmodule Storage.Supervisor do
     # The segment Registry and SegmentManager are core WAL infrastructure and
     # are always started, in this order, before anything that uses them. The
     # SegmentManager registers segment processes in this Registry via
-    # `{:via, Registry, ...}`, so the Registry MUST exist first — otherwise
+    # `{:via, Registry, ...}`, so the Registry MUST exist first, otherwise
     # `start_segment/4` fails in a configured deployment.
     base_children = [
       {Registry, keys: :unique, name: Storage.WAL.SegmentRegistry},

@@ -38,7 +38,7 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def parse(_value), do: {:error, :invalid}
 
   @doc """
-  Returns the zero LSN — the starting point of a fresh log.
+  Returns the zero LSN, the starting point of a fresh log.
 
   ## Examples
 
@@ -92,7 +92,7 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def at_or_after?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a >= b
 
   @doc """
-  Clamps an LSN to be at most `ceiling` — returns `ceiling` when above it,
+  Clamps an LSN to be at most `ceiling`; returns `ceiling` when above it,
   otherwise the LSN unchanged.
   """
   @spec at_most(t(), t()) :: t()
@@ -105,7 +105,7 @@ defmodule CoreDomain.Types.LogSequenceNumber do
   def at_or_before?(%__MODULE__{value: a}, %__MODULE__{value: b}), do: a <= b
 
   @doc """
-  Clamps an LSN to be at least `floor` — returns `floor` when below it, otherwise
+  Clamps an LSN to be at least `floor`; returns `floor` when below it, otherwise
   the LSN unchanged.
   """
   @spec at_least(t(), t()) :: t()

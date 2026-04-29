@@ -5,7 +5,7 @@ defmodule Cluster.LeaderElection do
   Every node runs this process and independently derives the same answer from the
   same membership: the leader is the `:up` node with the lexicographically
   smallest id (`Cluster.State.deterministic_leader/1`). No votes or consensus
-  rounds are needed — agreement follows from a shared, deterministic rule applied
+  rounds are needed; agreement follows from a shared, deterministic rule applied
   to a converged membership view.
 
   The process subscribes to `Cluster.Membership` change events and re-elects

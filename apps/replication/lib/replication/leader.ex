@@ -99,7 +99,7 @@ defmodule Replication.Leader do
       pending_writes: %{},
       follower_offsets: %{},
       replica_count: replica_count,
-      # When false, the leader does not persist writes to the storage WAL — a
+      # When false, the leader does not persist writes to the storage WAL, a
       # higher layer (e.g. the query store) owns durability and the WAL would
       # otherwise hold a duplicate copy of every replicated record.
       persist_wal: Keyword.get(opts, :persist_wal, true)
@@ -147,7 +147,7 @@ defmodule Replication.Leader do
     # `persist_wal: false`) the leader keeps only its in-memory replication log.
     case persist_to_wal(state, data) do
       :ok ->
-        # Broadcast to followers (will be implemented with Stream)
+        # Hand the entry to the Stream, which batches it and fans out to followers.
         broadcast_to_followers(state.group_id, new_offset, data)
 
         # Report leader offset to monitor

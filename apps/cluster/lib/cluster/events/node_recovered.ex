@@ -1,6 +1,6 @@
 defmodule Cluster.Events.NodeRecovered do
   @moduledoc """
-  Event emitted when a previously-unavailable node becomes reachable again — for
+  Event emitted when a previously-unavailable node becomes reachable again, for
   example when its Erlang distribution connection is re-established after a
   network partition heals.
   """

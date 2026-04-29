@@ -113,7 +113,7 @@ defmodule Replication.GroupCoordinatorTest do
       stop_group_children()
     end)
 
-    # n1 is the smallest member, so this node becomes the leader — one event.
+    # n1 is the smallest member, so this node becomes the leader, one event.
     assert_receive {:role_changed, %{count: 1},
                     %{group_id: ^group_id, role: :leader, leader: "n1"}}
 

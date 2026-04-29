@@ -50,7 +50,7 @@ defmodule Query do
   end
 
   @doc """
-  Reads `key`, returning the bare value when present or `default` otherwise —
+  Reads `key`, returning the bare value when present or `default` otherwise,
   an ergonomic wrapper over `read/2` for when the `{:ok, _}`/`{:error, _}` shape
   is not needed.
 
@@ -85,7 +85,7 @@ defmodule Query do
 
   @doc """
   Reads `key`, returning its value when present or the result of calling `fun`
-  otherwise. Unlike `get/2`, the fallback is computed lazily — only on a miss.
+  otherwise. Unlike `get/2`, the fallback is computed lazily, only on a miss.
   """
   @spec get_lazy(String.t(), (-> term())) :: term()
   def get_lazy(key, fun) when is_function(fun, 0) do
@@ -788,8 +788,8 @@ defmodule Query do
   Atomic get-and-update in the `Access` style.
 
   `fun` receives the current value (or `nil` when absent) and returns
-  `{return_value, new_value}` — `new_value` is stored and `{:ok, return_value}`
-  is returned — or `:pop` to delete the key and return the previous value.
+  `{return_value, new_value}`; `new_value` is stored and `{:ok, return_value}`
+  is returned, or `:pop` to delete the key and return the previous value.
 
   ## Examples
 
@@ -875,7 +875,7 @@ defmodule Query do
   @doc """
   Deletes every key that starts with `prefix`, returning `{:ok, {:deleted, count}}`.
 
-  The removal is a single atomic WAL record — either all matching keys are gone
+  The removal is a single atomic WAL record, either all matching keys are gone
   after a crash, or none are. Useful for evicting an entity's whole key range.
 
   ## Examples
@@ -918,7 +918,7 @@ defmodule Query do
   Writes several key/value pairs at once as one atomic WAL record.
 
   Accepts a map or a keyword/tuple list. Returns `{:ok, :committed}`. This is
-  the write counterpart to `mget/1` — either every pair survives a crash or none
+  the write counterpart to `mget/1`, either every pair survives a crash or none
   does.
 
   ## Examples
@@ -1106,7 +1106,7 @@ defmodule Query do
   defdelegate exists?(key), to: Query.Store
 
   @doc """
-  Counts the keys that start with `prefix` without materializing them — the
+  Counts the keys that start with `prefix` without materializing them, the
   cheap counterpart to `scan/1`.
 
   ## Examples
@@ -1119,7 +1119,7 @@ defmodule Query do
   defdelegate count_prefix(prefix), to: Query.Store
 
   @doc """
-  Returns `true` when no key starts with `prefix` — the whole namespace is empty.
+  Returns `true` when no key starts with `prefix`, the whole namespace is empty.
   """
   @spec prefix_empty?(binary()) :: boolean()
   def prefix_empty?(prefix) when is_binary(prefix), do: count_prefix(prefix) == 0
@@ -1144,7 +1144,7 @@ defmodule Query do
   end
 
   @doc """
-  Returns a map of `namespace => key_count` — how many keys fall under each
+  Returns a map of `namespace => key_count`, how many keys fall under each
   first-segment namespace (split on `separator`). Useful for a quick key-space
   distribution overview.
   """
@@ -1436,7 +1436,7 @@ defmodule Query do
   end
 
   @doc """
-  Returns the `n` keys nearest to (and at or after) `key` in sorted order — a
+  Returns the `n` keys nearest to (and at or after) `key` in sorted order, a
   bounded range scan starting at `key`.
   """
   @spec keys_from(term(), non_neg_integer()) :: [term()]
@@ -1834,7 +1834,7 @@ defmodule Query do
 
   @doc """
   Returns the store's `{key, value}` pairs as a keyword-like list of
-  `{atom_key, value}` — only for string keys convertible to existing atoms;
+  `{atom_key, value}`, only for string keys convertible to existing atoms;
   keys without a matching atom are skipped. Read-only, for config-style export.
   """
   @spec to_keyword() :: [{atom(), term()}]
@@ -1915,7 +1915,7 @@ defmodule Query do
   end
 
   @doc """
-  Returns a map of `value => key_count` — how many keys hold each distinct
+  Returns a map of `value => key_count`, how many keys hold each distinct
   value. Scans the whole store.
   """
   @spec value_counts() :: %{optional(term()) => non_neg_integer()}
@@ -1964,7 +1964,7 @@ defmodule Query do
   end
 
   @doc """
-  Returns the distinct stored values, sorted. Scans the whole store — useful for
+  Returns the distinct stored values, sorted. Scans the whole store, useful for
   discovering the set of values in a small key space.
   """
   @spec distinct_values() :: [term()]
@@ -1972,7 +1972,7 @@ defmodule Query do
 
   @doc """
   Returns the `{key, value}` pairs for which `fun` returns a truthy value,
-  sorted by key. Scans the whole store — use `scan/2` or `pairs_between/2` when a
+  sorted by key. Scans the whole store; use `scan/2` or `pairs_between/2` when a
   key range suffices.
   """
   @spec filter(({term(), term()} -> as_boolean(term()))) :: [{term(), term()}]
@@ -2018,7 +2018,7 @@ defmodule Query do
 
   @doc """
   Applies `fun` to every stored value and returns the results in key order.
-  Scans the whole store — a read-only projection helper.
+  Scans the whole store, a read-only projection helper.
   """
   @spec map_values((term() -> term())) :: [term()]
   def map_values(fun) when is_function(fun, 1) do
@@ -2027,7 +2027,7 @@ defmodule Query do
 
   @doc """
   Folds `fun` over every `{key, value}` pair in key order, starting from `acc`.
-  Scans the whole store — a read-only aggregation helper.
+  Scans the whole store, a read-only aggregation helper.
 
   ## Examples
 
@@ -2119,7 +2119,7 @@ defmodule Query do
 
   @doc """
   Returns the store's numeric values as a plain list, ignoring non-numeric
-  values. Scans the whole store — the basis for the numeric aggregates.
+  values. Scans the whole store, the basis for the numeric aggregates.
   """
   @spec numeric_values() :: [number()]
   def numeric_values, do: for({_key, value} <- to_list(), is_number(value), do: value)
@@ -2336,7 +2336,7 @@ defmodule Query do
   end
 
   # Runs `fun`, timing it and emitting a `[:shanghai, :query, :operation]`
-  # telemetry event — the query layer is observable by default.
+  # telemetry event, the query layer is observable by default.
   defp measure(operation, fun) do
     start = System.monotonic_time()
     result = fun.()

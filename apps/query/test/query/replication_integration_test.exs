@@ -74,8 +74,8 @@ defmodule Query.ReplicationIntegrationTest do
     {:ok, follower_store} =
       Query.Store.start_link(name: :qfull_follower, table: :qfull_follower_tbl)
 
-    # The group leader owns no WAL of its own — the leader store is the durable
-    # copy — so start it with persist_wal: false.
+    # The group leader owns no WAL of its own; the leader store is the durable
+    # copy, so start it with persist_wal: false.
     {:ok, _leader} =
       Replication.start_leader(group,
         node_id: NodeId.new("leader"),

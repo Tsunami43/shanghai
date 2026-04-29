@@ -86,7 +86,7 @@ defmodule Cluster do
   def node_address(node_id), do: State.address_of(cluster_state(), node_id)
 
   @doc """
-  Returns the deterministic leader of the live cluster — the `:up` node with the
+  Returns the deterministic leader of the live cluster, the `:up` node with the
   lexicographically smallest id, or `nil` when none is up. Every node derives the
   same answer from the same membership view. See `Cluster.State.deterministic_leader/1`.
   """
@@ -150,7 +150,7 @@ defmodule Cluster do
   end
 
   @doc """
-  Returns the largest number of live-cluster nodes sharing a single host — a
+  Returns the largest number of live-cluster nodes sharing a single host, a
   co-location concentration metric. See `Cluster.State.max_nodes_per_host/1`.
   """
   @spec max_nodes_per_host() :: non_neg_integer()
@@ -164,8 +164,8 @@ defmodule Cluster do
   def balanced?, do: State.balanced?(cluster_state())
 
   @doc """
-  Returns the nodes that are routable — `:up` with a heartbeat within
-  `max_age_ms` — sorted by node id. See `Cluster.State.routable_nodes/2`.
+  Returns the nodes that are routable: `:up` with a heartbeat within
+  `max_age_ms`, sorted by node id. See `Cluster.State.routable_nodes/2`.
   """
   @spec routable_nodes(non_neg_integer()) :: [Node.t()]
   def routable_nodes(max_age_ms) when is_integer(max_age_ms) do
@@ -198,7 +198,7 @@ defmodule Cluster do
   def suspect_nodes, do: Enum.filter(nodes(), &Node.suspect?/1)
 
   @doc """
-  Returns the nodes that are not `:up` (`:down` or `:suspect`) — those needing
+  Returns the nodes that are not `:up` (`:down` or `:suspect`), those needing
   attention. Sorted by node id. See `Cluster.State.unavailable_nodes/1`.
   """
   @spec unavailable_nodes() :: [Node.t()]
@@ -316,7 +316,7 @@ defmodule Cluster do
   def degraded?, do: State.degraded?(cluster_state())
 
   @doc """
-  Returns `true` when every node in the live cluster is `:down` — a total
+  Returns `true` when every node in the live cluster is `:down`, a total
   outage. `false` for an empty cluster. See `Cluster.State.all_down?/1`.
   """
   @spec all_down?() :: boolean()

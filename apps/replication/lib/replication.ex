@@ -42,8 +42,8 @@ defmodule Replication do
   group descriptor, so every node in the group can call this with the same
   arguments and self-assign its role deterministically.
 
-  The leader is the member with the smallest node id — the same deterministic
-  rule the cluster uses for leader election — unless `:leader_id` is given. On the
+  The leader is the member with the smallest node id, the same deterministic
+  rule the cluster uses for leader election, unless `:leader_id` is given. On the
   leader node this starts the `Stream` and `Leader` and registers every other
   member as a follower target; on another member it starts a `Follower` that
   follows the leader. A node that is not a member starts nothing and returns
@@ -151,8 +151,8 @@ defmodule Replication do
   end
 
   @doc """
-  Stops every process for `group_id` on this node — the `Leader`, `Stream` and
-  `Follower`, whichever are present — terminating them under
+  Stops every process for `group_id` on this node (the `Leader`, `Stream` and
+  `Follower`, whichever are present), terminating them under
   `Replication.GroupSupervisor`. Returns `:ok`, and is safe to call when the group
   has no processes on this node. Used to tear a role down before switching to
   another (e.g. on a leader failover).
@@ -168,7 +168,7 @@ defmodule Replication do
   end
 
   @doc """
-  Writes `data` to `group_id`'s leader wherever it runs — a location-transparent
+  Writes `data` to `group_id`'s leader wherever it runs, a location-transparent
   write. When the leader is on this node the write is issued locally; otherwise it
   is routed to the leader's node (resolved via the local `GroupCoordinator` and
   cluster membership). Returns `{:error, :no_leader}` when no leader is known here,
@@ -370,7 +370,7 @@ defmodule Replication do
 
   @doc """
   Returns `true` when there are no lagging or stale replicas *and* every group
-  has at least one replica — a stricter check than `healthy?/0`, which is also
+  has at least one replica, a stricter check than `healthy?/0`, which is also
   true for a cluster with no replicas configured.
   """
   @spec fully_replicated?() :: boolean()
@@ -422,7 +422,7 @@ defmodule Replication do
 
   @doc """
   Returns the ids of replication groups that have at least one lagging or stale
-  replica — the groups worth investigating. Sorted.
+  replica, the groups worth investigating. Sorted.
   """
   @spec unhealthy_group_ids() :: [String.t()]
   def unhealthy_group_ids do
@@ -536,7 +536,7 @@ defmodule Replication do
   end
 
   @doc """
-  Returns the minimum replica lag (in offsets) across all groups — the most
+  Returns the minimum replica lag (in offsets) across all groups, the most
   caught-up replica. `0` when there are no tracked replicas.
   """
   @spec min_lag() :: non_neg_integer()
@@ -551,7 +551,7 @@ defmodule Replication do
   end
 
   @doc """
-  Returns the total replica lag (sum of offsets) across all groups — a rough
+  Returns the total replica lag (sum of offsets) across all groups, a rough
   aggregate backlog indicator. `0` when there are no tracked replicas.
   """
   @spec total_lag() :: non_neg_integer()

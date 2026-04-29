@@ -132,7 +132,7 @@ compare-and-swap, and range scans.
 
 The Query layer is backed by a segment-based Write-Ahead Log. When storage is
 configured with a `data_root`, `Storage.WAL.Writer.append/1` and
-`Storage.WAL.Reader.read/1` are available directly — see
+`Storage.WAL.Reader.read/1` are available directly; see
 [Working with the WAL](#working-with-the-wal).
 
 ## Basic Concepts

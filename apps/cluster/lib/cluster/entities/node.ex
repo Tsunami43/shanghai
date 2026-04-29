@@ -257,7 +257,7 @@ defmodule Cluster.Entities.Node do
   def unavailable?(%__MODULE__{}), do: true
 
   @doc """
-  Returns `true` when the node is reachable for serving traffic — i.e. it is
+  Returns `true` when the node is reachable for serving traffic: it is
   `:up`. The inverse of `unavailable?/1`, spelled for routing readability.
   """
   @spec available?(t()) :: boolean()
@@ -327,7 +327,7 @@ defmodule Cluster.Entities.Node do
   end
 
   @doc """
-  Returns `true` when this node's Erlang node name matches `Node.self/0` — i.e.
+  Returns `true` when this node's Erlang node name matches `Node.self/0`, i.e.
   it represents the current runtime node.
   """
   @spec current?(t()) :: boolean()

@@ -79,7 +79,7 @@ defmodule Storage.WAL.BatchWriter do
 
   The entry is queued and will be fsynced when the batch is flushed. This call
   blocks until the write is safely on disk. The value must be a
-  `CoreDomain.Entities.LogEntry` — it is written through `Segment.append_entry/2`.
+  `CoreDomain.Entities.LogEntry`; it is written through `Segment.append_entry/2`.
   """
   @spec append(LogEntry.t()) :: {:ok, non_neg_integer()} | {:error, term()}
   def append(entry) do

@@ -209,7 +209,7 @@ defmodule Cluster.GossipTest do
 
     test "a peer connecting (nodeup) is a safe no-op when the node is unreachable" do
       # On :nodeup we send a membership snapshot directly to the connecting node
-      # via RPC. When that node is unreachable the cast simply drops — no crash,
+      # via RPC. When that node is unreachable the cast simply drops, no crash,
       # and the local view is unchanged.
       send(Membership, {:nodeup, :peer@somewhere, %{}})
       _ = :sys.get_state(Membership)

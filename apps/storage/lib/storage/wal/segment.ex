@@ -414,7 +414,7 @@ defmodule Storage.WAL.Segment do
             {:error, :header_checksum_mismatch}
           else
             # The segment id is derived from the filename, so it must match. The
-            # start LSN, however, is authoritative in the on-disk header — a
+            # start LSN, however, is authoritative in the on-disk header, a
             # recovering writer cannot know it a priori, so adopt it from the
             # header rather than rejecting a mismatch.
             if segment_id != state.segment_id do

@@ -109,7 +109,7 @@ defmodule Cluster.Membership do
   @doc """
   Applies a cluster event received from a peer (via gossip) to the local
   membership view. Idempotent, and notifies local subscribers so leader election
-  reacts — but it does not re-emit the event to gossip, so it cannot loop.
+  reacts, but it does not re-emit the event to gossip, so it cannot loop.
   """
   @spec apply_remote_event(struct()) :: :ok
   def apply_remote_event(event) do
@@ -149,7 +149,7 @@ defmodule Cluster.Membership do
 
     # Periodic anti-entropy: push our membership to every connected node so all
     # nodes converge on the union view regardless of start-up ordering or a
-    # dropped message. Robust and simple — no request/response handshake needed.
+    # dropped message. No request/response handshake is needed.
     schedule_anti_entropy()
 
     {:ok, state}
@@ -290,7 +290,7 @@ defmodule Cluster.Membership do
         {events, cluster_with_no_events} = State.take_events(updated_cluster)
         broadcast_events(events, state.subscribers)
 
-        # Only emit telemetry/log on an actual transition — mark_node_down is a
+        # Only emit telemetry/log on an actual transition; mark_node_down is a
         # no-op (no events) when the node is already down, and a periodic detector
         # must not spam a membership change every check.
         if events != [] do
@@ -340,7 +340,7 @@ defmodule Cluster.Membership do
       {:ok, updated_cluster} ->
         {events, cluster_without_events} = State.take_events(updated_cluster)
         # Notify local subscribers (e.g. leader election) but do NOT push back to
-        # gossip — the gossip layer re-propagates the original message itself, and
+        # gossip: the gossip layer re-propagates the original message itself, and
         # re-emitting here would create a loop.
         notify_local(events, state.subscribers)
         {:noreply, %{state | cluster: cluster_without_events}}

@@ -299,7 +299,7 @@ defmodule Cluster.MembershipTest do
       send(Membership, {:nodedown, :n1@localhost, %{}})
       assert_receive {:cluster_event, %Cluster.Events.NodeDetectedDown{node_id: ^node_id}}
 
-      # A second nodedown while already down must be a no-op — no spurious event.
+      # A second nodedown while already down must be a no-op, no spurious event.
       send(Membership, {:nodedown, :n1@localhost, %{}})
       refute_receive {:cluster_event, %Cluster.Events.NodeDetectedDown{}}, 100
     end

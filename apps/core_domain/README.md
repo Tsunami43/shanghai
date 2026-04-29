@@ -6,8 +6,8 @@ vocabulary the system is built from.
 
 ## Key abstractions
 
-- `CoreDomain.Types.LogSequenceNumber` — monotonic LSN, total ordering.
-- `CoreDomain.Types.NodeId` — node identity.
-- `CoreDomain.ValueObjects.ConsistencyLevel` — `:strong` / `:eventual` / `:causal`.
-- `CoreDomain.Entities.LogEntry` — immutable write-ahead-log entry.
-- `CoreDomain.Protocols.Event` — domain-event contract.
+- `CoreDomain.Types.LogSequenceNumber`: monotonic LSN, total ordering.
+- `CoreDomain.Types.NodeId`: node identity.
+- `CoreDomain.ValueObjects.ConsistencyLevel`: `:strong` / `:eventual` / `:causal`.
+- `CoreDomain.Entities.LogEntry`: immutable write-ahead-log entry.
+- `CoreDomain.Protocols.Event`: domain-event contract.

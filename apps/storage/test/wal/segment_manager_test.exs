@@ -10,7 +10,7 @@ defmodule Storage.WAL.SegmentManagerTest do
   setup_all do
     # Shared, singleton WAL infrastructure (Registry + SegmentManager). Started
     # idempotently so the umbrella run, where several modules share one VM,
-    # doesn't race on the fixed process names. Not stopped here — it is shared.
+    # doesn't race on the fixed process names. Not stopped here; it is shared.
     Storage.WALTestInfra.ensure_started()
     :ok
   end

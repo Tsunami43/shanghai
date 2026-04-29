@@ -50,7 +50,7 @@ Writes `value` under `key`. `opts` accepts `:consistency` (`:strong` |
 @spec take(key :: String.t()) :: {:ok, term()} | {:error, :not_found}
 ```
 
-Atomic get-and-delete (a pop) — reads and removes `key` in one step.
+Atomic get-and-delete (a pop): reads and removes `key` in one step.
 
 ### rename/2
 
@@ -127,7 +127,7 @@ the number of keys removed.
         {:ok, :committed} | {:error, term()}
 ```
 
-Applies all operations atomically — a single WAL record on one node.
+Applies all operations atomically, a single WAL record on one node.
 
 ### increment/2
 
@@ -1010,7 +1010,7 @@ curl http://localhost:9090/api/v1/replicas
 ### GET /kv
 
 Count stored keys, optionally filtered by a `prefix` query parameter. Cheap and
-bounded — no values are returned.
+bounded, no values are returned.
 
 **Request:**
 ```bash
@@ -1033,7 +1033,7 @@ Without a prefix the response is `{"count": <total>}`.
 ### GET /keys
 
 List keys, optionally under a `prefix` query parameter, bounded by `limit`
-(default 100). Keys only — values are not returned.
+(default 100). Keys only; values are not returned.
 
 **Request:**
 ```bash

@@ -121,7 +121,7 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   def requires_leader_only?(%__MODULE__{level: _}), do: false
 
   @doc """
-  Returns `true` when writes at this level are durable beyond a single node —
+  Returns `true` when writes at this level are durable beyond a single node,
   anything other than `:local`.
   """
   @spec durable?(t()) :: boolean()
@@ -136,7 +136,7 @@ defmodule Replication.ValueObjects.ConsistencyLevel do
   def local?(%__MODULE__{level: _}), do: false
 
   @doc """
-  Returns `true` when this level waits for peers before acknowledging a write —
+  Returns `true` when this level waits for peers before acknowledging a write,
   anything other than `:local`.
   """
   @spec waits_for_peers?(t()) :: boolean()

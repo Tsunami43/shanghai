@@ -75,7 +75,7 @@ follow semantic versioning.
   for `Observability.Metrics`.
 - **Storage**: `append!/1`, `wal_stats/0`, `list_snapshots/0`,
   `compaction_status/0`, `create_snapshot/0`, and `trigger_compaction/0`.
-- **Value-object algebra**: ordering/utility helpers across the domain —
+- **Value-object algebra**: ordering/utility helpers across the domain:
   `LogSequenceNumber` (`later/2`, `earlier/2`, `to_integer/1`, `distance/2`,
   `between?/3`, `min_of/1`, `max_of/1`, `initial?/1`), `ReplicationOffset`
   (`to_integer/1`, `equal?/2`, `later/2`, `earlier/2`, `between?/3`, `min_of/1`,

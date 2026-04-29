@@ -211,7 +211,7 @@ defmodule Storage.Index.SegmentIndex do
   end
 
   # Rebuilds the index from the on-disk segments when it is empty and segment
-  # files exist — the crash-recovery path where the flushed index was lost.
+  # files exist, the crash-recovery path where the flushed index was lost.
   defp maybe_rebuild_from_segments(state, nil), do: state
 
   defp maybe_rebuild_from_segments(state, segments_dir) do

@@ -92,14 +92,14 @@ Asynchronous multi-master replication with backpressure.
 
 ### 4. Query (Key/Value API)
 
-The primary user-facing interface — a durable, WAL-backed key/value store.
+The primary user-facing interface, a durable, WAL-backed key/value store.
 
 - **Rich operations**: reads/writes, conditional writes (`put_new`, `replace`,
   `cas`, `delete_if`), atomic counters, `get_and_update`, bulk `mset`/`mget`/
   `mdelete`, `rename`/`copy`/`swap`, and prefix `scan`/`count_prefix`
 - **Read-through cache** with TTL, bounded eviction, and hit-ratio metrics
 - **Crash recovery** by replaying the WAL on start-up
-- **Observable by default** — every operation emits telemetry
+- **Observable by default**, every operation emits telemetry
 
 **See:** [Query README](apps/query/README.md)
 
@@ -236,9 +236,9 @@ iex> Query.delete("user:1")
 
 Shanghai runs **single-node today**: storage/WAL and the query layer are
 durable and real, while cluster membership and replication currently operate as
-in-node coordination. The path to a fully distributed v1.0 — networked
+in-node coordination. The path to a fully distributed v1.0 (networked
 replication with quorums and anti-entropy, sharding, consensus, a wire protocol,
-security and deployment — is being built out incrementally. The features listed
+security and deployment) is being built out incrementally. The features listed
 above are implemented at single-node scope; gRPC remains planned.
 
 ## Contributing

@@ -25,7 +25,7 @@ defmodule CoreDomain.Types.NodeId do
   @doc """
   Generates a random NodeId.
 
-  Uses 128 bits of cryptographically strong randomness, hex-encoded — a 32-char
+  Uses 128 bits of cryptographically strong randomness, hex-encoded, a 32-char
   identifier that is collision-resistant for cluster use.
   """
   @spec generate() :: t()
@@ -214,7 +214,7 @@ defmodule CoreDomain.Types.NodeId do
   end
 
   @doc """
-  Returns the lexicographically smallest NodeId in a non-empty list — a
+  Returns the lexicographically smallest NodeId in a non-empty list, a
   deterministic pick (e.g. for tie-breaking a leader). Raises on an empty list.
   """
   @spec min_of([t(), ...]) :: t()
@@ -252,7 +252,7 @@ defmodule CoreDomain.Types.NodeId do
 
   @doc """
   Returns a deterministic, non-negative hash of the node id. Stable across
-  processes and nodes for a given id — suitable for consistent placement.
+  processes and nodes for a given id, suitable for consistent placement.
   """
   @spec hash(t()) :: non_neg_integer()
   def hash(%__MODULE__{value: value}), do: :erlang.phash2(value)

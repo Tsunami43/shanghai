@@ -240,7 +240,7 @@ defmodule Cluster.State do
   @doc """
   Returns a deterministic leader among the `:up` nodes: the one with the
   lexicographically smallest id, or `nil` when no node is up. Every node computes
-  the same answer from the same membership view — a leaderless tie-break.
+  the same answer from the same membership view, a leaderless tie-break.
   """
   @spec deterministic_leader(t()) :: NodeId.t() | nil
   def deterministic_leader(%__MODULE__{} = cluster) do
@@ -251,7 +251,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when `node_id` is the current `deterministic_leader/1` — useful
+  Returns `true` when `node_id` is the current `deterministic_leader/1`, useful
   for gating leader-only work. `false` when no node is up.
   """
   @spec leader?(t(), NodeId.t()) :: boolean()
@@ -268,7 +268,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns a map of `node_id => "host:port"` for every node — a routing table
+  Returns a map of `node_id => "host:port"` for every node, a routing table
   from ids to addresses.
   """
   @spec address_map(t()) :: %{optional(NodeId.t()) => String.t()}
@@ -383,7 +383,7 @@ defmodule Cluster.State do
   def namespace_count(%__MODULE__{} = cluster), do: length(namespaces(cluster))
 
   @doc """
-  Returns a map of `namespace => up_node_count` — how many `:up` nodes each id
+  Returns a map of `namespace => up_node_count`, how many `:up` nodes each id
   namespace has. Namespaces with no `:up` node are omitted.
   """
   @spec up_by_namespace(t()) :: %{optional(String.t()) => non_neg_integer()}
@@ -394,7 +394,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns a map of `host => up_node_count` — how many `:up` nodes run on each
+  Returns a map of `host => up_node_count`, how many `:up` nodes run on each
   host. Hosts with no `:up` node are omitted. Useful for spotting hosts whose
   failure would take down several nodes at once.
   """
@@ -406,7 +406,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when at least `min_up` nodes are `:up` in every id namespace —
+  Returns `true` when at least `min_up` nodes are `:up` in every id namespace,
   a per-region availability floor. Namespaces with no `:up` node fail the check.
   """
   @spec each_namespace_available?(t(), pos_integer()) :: boolean()
@@ -422,7 +422,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when the cluster spans more than one distinct id namespace —
+  Returns `true` when the cluster spans more than one distinct id namespace:
   nodes are drawn from multiple regions/racks.
   """
   @spec multi_namespace?(t()) :: boolean()
@@ -453,7 +453,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when the cluster has more nodes than distinct hosts — at least
+  Returns `true` when the cluster has more nodes than distinct hosts: at least
   one host runs multiple nodes (co-located).
   """
   @spec co_located?(t()) :: boolean()
@@ -462,7 +462,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when the cluster spans more than one distinct host — nodes are
+  Returns `true` when the cluster spans more than one distinct host: nodes are
   distributed across multiple physical machines.
   """
   @spec multi_host?(t()) :: boolean()
@@ -471,7 +471,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when every node runs on a single host — a single-point-of-failure
+  Returns `true` when every node runs on a single host, a single-point-of-failure
   layout. `false` for an empty cluster.
   """
   @spec single_host?(t()) :: boolean()
@@ -480,7 +480,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns a map of `host => node_count` across the cluster — a quick view of how
+  Returns a map of `host => node_count` across the cluster, a quick view of how
   nodes are distributed across physical machines.
   """
   @spec hosts_summary(t()) :: %{optional(String.t()) => non_neg_integer()}
@@ -491,7 +491,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns the largest number of nodes sharing a single host — a concentration
+  Returns the largest number of nodes sharing a single host, a concentration
   metric where a high value means one machine's failure removes many nodes at
   once. Returns `0` for an empty cluster.
   """
@@ -504,7 +504,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns the hosts running more than one node, sorted — the co-location
+  Returns the hosts running more than one node, sorted: the co-location
   hotspots whose failure would take down several nodes at once.
   """
   @spec hosts_with_multiple_nodes(t()) :: [String.t()]
@@ -530,7 +530,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when nodes are evenly spread across hosts — the busiest and
+  Returns `true` when nodes are evenly spread across hosts, the busiest and
   least-busy host differ by at most one node. Always `true` for an empty cluster.
   """
   @spec balanced?(t()) :: boolean()
@@ -569,8 +569,8 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns the nodes that are routable — `:up` and with a heartbeat within
-  `max_age_ms` — sorted by node id.
+  Returns the nodes that are routable: `:up` and with a heartbeat within
+  `max_age_ms`, sorted by node id.
   """
   @spec routable_nodes(t(), non_neg_integer()) :: [Node.t()]
   def routable_nodes(%__MODULE__{} = cluster, max_age_ms) do
@@ -649,7 +649,7 @@ defmodule Cluster.State do
 
   @doc """
   Returns all nodes not in `:up` status (`:down` or `:suspect`), sorted by node
-  id — those that need attention.
+  id, those that need attention.
   """
   @spec unavailable_nodes(t()) :: [Node.t()]
   def unavailable_nodes(%__MODULE__{} = cluster) do
@@ -778,7 +778,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns the number of `:up` nodes beyond the quorum threshold — the extra
+  Returns the number of `:up` nodes beyond the quorum threshold, the extra
   votes available above a bare majority, or `0` when quorum is not met.
   """
   @spec quorum_surplus(t()) :: non_neg_integer()
@@ -843,7 +843,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when every node in the cluster is `:down` — a total outage.
+  Returns `true` when every node in the cluster is `:down`, a total outage.
   `false` for an empty cluster.
   """
   @spec all_down?(t()) :: boolean()
@@ -853,7 +853,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns true when a strict majority of the cluster's nodes are `:up` — the
+  Returns true when a strict majority of the cluster's nodes are `:up`, the
   condition for serving quorum reads and writes. Always false for an empty
   cluster.
   """
@@ -865,7 +865,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when quorum is unavailable — fewer than a strict majority of
+  Returns `true` when quorum is unavailable: fewer than a strict majority of
   nodes are `:up`. Also true for an empty cluster. The inverse of
   `quorum_available?/1`.
   """
@@ -898,7 +898,7 @@ defmodule Cluster.State do
   end
 
   @doc """
-  Returns `true` when at least one node is `:down` or `:suspect` — the cluster is
+  Returns `true` when at least one node is `:down` or `:suspect`, the cluster is
   degraded. Always `false` for an empty cluster.
   """
   @spec degraded?(t()) :: boolean()

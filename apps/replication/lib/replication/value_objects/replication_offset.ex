@@ -82,7 +82,7 @@ defmodule Replication.ValueObjects.ReplicationOffset do
 
   @doc """
   Returns the number of offsets in the inclusive range `first..last`, or `0` when
-  `last` precedes `first` — the size of the catch-up window without building the
+  `last` precedes `first`, the size of the catch-up window without building the
   list.
   """
   @spec count_between(t(), t()) :: non_neg_integer()
