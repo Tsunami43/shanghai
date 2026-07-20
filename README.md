@@ -15,10 +15,10 @@ Shanghai provides:
 
 **Performance targets:** 250,000+ writes/sec, <2ms P99 latency, eventual consistency.
 
-> The throughput target assumes batched writes; the batch writer is not yet wired
-> into the default path (writes fsync per append today), so single-node
-> throughput is currently lower. Measured P99 write latency is well within the
-> <2ms target. See [Performance](docs/PERFORMANCE.md).
+> The WAL now group-commits: concurrent writes share one fsync, so throughput
+> scales with write concurrency. The 250,000/sec figure remains an unverified
+> target - it has not been reproduced in this repository. Measured P99 write
+> latency is well within the <2ms target. See [Performance](docs/PERFORMANCE.md).
 
 The project prioritizes **simplicity, observability, and operational excellence** over complexity.
 
@@ -59,7 +59,7 @@ Shanghai consists of five main subsystems:
 Durable, sequential write-ahead log with batching support.
 
 - **Segment-based** file layout (64 MB per segment)
-- **Batched writes** for 60x throughput improvement
+- **Group commit** so concurrent writes share a single fsync
 - **CRC32 checksums** for corruption detection
 - **Segment compaction** merges rotated segments; no entry is ever discarded
 
@@ -204,9 +204,8 @@ iex> Query.delete("user:1")
 - Crash recovery with torn write detection
 - Segment compaction: merges a selected group into one segment, preserving
   every entry (snapshot-based truncation is not implemented)
-
-**Storage (in progress)**
-- Batch writer component (not yet wired into the default write path)
+- Group commit: concurrent appends share one fsync, callers still block until
+  their own entry is durable
 
 **Cluster Management**
 - Heartbeat-based failure detection

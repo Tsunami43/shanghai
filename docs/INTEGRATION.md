@@ -84,7 +84,6 @@ defmodule MyApp.Application do
       {Cluster.Membership, node_id: "myapp-node-1"},
       {Cluster.Heartbeat, []},
       {Storage.WAL.Writer, data_dir: "/var/lib/myapp/wal"},
-      {Storage.WAL.BatchWriter, []},
 
       # Your app-specific Shanghai integrations
       MyApp.EventStore
@@ -479,13 +478,14 @@ case Storage.WAL.Writer.append(data) do
 end
 ```
 
-### 4. Use Batching for High Throughput
+### 4. Write Concurrently for High Throughput
 
-For >1000 writes/sec, use BatchWriter:
+Batching is automatic, but it only engages when appends overlap. For >1000
+writes/sec, issue them from several processes:
 
 ```elixir
-# Instead of Writer
-Storage.WAL.BatchWriter.append(data)
+Task.async_stream(events, &Storage.append/1, max_concurrency: 50)
+|> Stream.run()
 ```
 
 ### 5. Monitor Integration Points
@@ -635,7 +635,7 @@ iex> Node.get_cookie()
 
 **Solution:**
 1. Check disk I/O: `iostat -x 1`
-2. Use BatchWriter for higher throughput
+2. Write from more concurrent processes so batches fill
 3. Increase batch size: `config :storage, batch_size: 200`
 
 ### Memory Growth

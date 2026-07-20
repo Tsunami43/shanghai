@@ -3,12 +3,12 @@
 This document provides detailed performance analysis, benchmarks, and optimization strategies for Shanghai.
 
 > **Status:** The figures below are performance *targets*; the benchmark tables
-> were not reproduced in this repository. The throughput targets assume batched
-> writes, and the batch writer is not yet wired into the default write path (the
-> WAL fsyncs per append today), so current single-node write throughput is
-> lower. A quick single-node `Storage.Benchmark` run shows write latency well
-> within target (P99 well under 2 ms). Treat the numbers as goals and re-measure
-> on your own hardware with `Storage.Benchmark`.
+> were not reproduced in this repository. The WAL writer now group-commits, so
+> concurrent writes share an fsync and throughput scales with write
+> concurrency, but the 250k/sec target itself has not been measured here. A
+> quick single-node `Storage.Benchmark` run shows write latency well within
+> target (P99 well under 2 ms). Treat the numbers as goals and re-measure on
+> your own hardware with `Storage.Benchmark`.
 
 ## Table of Contents
 
@@ -70,7 +70,7 @@ All benchmarks conducted on:
 
 **Key findings:**
 - Concurrency helps, but with diminishing returns
-- BatchWriter scales linearly up to 50 processes
+- Group commit scales linearly up to 50 processes
 - Beyond 100 processes, contention on segment file
 
 ### Replication Performance
@@ -222,7 +222,7 @@ Leader                                    Follower
 **Impact:** Limits unbatched throughput to ~250 writes/sec.
 
 **Solutions:**
-- Use BatchWriter (batching amortizes fsync)
+- Write concurrently (group commit amortizes fsync across writers)
 - Upgrade to NVMe SSD (2x faster fsync)
 - Use XFS with nobarrier (unsafe, not recommended)
 - Disable fsync (data loss on crash)
@@ -265,17 +265,17 @@ Leader                                    Follower
 
 #### 1. Enable Batching
 
-**Before:**
+**Before:** one writer process, one fsync per append.
+
+**After:** many writer processes, one fsync per batch.
+
 ```elixir
-Storage.WAL.Writer.append(data)  # 11,000/sec
+Task.async_stream(data_list, &Storage.append/1, max_concurrency: 10)
+|> Stream.run()
 ```
 
-**After:**
-```elixir
-Storage.WAL.BatchWriter.append(data)  # 60,000/sec
-```
-
-**Improvement:** 5.5x
+Group commit only engages when appends overlap, so a single sequential
+writer sees no gain from it.
 
 ---
 
@@ -297,13 +297,13 @@ config :storage, :batch_writer,
 **Before:**
 ```elixir
 # Single process
-Enum.each(data_list, &BatchWriter.append/1)
+Enum.each(data_list, &Storage.append/1)
 ```
 
 **After:**
 ```elixir
 # 10 concurrent processes
-Task.async_stream(data_list, &BatchWriter.append/1, max_concurrency: 10)
+Task.async_stream(data_list, &Storage.append/1, max_concurrency: 10)
 |> Stream.run()
 ```
 
@@ -341,13 +341,14 @@ config :storage, :batch_writer,
 
 ---
 
-#### 2. Use Writer Instead of BatchWriter
+#### 2. Lower batch_timeout_ms
 
-For latency-sensitive applications:
+For latency-sensitive applications, cap how long an append can wait for its
+batch:
 
 ```elixir
-# Lower latency, lower throughput
-Storage.WAL.Writer.append(data)
+# Lower latency, less fsync amortization
+config :storage, batch_timeout_ms: 2
 ```
 
 ---

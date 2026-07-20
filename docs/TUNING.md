@@ -9,15 +9,15 @@ in production environments.
 
 ```elixir
 # config/config.exs
-config :storage, Storage.WAL.BatchWriter,
-  batch_size: 100,         # Entries per batch
+config :storage,
+  batch_size: 100,         # Max entries sharing one fsync
   batch_timeout_ms: 10     # Max wait before flush
 ```
 
-> **Note:** `Storage.WAL.BatchWriter` is not yet wired into the default write
-> path (the WAL `Writer` fsyncs per append today), and it reads its settings
-> from `start_link/1` options rather than application config. The keys above
-> have no effect until the batch writer is integrated; this is on the roadmap.
+> **Note:** Batching lives in `Storage.WAL.Writer` itself (group commit), and
+> the keys above are read from application config at start-up. A batch is
+> flushed as soon as no further append is queued, so these settings only come
+> into play under concurrent write load.
 
 **Recommendations:**
 - **High throughput workload**: Increase `batch_size` to 200-500
