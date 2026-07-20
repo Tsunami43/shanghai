@@ -33,16 +33,17 @@ which is built yet. The table maps intent to what exists today.
 |---|---|---|
 | Core Domain | implemented | LSN, NodeId, ConsistencyLevel, LogEntry, Event |
 | Storage (WAL) | implemented | segments, index, rotation, snapshots; write/sync telemetry; compaction selects segments but does not merge or reclaim yet |
-| Query | single-node | `Query.Store` (WAL-backed KV + recovery) and `Query.Cache` (hit-ratio metrics, config); conditional writes (`put_new`/`replace`/`getset`/`cas`), atomic bulk ops (`mset`/`mget`/`mdelete`/`delete_prefix`), `update`/`update_existing`/`get_or_store`, `scan`/`exists?`/`count_prefix`; routing/quorum are on the roadmap |
-| Cluster | in-node | `Cluster.Membership`/`Heartbeat`/`Gossip` (not the SWIM/phi-accrual/discovery module tree named below) |
-| Replication | in-node | `Leader`/`Follower`/`Stream`/`Monitor` with quorum acks; leader and follower persist to the WAL when it is running; not yet networked |
+| Query | local reads, replicated writes | `Query.Store` (WAL-backed KV + recovery) and `Query.Cache` (hit-ratio metrics, config); conditional writes (`put_new`/`replace`/`getset`/`cas`), atomic bulk ops (`mset`/`mget`/`mdelete`/`delete_prefix`), `update`/`update_existing`/`get_or_store`, `scan`/`exists?`/`count_prefix`; a store configured with `:replication_group` forwards each mutating write to its group leader via `Replication.write/3`; query-level routing/quorum are on the roadmap |
+| Cluster | distributed | `Cluster.Membership`/`Heartbeat`/`Gossip`/`Discovery` + deterministic `LeaderElection`; seed-node connect, gossip and anti-entropy membership sync run over Erlang distribution (not the SWIM/phi-accrual module tree named below) |
+| Replication | distributed | `Leader`/`Follower`/`Stream`/`Monitor` with quorum acks; entry delivery, offset acks and catch-up all run over Erlang distribution; per-group role assignment and leader failover via `GroupCoordinator`; leader and follower persist to the WAL when it is running; no Raft, no fencing epoch on promotion |
 | Observability | implemented | telemetry + `MetricsReporter`; Admin HTTP API and Prometheus `/metrics` live in `admin_api` |
 | Admin/Ops | partial | `admin_api` HTTP surface (`/health`, `/ready`, `/metrics`, `/api/v1/{info,status,nodes,nodes/:id,replicas,snapshots,kv,kv/:key,metrics}`, per-request logging) + `shanghaictl` (`status`/`health`/`info`/`metrics`/`replicas`/`node`/`kv`, `--format json`); config hot-reload, dashboards, deploy are on the roadmap |
 
-Module names such as `Cluster.Membership.Registry`, `Cluster.Discovery.*`,
-`Cluster.FailureDetection.*`, `Replication.LogShipping.*`, `Replication.Sync.*`,
-`Query.Executor.*`, `Query.Transaction.Coordinator`, and the `Admin.*`
-sub-supervisors are design intent and may not exist verbatim in the code.
+Module names such as `Cluster.Membership.Registry`, `Cluster.Discovery.*`
+(the flat `Cluster.Discovery` module does exist), `Cluster.FailureDetection.*`,
+`Replication.LogShipping.*`, `Replication.Sync.*`, `Query.Executor.*`,
+`Query.Transaction.Coordinator`, and the `Admin.*` sub-supervisors are design
+intent and may not exist verbatim in the code.
 
 ## Bounded Contexts
 

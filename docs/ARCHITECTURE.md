@@ -396,7 +396,8 @@ Shanghai scales vertically through:
 - **Async replication**: Non-blocking writes
 - **Concurrent segment writes**: Multiple WAL segments
 
-**Benchmarks** (single node):
+**Benchmarks** (single node) — targets, not reproduced in this repository; see
+[Performance](PERFORMANCE.md) for the measurement status:
 - Sequential writes: 11,000/sec
 - Concurrent writes (10 processes): 15,000/sec
 - P99 latency: <5ms
