@@ -291,38 +291,48 @@ defmodule Storage.Persistence.FileBackend do
   deletes) are durable.
 
   Callers that rename or delete files directly need this to make the change
-  survive a crash. Best-effort: filesystems that cannot sync a directory log a
-  warning and return `:ok`.
+  survive a crash.
+
+  Best-effort by design: a runtime or filesystem that cannot sync a directory
+  returns `:ok` rather than failing the caller, since the file contents
+  themselves have already been fsynced.
 
   ## Examples
 
       iex> FileBackend.sync_directory("/data/segments")
       :ok
   """
-  @spec sync_directory(path()) :: :ok | {:error, term()}
+  @spec sync_directory(path()) :: :ok
   def sync_directory(dir_path) do
-    # On Unix systems, syncing the directory ensures the rename is durable
-    # This is a no-op on some systems, but important for crash safety
-    case :file.open(dir_path, [:read]) do
+    case open_directory(dir_path) do
       {:ok, dir} ->
         result = :file.sync(dir)
         :file.close(dir)
 
-        case result do
-          :ok -> :ok
-          {:error, reason} -> {:error, reason}
+        if match?({:error, _}, result) do
+          Logger.warning("Cannot sync directory #{dir_path}: #{inspect(result)}")
         end
 
-      {:error, :enotdir} ->
-        # Not a directory or doesn't support syncing (some filesystems)
-        # Log but don't fail
-        Logger.warning("Cannot sync directory: #{dir_path}")
         :ok
 
       {:error, reason} ->
-        Logger.warning("Cannot open directory for sync: #{dir_path}, reason: #{inspect(reason)}")
-        # Don't fail on directory sync errors, as this is best-effort
+        # Older runtimes cannot open a directory handle at all, so there is no
+        # way to fsync one. Debug rather than warn: it is a known platform
+        # limitation, not a fault worth flagging on every write.
+        Logger.debug("Directory sync unavailable for #{dir_path}: #{inspect(reason)}")
         :ok
     end
+  end
+
+  # A directory must be opened with :directory to be fsynced. Plain :read
+  # returns :eisdir on Linux, which is why this used to be a silent no-op.
+  # The option is not available on every supported OTP release, so an
+  # unsupported open degrades to no directory sync rather than an error.
+  @spec open_directory(path()) :: {:ok, :file.io_device()} | {:error, term()}
+  defp open_directory(dir_path) do
+    :file.open(dir_path, [:read, :raw, :directory])
+  rescue
+    # A runtime that does not know the option rejects it as a bad argument.
+    ArgumentError -> {:error, :directory_open_unsupported}
   end
 end

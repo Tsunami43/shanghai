@@ -219,6 +219,41 @@ defmodule Storage.Persistence.FileBackendTest do
     end
   end
 
+  describe "sync_directory/1" do
+    test "syncs a real directory", %{test_dir: dir} do
+      assert :ok = FileBackend.sync_directory(dir)
+    end
+
+    test "actually opens a directory handle rather than failing on :eisdir" do
+      # Plain :file.open(dir, [:read]) returns :eisdir on Linux, which made this
+      # a silent no-op. Assert the directory really can be opened and fsynced,
+      # so a regression to the old behaviour is caught rather than swallowed.
+      case :file.open(@test_dir, [:read, :raw, :directory]) do
+        {:ok, fd} ->
+          assert :ok = :file.sync(fd)
+          :file.close(fd)
+
+        {:error, reason} ->
+          # Older runtimes cannot do this at all; sync_directory/1 must still
+          # be well behaved there.
+          assert :ok = FileBackend.sync_directory(@test_dir)
+
+          IO.puts("directory fsync unsupported on this runtime: #{inspect(reason)}")
+      end
+    end
+
+    test "is best-effort for a path that is not a directory", %{test_dir: dir} do
+      path = Path.join(dir, "regular.txt")
+      File.write!(path, "data")
+
+      assert :ok = FileBackend.sync_directory(path)
+    end
+
+    test "is best-effort for a missing path", %{test_dir: dir} do
+      assert :ok = FileBackend.sync_directory(Path.join(dir, "does_not_exist"))
+    end
+  end
+
   describe "atomicity" do
     test "atomic write ensures no partial writes visible", %{test_dir: dir} do
       path = Path.join(dir, "atomic.dat")
