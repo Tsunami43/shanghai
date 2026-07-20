@@ -39,7 +39,7 @@ Shanghai is a distributed, replicated log storage system built on the Erlang VM 
 | Storage model | Write-Ahead Log (WAL) |
 | Replication | Multi-master, async |
 | Consistency | Eventually consistent |
-| Throughput | 10K+ writes/sec (single node) |
+| Throughput | ~10K writes/sec (single node, concurrent, NVMe) |
 | Latency | <5ms P99 (write ack) |
 
 ## Design Principles
@@ -391,11 +391,12 @@ Shanghai scales vertically through:
 - **Async replication**: Non-blocking writes
 - **Concurrent segment writes**: Multiple WAL segments
 
-**Benchmarks** (single node) — targets, not reproduced in this repository; see
-[Performance](PERFORMANCE.md) for the measurement status:
-- Sequential writes: 11,000/sec
-- Concurrent writes (10 processes): 15,000/sec
-- P99 latency: <5ms
+**Benchmarks** (single node, measured on an NVMe SSD; see
+[Performance](PERFORMANCE.md) for hardware and method):
+- Sequential writes (single process): ~880/sec - fsync-bound
+- Concurrent writes (10 processes): ~5,200/sec
+- Concurrent writes (100 processes): ~9,400/sec
+- P99 write latency: 3.16ms
 
 ### Horizontal Scaling
 
@@ -462,8 +463,7 @@ every replicated entry so a superseded leader's writes are rejected.
 
 | Operation | P50 | P95 | P99 |
 |-----------|-----|-----|-----|
-| WAL write (unbatched) | 0.8ms | 2.1ms | 4.5ms |
-| WAL write (batched) | 0.2ms | 0.8ms | 2.0ms |
+| WAL write (measured, NVMe) | 1.02ms | 1.11ms | 3.16ms |
 | Replication (LAN) | 5ms | 15ms | 30ms |
 | Heartbeat RTT | 1ms | 3ms | 8ms |
 
@@ -471,9 +471,9 @@ every replicated entry so a superseded leader's writes are rejected.
 
 | Workload | Throughput |
 |----------|------------|
-| Sequential writes (1 KB) | 11,000/sec |
-| Concurrent writes (10 processes) | 15,000/sec |
-| Batched writes (100 batch size) | 60,000/sec |
+| Sequential writes (1 KB, single process) | ~880/sec |
+| Concurrent writes (10 processes) | ~5,200/sec |
+| Concurrent writes (100 processes) | ~9,400/sec |
 
 ### Resource Usage
 

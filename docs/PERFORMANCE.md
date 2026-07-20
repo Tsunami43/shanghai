@@ -2,13 +2,19 @@
 
 This document provides detailed performance analysis, benchmarks, and optimization strategies for Shanghai.
 
-> **Status:** The figures below are performance *targets*; the benchmark tables
-> were not reproduced in this repository. The WAL writer now group-commits, so
-> concurrent writes share an fsync and throughput scales with write
-> concurrency, but the 250k/sec target itself has not been measured here. A
-> quick single-node `Storage.Benchmark` run shows write latency well within
-> target (P99 well under 2 ms). Treat the numbers as goals and re-measure on
-> your own hardware with `Storage.Benchmark`.
+> **Status:** The WAL write sections below are **measured** on the hardware
+> named under [Measurement Environment](#measurement-environment). Everything
+> else - replication, cluster, capacity planning, the comparison tables - is
+> still an unreproduced *target*.
+>
+> The headline finding: measured peak WAL throughput is **~10,600 writes/sec**,
+> against a stated target of 250,000/sec. The gap is fsync: at ~1.15 ms per
+> flush on this NVMe SSD, ~870 fsyncs/sec is the hard ceiling, and group commit
+> can only amortize it across concurrent writers. Reaching 250k/sec would need
+> a fundamentally cheaper durability path (battery-backed cache, `O_DIRECT`
+> with a write-back log, or relaxing per-write fsync), not tuning.
+>
+> Re-measure on your own hardware - every number here is storage-bound.
 
 ## Table of Contents
 
@@ -22,24 +28,39 @@ This document provides detailed performance analysis, benchmarks, and optimizati
 
 ## Overview
 
-### Test Environment
+### Measurement Environment
 
-All benchmarks conducted on:
+The WAL numbers below were measured on:
 
-- **Hardware**: AWS c5.2xlarge (8 vCPU, 16 GB RAM)
-- **Storage**: GP3 SSD (3000 IOPS, 125 MB/s)
-- **Network**: 10 Gbps
-- **OS**: Ubuntu 22.04 LTS
-- **Erlang/OTP**: 26.1
-- **Elixir**: 1.15.7
+- **Hardware**: AMD Ryzen AI 9 HX 370 (24 threads), 28 GB RAM
+- **Storage**: Kingston NVMe SSD, **ext4** - a real disk, not tmpfs
+- **OS**: Arch Linux (kernel 7.0)
+- **Erlang/OTP**: 28, **Elixir**: 1.19
+
+> **Measure on a real filesystem.** `/tmp` is tmpfs on many Linux systems,
+> including this one. An fsync there is a memory barrier, not a disk flush, and
+> inflates WAL throughput by orders of magnitude. The repository's own test
+> suite uses `System.tmp_dir!()`, so it does *not* exercise real disk
+> durability.
+
+### Reproducing
+
+```bash
+BENCH_DIR=~/.cache/shanghai_bench MIX_ENV=test elixir -S mix run \
+  apps/storage/bench/wal_bench.exs
+```
+
+Point `BENCH_DIR` at a real filesystem and confirm with `df -T`.
 
 ### Methodology
 
-- **Warmup**: 10,000 writes before measurement
-- **Duration**: 60-second test windows
-- **Concurrency**: Varied from 1 to 100 processes
-- **Data size**: 1 KB per entry (typical event size)
-- **Repetitions**: 5 runs, median reported
+- **Warmup**: 100 writes before each measurement
+- **Data size**: 1 KB per entry
+- **Concurrency**: 1 to 100 processes
+- **Baseline**: `batch_size: 1` forces one fsync per append, i.e. the behaviour
+  before group commit existed, so the two columns are directly comparable
+- **Repetitions**: single run - treat as an order of magnitude, not a
+  reproducible score
 
 ## Benchmark Results
 
@@ -47,31 +68,54 @@ All benchmarks conducted on:
 
 #### Sequential Writes (Single Process)
 
-| Configuration | Throughput | P50 Latency | P99 Latency |
-|--------------|------------|-------------|-------------|
-| Unbatched, fsync | 11,000/sec | 0.8ms | 4.5ms |
-| Batched (10 size) | 35,000/sec | 0.4ms | 2.1ms |
-| Batched (100 size) | 60,000/sec | 0.2ms | 1.8ms |
-| Batched (1000 size) | 85,000/sec | 0.15ms | 1.5ms |
+| Configuration | Throughput | µs/write |
+|--------------|------------|----------|
+| `batch_size: 1` (one fsync per write) | 850/sec | 1176 |
+| `batch_size: 100` | 874/sec | 1143 |
 
-**Key findings:**
-- Batching provides 5-8x throughput improvement
-- P99 latency decreases with batching
-- Diminishing returns beyond batch size of 100
+**Key finding:** batching does nothing for a lone writer, and that is by
+design. A batch is flushed as soon as no further append is queued, so a single
+sequential writer pays a full fsync per write and is bounded by it (~1.15 ms
+here). Group commit is a *concurrency* optimization, not a latency one.
 
 #### Concurrent Writes (Multiple Processes)
 
-| Processes | Unbatched | Batched (100) |
-|-----------|-----------|---------------|
-| 1 | 11,000/sec | 60,000/sec |
-| 10 | 15,000/sec | 150,000/sec |
-| 50 | 18,000/sec | 220,000/sec |
-| 100 | 20,000/sec | 250,000/sec |
+| Processes | `batch_size: 1` | `batch_size: 100` | Speed-up |
+|-----------|-----------------|-------------------|----------|
+| 1 | 882/sec | 928/sec | 1.1x |
+| 10 | 884/sec | 5,223/sec | 5.9x |
+| 50 | 888/sec | 8,322/sec | 9.4x |
+| 100 | 881/sec | 9,400/sec | 10.7x |
 
 **Key findings:**
-- Concurrency helps, but with diminishing returns
-- Group commit scales linearly up to 50 processes
-- Beyond 100 processes, contention on segment file
+- Without group commit, throughput is **flat at ~880/sec no matter how many
+  processes write**: fsync serializes them all. Concurrency buys nothing.
+- With group commit, throughput scales with concurrency because one fsync
+  covers the whole batch.
+- The ceiling is fsync cost, so faster storage moves every number here.
+
+#### Batch Size Sweep (50 concurrent processes)
+
+| `batch_size` | Throughput |
+|--------------|------------|
+| 1 | 883/sec |
+| 10 | 5,071/sec |
+| 50 | 8,918/sec |
+| 100 | 10,279/sec |
+| 500 | 10,605/sec |
+
+**Key finding:** returns flatten past 100, which is why 100 is the default.
+Raising it to 500 buys ~3% for a longer worst-case wait.
+
+#### Write Latency (single writer, 1000 samples)
+
+| P50 | P95 | P99 |
+|-----|-----|-----|
+| 1.02 ms | 1.11 ms | 3.16 ms |
+
+**This misses the <2 ms P99 target.** P50 tracks the fsync cost of the device;
+the P99 tail is fsync jitter. An earlier claim that measured P99 was "well
+within" target came from a tmpfs run and did not reflect a real disk.
 
 ### Replication Performance
 
@@ -153,7 +197,7 @@ All benchmarks conducted on:
 └──────┬───────┘
        ▼
 ┌──────────────┐
-│ fsync()      │  ~4ms (disk sync) ← BOTTLENECK
+│ fsync()      │  ~1.15ms (NVMe)  ← BOTTLENECK
 └──────┬───────┘
        ▼
 ┌──────────────┐
@@ -161,19 +205,23 @@ All benchmarks conducted on:
 └──────────────┘
 ```
 
-**Total:** ~4.6ms per batch
+**Total:** ~1.2ms per batch on the measured NVMe SSD (P50 1.02ms end to end).
 
-**Bottleneck:** `fsync()` dominates latency at ~87% of total time.
+**Bottleneck:** `fsync()` dominates. Because it is one flush per *batch* rather
+than per write, its cost is divided across everything in the batch - which is
+why throughput scales with concurrency but single-writer latency does not
+improve.
 
 ### Optimization Breakdown
 
-| Optimization | Impact | Improvement |
-|--------------|--------|-------------|
-| Batching (10→100) | Amortize fsync | 5.5x throughput |
-| Concurrent writes | Parallelize serialization | 1.8x throughput |
-| Larger segments | Reduce rotations | 1.1x throughput |
-| GP3 SSD | Lower fsync latency | 1.3x throughput |
-| NVMe SSD | Even lower latency | 2.0x throughput |
+| Optimization | Impact | Improvement | Measured? |
+|--------------|--------|-------------|-----------|
+| Group commit, 10 concurrent writers | Amortize fsync | 5.9x throughput | yes |
+| Group commit, 100 concurrent writers | Amortize fsync | 10.7x throughput | yes |
+| `batch_size` 10 → 100 (50 writers) | Fewer, larger flushes | 2.0x throughput | yes |
+| `batch_size` 100 → 500 (50 writers) | Diminishing | 1.03x throughput | yes |
+| Faster storage | Lower fsync latency | proportional | no |
+| Larger segments | Fewer rotations | small | no |
 
 ### Replication Path
 
@@ -313,14 +361,17 @@ Task.async_stream(data_list, &Storage.append/1, max_concurrency: 10)
 
 #### 4. Upgrade Storage
 
-| Storage Type | fsync Latency | Throughput (batched) |
-|--------------|---------------|---------------------|
-| HDD (7200 RPM) | 10-15ms | 30,000/sec |
-| SATA SSD | 4-8ms | 60,000/sec |
-| NVMe SSD | 1-2ms | 150,000/sec |
-| Optane SSD | 0.1-0.5ms | 500,000/sec |
+fsync latency sets the ceiling, so storage is the single biggest lever.
 
-**Improvement:** 2-8x depending on upgrade
+| Storage Type | fsync Latency | Measured? |
+|--------------|---------------|-----------|
+| HDD (7200 RPM) | 10-15ms | no |
+| SATA SSD | 4-8ms | no |
+| NVMe SSD (this machine) | ~1.15ms | **yes: ~10,600/sec peak** |
+| Optane SSD | 0.1-0.5ms | no |
+
+Only the NVMe row was measured. Scale the others by fsync latency rather than
+trusting an absolute figure.
 
 ---
 
@@ -330,14 +381,16 @@ Task.async_stream(data_list, &Storage.append/1, max_concurrency: 10)
 
 **Config:**
 ```elixir
-config :storage, :batch_writer,
+config :storage,
   batch_timeout_ms: 1  # Decrease from 10ms
 ```
 
-**Trade-off:** Lower latency, lower throughput
+**Trade-off:** lower worst-case wait for a batch to fill, less fsync
+amortization under load.
 
-**Before:** P99 = 2.0ms, throughput = 60,000/sec
-**After:** P99 = 0.5ms, throughput = 40,000/sec
+Note this only bites under concurrency: a lone writer already flushes
+immediately, so its latency is pure fsync cost (measured P50 1.02 ms,
+P99 3.16 ms) and no timeout change will improve it.
 
 ---
 
@@ -506,8 +559,8 @@ Memory = 500 + 640 + 1000 = 2.14 GB
 
 | Metric | Shanghai | Kafka |
 |--------|----------|-------|
-| Write throughput | 250k/sec | 1M+/sec |
-| Write latency (P99) | 2ms | 5ms |
+| Write throughput | ~10.6k/sec measured | 1M+/sec |
+| Write latency (P99) | 3.2ms measured | 5ms |
 | Replication lag | <100ms | <50ms |
 | Setup complexity | Low | High |
 | Language | Elixir | Java/Scala |
@@ -529,7 +582,7 @@ Memory = 500 + 640 + 1000 = 2.14 GB
 
 | Metric | Shanghai | EventStore |
 |--------|----------|------------|
-| Write throughput | 250k/sec | 15k/sec |
+| Write throughput | ~10.6k/sec measured | 15k/sec |
 | Write latency (P99) | 2ms | 10ms |
 | Query capability | Sequential only | Projections, subscriptions |
 | Consistency | Eventual | Strong per-stream |
@@ -551,8 +604,8 @@ Memory = 500 + 640 + 1000 = 2.14 GB
 
 | Metric | Shanghai | PostgreSQL |
 |--------|----------|------------|
-| Write throughput | 250k/sec | 50k/sec |
-| Write latency (P99) | 2ms | 5ms |
+| Write throughput | ~10.6k/sec measured | 50k/sec |
+| Write latency (P99) | 3.2ms measured | 5ms |
 | Query capability | None | SQL |
 | Consistency | Eventual | Strong |
 | Use case | Log storage | RDBMS |

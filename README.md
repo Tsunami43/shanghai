@@ -2,7 +2,6 @@
 
 > The philosophy of this project is focused on creating a high-performance solution
 > for distributed data storage and database interactions.
-> — Tsunami43
 
 A distributed, replicated log storage system built on the Erlang VM (BEAM) using Elixir.
 
@@ -13,12 +12,15 @@ Shanghai provides:
 - **Built-in observability** via telemetry and structured logging
 - **Production-ready operations** with comprehensive tooling
 
-**Performance targets:** 250,000+ writes/sec, <2ms P99 latency, eventual consistency.
+**Measured:** ~10,600 writes/sec peak, P99 write latency 3.2 ms, on one NVMe
+SSD. Eventual consistency.
 
-> The WAL now group-commits: concurrent writes share one fsync, so throughput
-> scales with write concurrency. The 250,000/sec figure remains an unverified
-> target - it has not been reproduced in this repository. Measured P99 write
-> latency is well within the <2ms target. See [Performance](docs/PERFORMANCE.md).
+> The original targets were 250,000+ writes/sec and <2 ms P99; both are missed,
+> and the reason is fsync. At ~1.15 ms per flush this disk allows ~870
+> fsyncs/sec, and group commit can only amortize that across concurrent
+> writers - it reaches ~10.6k/sec but cannot go further without a cheaper
+> durability path. Measure on your own hardware: every number here is
+> storage-bound. See [Performance](docs/PERFORMANCE.md).
 
 The project prioritizes **simplicity, observability, and operational excellence** over complexity.
 
@@ -63,8 +65,8 @@ Durable, sequential write-ahead log with batching support.
 - **CRC32 checksums** for corruption detection
 - **Segment compaction** merges rotated segments; no entry is ever discarded
 
-**Throughput:** 250,000+ writes/sec (batched)
-**Latency:** P99 < 2ms
+**Throughput:** ~10,600 writes/sec measured (100 concurrent writers, NVMe)
+**Latency:** P99 3.2ms measured (single writer)
 
 ### 2. Cluster Membership
 
@@ -194,51 +196,6 @@ iex> Query.read("user:1")
 iex> Query.delete("user:1")
 {:ok, :deleted}
 ```
-
-## Project Status
-
-### What's Implemented
-
-**Storage Layer**
-- Write-Ahead Log with segment management
-- Crash recovery with torn write detection
-- Segment compaction: merges a selected group into one segment, preserving
-  every entry (snapshot-based truncation is not implemented)
-- Group commit: concurrent appends share one fsync, callers still block until
-  their own entry is durable
-
-**Cluster Management**
-- Heartbeat-based failure detection
-- Membership state management
-- Event notification system
-- Erlang distribution integration
-
-**Replication**
-- Leader-follower replication
-- Credit-based flow control
-- Automatic backpressure
-- Lag monitoring
-
-**Query Layer**
-- `read`/`write`/`delete`/`transact` over a WAL-backed KV store
-- Crash recovery by WAL replay on startup
-- Read-through cache with consistent invalidation
-- `scan`/`keys`/`count` collection access
-
-**Observability**
-- Telemetry integration throughout (incl. `[:shanghai, :query, :operation]`)
-- Structured logging
-- Admin HTTP API (`/api/v1/status|nodes|replicas|metrics`)
-- CLI tools (shanghaictl)
-
-### Current scope & roadmap
-
-Shanghai runs **single-node today**: storage/WAL and the query layer are
-durable and real, while cluster membership and replication currently operate as
-in-node coordination. The path to a fully distributed v1.0 (networked
-replication with quorums and anti-entropy, sharding, consensus, a wire protocol,
-security and deployment) is being built out incrementally. The features listed
-above are implemented at single-node scope; gRPC remains planned.
 
 ## Contributing
 
