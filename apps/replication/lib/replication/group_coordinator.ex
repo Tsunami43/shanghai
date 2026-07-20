@@ -17,6 +17,23 @@ defmodule Replication.GroupCoordinator do
   Membership can be supplied directly for testing via the `:up_nodes` option (a
   list or a zero-arity function returning `[NodeId.t()]`); by default it is read
   from `Cluster.Membership`.
+
+  ## No fencing: this is failover, not consensus
+
+  Promotion is a local decision based on this node's current membership view.
+  There is no quorum requirement, no term/epoch number and no fencing of the
+  previous leader - correctness depends entirely on membership having converged.
+
+  Under a network partition both sides will promote their own smallest member,
+  so the group ends up with two leaders that each accept writes, and nothing
+  flags the losing side's entries once the partition heals. Use this to recover
+  from a node that has actually died, not as a substitute for a consensus
+  protocol.
+
+  A member id must equal the short Erlang node name: `Cluster.Membership` maps a
+  `:nodedown` back to a member through `Cluster.Entities.Node.erlang_node_name/1`
+  (`"\#{id}@\#{host}"`). If the id and the node name disagree, down events match
+  no member and failover silently never fires.
   """
 
   use GenServer

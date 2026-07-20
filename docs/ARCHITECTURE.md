@@ -438,6 +438,24 @@ During network partition:
 - **Manual reconciliation**: Operators must resolve conflicts
 - **Future work**: Automatic conflict resolution
 
+#### Leader promotion has no fencing
+
+`Replication.GroupCoordinator` promotes a node by a deterministic rule - the
+smallest member id among the nodes its local `Cluster.Membership` currently
+sees as up. There is no quorum requirement, no term or epoch number, and no
+fencing of the previous leader. The safety of a promotion rests entirely on
+membership having converged.
+
+A partition therefore produces two leaders for the same group: each side sees
+the other as down and the smallest id on each side promotes itself. Both accept
+writes, and nothing marks the entries from the losing side as suspect when the
+partition heals. Group failover is designed to recover from a node that has
+genuinely died - it is not a substitute for consensus.
+
+Closing this properly needs a real consensus protocol (Raft or similar) for
+group leadership, or at minimum a quorum check plus a fencing epoch carried on
+every replicated entry so a superseded leader's writes are rejected.
+
 ## Performance Characteristics
 
 ### Latency
