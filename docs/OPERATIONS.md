@@ -430,4 +430,3 @@ Before going live:
 
 - [Performance Tuning](TUNING.md)
 - [Architecture Decision Records](adr/)
-- [Deprecation Notices](DEPRECATIONS.md)
