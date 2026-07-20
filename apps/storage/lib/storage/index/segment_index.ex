@@ -37,12 +37,14 @@ defmodule Storage.Index.SegmentIndex do
   @type index_entry :: {segment_id(), offset()}
 
   @type state :: %{
-          table: :ets.tid(),
+          table: :ets.table(),
           data_dir: String.t(),
           index_path: String.t(),
           backup_path: String.t(),
           insert_count: non_neg_integer(),
-          last_flush: integer()
+          last_flush: integer(),
+          flush_threshold: pos_integer(),
+          flush_interval: pos_integer()
         }
 
   ## Client API

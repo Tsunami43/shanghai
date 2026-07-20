@@ -470,18 +470,16 @@ defmodule AdminApi.Router do
 
   # Store/cache runtime summary, or an empty map if the query layer is down.
   defp query_store_info do
-    case Query.info() do
-      {:ok, info} -> info
-      _ -> %{}
-    end
+    {:ok, info} = Query.info()
+    info
+  catch
+    :exit, _ -> %{}
   end
 
   # Query read-cache stats, or an empty map if the cache is unavailable.
   defp safe_query_cache_stats do
-    case Query.Cache.stats() do
-      {:ok, stats} -> stats
-      _ -> %{}
-    end
+    {:ok, stats} = Query.Cache.stats()
+    stats
   catch
     :exit, _ -> %{}
   end
