@@ -29,6 +29,9 @@ defmodule Replication.Application do
       [
         # Registry for leader and follower processes
         {Registry, keys: :unique, name: Replication.Registry},
+        # Per-group leadership epochs and votes. Started before anything that
+        # can stand for election or apply a replicated entry.
+        Replication.Epoch,
         # Dynamic supervisor under which per-group leader/stream/follower processes
         # are started via Replication.start_leader/2 and start_follower/2.
         {DynamicSupervisor, strategy: :one_for_one, name: Replication.GroupSupervisor}
