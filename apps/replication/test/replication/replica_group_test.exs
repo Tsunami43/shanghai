@@ -2,7 +2,7 @@ defmodule Replication.ReplicaGroupTest do
   use ExUnit.Case, async: true
 
   alias CoreDomain.Types.NodeId
-  alias Replication.Events.{LeaderElected, ReplicaCaughtUp, ReplicaFellBehind}
+  alias Replication.Events.{LeaderElected, ReplicaFellBehind}
   alias Replication.ReplicaGroup
   alias Replication.ValueObjects.ReplicationOffset
 
@@ -139,6 +139,18 @@ defmodule Replication.ReplicaGroupTest do
       assert length(updated_group.events) >= 2
       [event | _] = updated_group.events
       assert %ReplicaFellBehind{} = event
+    end
+
+    test "returns an error when the group has no leader" do
+      follower_id = NodeId.new("follower")
+      {:ok, group} = ReplicaGroup.new("shard-1") |> ReplicaGroup.add_replica(follower_id)
+
+      assert {:error, :no_leader} =
+               ReplicaGroup.mark_replica_lagging(
+                 group,
+                 follower_id,
+                 ReplicationOffset.zero()
+               )
     end
   end
 
