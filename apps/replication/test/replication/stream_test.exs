@@ -272,6 +272,74 @@ defmodule Replication.StreamTest do
       assert Stream.get_follower_states(group_id)[follower_id].last_sent_offset.value == 3
     end
 
+    test "catch-up emits a telemetry event describing the replay" do
+      group_id = "test-group-#{:rand.uniform(10000)}"
+      leader_id = NodeId.new("leader")
+      follower_id = NodeId.new("follower")
+
+      handler_id = "catchup-telemetry-#{group_id}"
+      test_pid = self()
+
+      :telemetry.attach(
+        handler_id,
+        [:shanghai, :replication, :catchup],
+        fn _event, measurements, metadata, _config ->
+          send(test_pid, {:catchup_event, measurements, metadata})
+        end,
+        nil
+      )
+
+      on_exit(fn -> :telemetry.detach(handler_id) end)
+
+      start_supervised!(
+        {Stream, [group_id: group_id, leader_node_id: leader_id, flush_interval_ms: 30]}
+      )
+
+      start_supervised!({Follower, [group_id: group_id, node_id: follower_id]})
+
+      Stream.append_entry(group_id, ReplicationOffset.new(1), "d1")
+      Stream.append_entry(group_id, ReplicationOffset.new(2), "d2")
+      Process.sleep(100)
+
+      Stream.add_follower(group_id, follower_id)
+      Stream.request_catch_up(group_id, follower_id, ReplicationOffset.new(1))
+
+      assert_receive {:catchup_event, measurements, metadata}, 1_000
+
+      assert measurements.records_replicated == 2
+      assert measurements.duration_ms >= 0
+      assert metadata.group_id == group_id
+      assert metadata.follower_id == follower_id
+    end
+
+    test "no telemetry is emitted when there is nothing to replay" do
+      group_id = "test-group-#{:rand.uniform(10000)}"
+      leader_id = NodeId.new("leader")
+      follower_id = NodeId.new("follower")
+
+      handler_id = "catchup-telemetry-empty-#{group_id}"
+      test_pid = self()
+
+      :telemetry.attach(
+        handler_id,
+        [:shanghai, :replication, :catchup],
+        fn _event, measurements, metadata, _config ->
+          send(test_pid, {:catchup_event, measurements, metadata})
+        end,
+        nil
+      )
+
+      on_exit(fn -> :telemetry.detach(handler_id) end)
+
+      start_supervised!({Stream, [group_id: group_id, leader_node_id: leader_id]})
+      Stream.add_follower(group_id, follower_id)
+
+      # The stream has no retained history, so catch-up has nothing to re-send.
+      Stream.request_catch_up(group_id, follower_id, ReplicationOffset.new(1))
+
+      refute_receive {:catchup_event, _, _}, 200
+    end
+
     test "stream ignores catch-up for unknown follower" do
       group_id = "test-group-#{:rand.uniform(10000)}"
       leader_id = NodeId.new("leader")
