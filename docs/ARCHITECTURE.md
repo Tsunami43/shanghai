@@ -435,27 +435,53 @@ implemented.
 ### Network Partitions
 
 During network partition:
-- **Split-brain possible**: Multi-master allows divergent writes
-- **Manual reconciliation**: Operators must resolve conflicts
-- **Future work**: Automatic conflict resolution
+- **Within a replication group**: leadership is quorum-gated and fenced, so
+  only the majority side can accept writes - see below
+- **Across independent writers**: the multi-master model still allows
+  divergent writes from clients writing to different groups, and those need
+  manual reconciliation
+- **Future work**: automatic conflict resolution
 
-#### Leader promotion has no fencing
+#### Leader promotion is quorum-gated and fenced
 
-`Replication.GroupCoordinator` promotes a node by a deterministic rule - the
-smallest member id among the nodes its local `Cluster.Membership` currently
-sees as up. There is no quorum requirement, no term or epoch number, and no
-fencing of the previous leader. The safety of a promotion rests entirely on
-membership having converged.
+A node no longer promotes itself just because its local membership view makes
+it the smallest node up. Promotion runs an election:
 
-A partition therefore produces two leaders for the same group: each side sees
-the other as down and the smallest id on each side promotes itself. Both accept
-writes, and nothing marks the entries from the losing side as suspect when the
-partition heals. Group failover is designed to recover from a node that has
-genuinely died - it is not a substitute for consensus.
+1. The candidate takes the next **epoch** - a monotonically increasing
+   leadership term - and asks every configured member for a vote.
+2. A member grants at most one vote per epoch, and refuses a candidate whose
+   replication offset is behind its own.
+3. The candidate leads only with a **strict majority**. An unreachable member
+   is a missing vote, so an isolated candidate loses and takes no role at all
+   rather than writing unfenced. It retries on the next reconcile.
 
-Closing this properly needs a real consensus protocol (Raft or similar) for
-group leadership, or at minimum a quorum check plus a fencing epoch carried on
-every replicated entry so a superseded leader's writes are rejected.
+Every replicated entry then carries its leader's epoch, and a follower drops
+an entry from an epoch older than the highest it has seen. A leader that was
+deposed - or partitioned away and superseded - cannot keep writing to
+followers that have moved on.
+
+Together these prevent a partition from producing two writable leaders: only
+the majority side can win an election, and the minority side is fenced out of
+the followers it can still reach.
+
+**Cost:** a group of two can no longer fail over. One survivor is not a
+majority of two, so it correctly refuses to promote. Fault tolerance needs at
+least three members, as with any quorum system.
+
+#### What this still is not
+
+- **Epochs are held in memory.** A node that restarts forgets the vote it
+  cast and may vote a second time in the same epoch, which can elect two
+  leaders in it. Closing this requires persisting the epoch before replying
+  to a vote.
+- **A group configured without `:members` runs unfenced.** A majority is only
+  meaningful against a fixed group size; without one the old unqualified
+  behaviour applies, and the coordinator warns about it.
+- **This is not Raft.** There is no log matching, no commit index and no
+  guarantee that a newly elected leader holds every acknowledged entry. The
+  completeness check compares replication offsets and is skipped when an
+  offset is unknown, so it narrows the window for lost writes rather than
+  closing it.
 
 ## Performance Characteristics
 

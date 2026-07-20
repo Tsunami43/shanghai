@@ -18,17 +18,25 @@ defmodule Replication.GroupCoordinator do
   list or a zero-arity function returning `[NodeId.t()]`); by default it is read
   from `Cluster.Membership`.
 
-  ## No fencing: this is failover, not consensus
+  ## Promotion requires a quorum
 
-  Promotion is a local decision based on this node's current membership view.
-  There is no quorum requirement, no term/epoch number and no fencing of the
-  previous leader - correctness depends entirely on membership having converged.
+  Becoming leader is not a local decision. The candidate takes the next epoch
+  and asks every configured member for a vote (`Replication.stand_for_election/3`),
+  and leads only with a strict majority. An unreachable member is a missing
+  vote, so a candidate isolated by a partition loses and takes no role at all
+  rather than writing unfenced; it retries on the next reconcile.
 
-  Under a network partition both sides will promote their own smallest member,
-  so the group ends up with two leaders that each accept writes, and nothing
-  flags the losing side's entries once the partition heals. Use this to recover
-  from a node that has actually died, not as a substitute for a consensus
-  protocol.
+  Entries are stamped with the leader's epoch and a follower drops anything
+  from an older one, so a deposed leader cannot keep writing to followers that
+  have moved on.
+
+  Note the cost: a group of two cannot fail over, because one survivor is not a
+  majority of two. Fault tolerance needs at least three members.
+
+  Limits worth knowing: epochs live in memory (see `Replication.Epoch`), a
+  group configured without `:members` runs unfenced because a majority needs a
+  fixed group size, and this is not Raft - there is no log matching or commit
+  index, so a new leader is not guaranteed to hold every acknowledged entry.
 
   A member id must equal the short Erlang node name: `Cluster.Membership` maps a
   `:nodedown` back to a member through `Cluster.Entities.Node.erlang_node_name/1`
