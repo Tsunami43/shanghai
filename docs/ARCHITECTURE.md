@@ -134,8 +134,8 @@ The Storage subsystem manages durable, sequential write-ahead log storage.
 - **Storage.WAL.Segment**: Individual WAL file management
 - **Storage.WAL.Writer**: High-level write API
 - **Storage.WAL.BatchWriter**: Batched writes for throughput
-- **Storage.Compaction.Compactor**: Background segment compaction (selection
-  only; the merge step is not implemented yet)
+- **Storage.Compaction.Compactor**: Background segment compaction (merges a
+  group into one segment; never discards entries)
 
 #### Example: Writing to WAL
 
@@ -430,9 +430,11 @@ Shanghai tolerates node failures through:
 - **fsync() on every batch**: Ensures durability
 - **CRC32 checksums**: Detects corruption
 
-Segment compaction does not reclaim space yet: the scheduler and the
-size-tiered selection strategy are implemented, but the merge step is still
-a stub, so no segments are rewritten or removed.
+Segment compaction merges a selected group of rotated segments into a single
+segment. No entry is discarded, so reads are unaffected and only the
+per-segment file headers are reclaimed; the real gains are fewer files and
+processes. Truncating entries already covered by a snapshot is not
+implemented.
 
 ### Network Partitions
 

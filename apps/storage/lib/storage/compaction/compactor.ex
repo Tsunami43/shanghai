@@ -15,6 +15,20 @@ defmodule Storage.Compaction.Compactor do
   4. Update SegmentIndex with new segment
   5. Delete old segments atomically
 
+  ## What compaction does and does not do
+
+  A group is merged into a single segment; every entry is carried over. No
+  entry is ever dropped, so `Storage.read/1` returns the same data for every
+  LSN before and after a run. The space reclaimed is therefore only the
+  per-segment file headers - the real wins are fewer files, fewer segment
+  processes and a shorter scan during index rebuild.
+
+  Discarding entries already covered by a snapshot (WAL truncation) is a
+  separate, unimplemented feature: it would change read semantics and needs a
+  guarantee that snapshots fully cover the truncated range.
+
+  The segment the WAL Writer is currently appending to is never compacted.
+
   ## Configuration
 
   - `:strategy` - Compaction strategy module (default: SizeTiered)
@@ -24,7 +38,9 @@ defmodule Storage.Compaction.Compactor do
   use GenServer
   require Logger
 
-  alias Storage.WAL.{Segment, SegmentManager}
+  alias Storage.Index.SegmentIndex
+  alias Storage.Persistence.FileBackend
+  alias Storage.WAL.{Segment, SegmentManager, Writer}
 
   defmodule State do
     @moduledoc false
@@ -51,10 +67,13 @@ defmodule Storage.Compaction.Compactor do
 
   - `:strategy` - Compaction strategy module (default: SizeTiered)
   - `:data_dir` - Directory for WAL segments
+  - `:name` - Registered name (default: `#{inspect(__MODULE__)}`). Tests use
+    this to run an isolated compactor alongside the supervised singleton.
   """
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+    {name, opts} = Keyword.pop(opts, :name, __MODULE__)
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   @doc """
@@ -68,9 +87,9 @@ defmodule Storage.Compaction.Compactor do
       iex> Compactor.compact()
       :ok
   """
-  @spec compact() :: :ok | {:error, :already_running}
-  def compact do
-    GenServer.call(__MODULE__, :compact, :infinity)
+  @spec compact(GenServer.server()) :: :ok | {:error, :already_running}
+  def compact(server \\ __MODULE__) do
+    GenServer.call(server, :compact, :infinity)
   end
 
   @doc """
@@ -81,9 +100,9 @@ defmodule Storage.Compaction.Compactor do
       iex> Compactor.stats()
       {:ok, %{in_progress: false, last_compaction: ~U[...]}}
   """
-  @spec stats() :: {:ok, map()}
-  def stats do
-    GenServer.call(__MODULE__, :stats)
+  @spec stats(GenServer.server()) :: {:ok, map()}
+  def stats(server \\ __MODULE__) do
+    GenServer.call(server, :stats)
   end
 
   ## Server Callbacks
@@ -113,8 +132,10 @@ defmodule Storage.Compaction.Compactor do
     # Mark compaction as in progress
     new_state = %{state | compaction_in_progress: true}
 
-    # Run compaction asynchronously
-    Task.start(fn -> run_compaction(state) end)
+    # Run compaction asynchronously, reporting back to this server rather than
+    # to the module name, so a non-default instance also gets its result.
+    server = self()
+    Task.start(fn -> run_compaction(state, server) end)
 
     {:reply, :ok, new_state}
   end
@@ -145,26 +166,38 @@ defmodule Storage.Compaction.Compactor do
 
   ## Private Functions
 
-  @spec run_compaction(State.t()) :: :ok | {:error, term()}
-  defp run_compaction(state) do
+  @spec run_compaction(State.t(), pid()) :: :ok | {:error, term()}
+  defp run_compaction(state, server) do
     Logger.info("Starting compaction run")
 
     try do
       :ok = perform_compaction(state)
-      send(__MODULE__, :compaction_complete)
+      send(server, :compaction_complete)
       :ok
     rescue
       e ->
         error = {:compaction_crash, Exception.message(e)}
-        send(__MODULE__, {:compaction_failed, error})
+        send(server, {:compaction_failed, error})
         {:error, error}
     end
   end
 
   @spec perform_compaction(State.t()) :: :ok | {:error, term()}
+  defp perform_compaction(%State{data_dir: nil}) do
+    # Without a data directory the segment files cannot be located, so there is
+    # nothing this run can safely rewrite.
+    Logger.info("Compaction skipped: no data_dir configured")
+    :ok
+  end
+
   defp perform_compaction(state) do
-    # Get all segments
-    segments = SegmentManager.list_segments()
+    # Get all segments, minus the one the Writer is still appending to.
+    active_id = active_segment_id()
+
+    segments =
+      Enum.reject(SegmentManager.list_segments(), fn {segment_id, _pid} ->
+        segment_id == active_id
+      end)
 
     # Get segment info
     segment_infos =
@@ -199,30 +232,202 @@ defmodule Storage.Compaction.Compactor do
   end
 
   @spec compact_segment_group([non_neg_integer()], State.t()) :: :ok | {:error, term()}
-  defp compact_segment_group(segment_ids, _state) do
+  defp compact_segment_group(segment_ids, state) do
     Logger.info("Compacting segment group: #{inspect(segment_ids)}")
 
-    # Read all entries from segments
-    {:ok, entries} = read_entries_from_segments(segment_ids)
+    # The lowest id in the group becomes the merged segment, so no new segment
+    # id is allocated and the Writer's id sequence is left alone.
+    ids = Enum.sort(segment_ids)
+    target_id = hd(ids)
+    segments_dir = segments_dir(state)
+    target_path = segment_file_path(segments_dir, target_id)
+    temp_path = target_path <> ".compacting"
 
-    if entries != [] do
-      # Sort by LSN (should already be sorted, but ensure it)
-      sorted_entries = Enum.sort_by(entries, & &1.lsn.value)
+    bytes_before = total_segment_bytes(ids)
+    {:ok, entries} = read_entries_from_segments(ids)
 
-      # Determine range
-      start_lsn = hd(sorted_entries).lsn.value
-      end_lsn = List.last(sorted_entries).lsn.value
+    case Enum.sort_by(entries, & &1.lsn.value) do
+      [] ->
+        Logger.info("No entries found in segment group, skipping")
+        :ok
 
-      Logger.info("Merging #{length(entries)} entries from LSN #{start_lsn} to #{end_lsn}")
+      sorted_entries ->
+        merge_group(ids, target_id, target_path, temp_path, sorted_entries, bytes_before)
+    end
+  end
 
-      # Create new merged segment
-      # For now, log success (actual segment creation would happen here)
-      Logger.info("Successfully compacted #{length(segment_ids)} segments into 1 segment")
-    else
-      Logger.info("No entries found in segment group, skipping")
+  # Writes the merged segment to a temporary file, then swaps it in. The
+  # temporary file means a crash before the swap leaves the source segments
+  # untouched, so the group is simply re-selected on the next run.
+  @spec merge_group(
+          [non_neg_integer()],
+          non_neg_integer(),
+          String.t(),
+          String.t(),
+          [term()],
+          non_neg_integer()
+        ) :: :ok | {:error, term()}
+  defp merge_group(ids, target_id, target_path, temp_path, sorted_entries, bytes_before) do
+    start_lsn = hd(sorted_entries).lsn.value
+    end_lsn = List.last(sorted_entries).lsn.value
+    started_at = System.monotonic_time(:millisecond)
+
+    Logger.info(
+      "Merging #{length(sorted_entries)} entries from LSN #{start_lsn} to #{end_lsn} " <>
+        "into segment #{target_id}"
+    )
+
+    case write_merged_segment(temp_path, target_id, start_lsn, sorted_entries) do
+      {:ok, placements} ->
+        :ok =
+          swap_in_merged_segment(ids, target_id, target_path, temp_path, start_lsn, placements)
+
+        bytes_after = file_size(target_path)
+
+        Observability.Metrics.compaction_completed(
+          System.monotonic_time(:millisecond) - started_at,
+          bytes_before,
+          bytes_after,
+          ids
+        )
+
+        Logger.info(
+          "Compacted #{length(ids)} segments into segment #{target_id} " <>
+            "(#{bytes_before} -> #{bytes_after} bytes)"
+        )
+
+        :ok
+
+      {:error, reason} = error ->
+        Logger.error("Failed to write merged segment #{target_id}: #{inspect(reason)}")
+        File.rm(temp_path)
+        error
+    end
+  end
+
+  # Writes every entry into a detached segment process pointed at the temporary
+  # file, returning the offset each LSN landed at so the index can be repointed.
+  @spec write_merged_segment(String.t(), non_neg_integer(), non_neg_integer(), [term()]) ::
+          {:ok, [{non_neg_integer(), non_neg_integer()}]} | {:error, term()}
+  defp write_merged_segment(temp_path, target_id, start_lsn, sorted_entries) do
+    File.rm(temp_path)
+
+    opts = [segment_id: target_id, start_lsn: start_lsn, path: temp_path, create: true]
+
+    case Segment.start_link(opts) do
+      {:ok, pid} ->
+        try do
+          placements =
+            Enum.map(sorted_entries, fn entry ->
+              {:ok, offset} = Segment.append_entry_no_sync(pid, entry)
+              {entry.lsn.value, offset}
+            end)
+
+          :ok = Segment.sync(pid)
+          {:ok, placements}
+        after
+          Segment.close(pid)
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  # Replaces the source segments with the merged file and repoints the index.
+  # Reads that race this window can fail; they succeed again once the merged
+  # segment is registered.
+  @spec swap_in_merged_segment(
+          [non_neg_integer()],
+          non_neg_integer(),
+          String.t(),
+          String.t(),
+          non_neg_integer(),
+          [{non_neg_integer(), non_neg_integer()}]
+        ) :: :ok
+  defp swap_in_merged_segment(ids, target_id, target_path, temp_path, start_lsn, placements) do
+    segments_dir = Path.dirname(target_path)
+
+    # Release the file handles before touching the files themselves.
+    Enum.each(ids, &SegmentManager.stop_segment/1)
+
+    :ok = File.rename(temp_path, target_path)
+
+    ids
+    |> Enum.reject(&(&1 == target_id))
+    |> Enum.each(fn id -> FileBackend.delete_file(segment_file_path(segments_dir, id)) end)
+
+    FileBackend.sync_directory(segments_dir)
+
+    {:ok, _pid} = SegmentManager.start_segment(target_id, start_lsn, target_path, create: false)
+
+    repoint_index(ids, target_id, placements)
+  end
+
+  # Drops the index entries of every source segment, then records where each
+  # LSN now lives. Skipped when the index is not running (minimal storage tree).
+  @spec repoint_index([non_neg_integer()], non_neg_integer(), [
+          {non_neg_integer(), non_neg_integer()}
+        ]) :: :ok
+  defp repoint_index(ids, target_id, placements) do
+    if Process.whereis(SegmentIndex) do
+      Enum.each(ids, &SegmentIndex.delete_segment(SegmentIndex, &1))
+
+      Enum.each(placements, fn {lsn, offset} ->
+        SegmentIndex.insert(SegmentIndex, lsn, target_id, offset)
+      end)
+
+      SegmentIndex.flush(SegmentIndex)
     end
 
     :ok
+  end
+
+  # The segment the Writer is appending to must never be rewritten underneath
+  # it. Returns nil when the Writer is not running, e.g. in the minimal tree.
+  @spec active_segment_id() :: non_neg_integer() | nil
+  defp active_segment_id do
+    if Process.whereis(Writer) do
+      case Writer.info() do
+        {:ok, %{current_segment_id: id}} -> id
+        _ -> nil
+      end
+    end
+  end
+
+  @spec total_segment_bytes([non_neg_integer()]) :: non_neg_integer()
+  defp total_segment_bytes(segment_ids) do
+    Enum.reduce(segment_ids, 0, fn segment_id, acc ->
+      case SegmentManager.get_segment(segment_id) do
+        {:ok, pid} ->
+          case Segment.stats(pid) do
+            {:ok, stats} -> acc + stats.file_size
+            {:error, _} -> acc
+          end
+
+        {:error, :not_found} ->
+          acc
+      end
+    end)
+  end
+
+  @spec file_size(String.t()) :: non_neg_integer()
+  defp file_size(path) do
+    case FileBackend.file_size(path) do
+      {:ok, size} -> size
+      {:error, _} -> 0
+    end
+  end
+
+  # The Writer nests its segment files one level below its own data_dir, and the
+  # Compactor is configured with that same data_dir.
+  @spec segments_dir(State.t()) :: String.t()
+  defp segments_dir(state), do: Path.join(state.data_dir, "segments")
+
+  @spec segment_file_path(String.t(), non_neg_integer()) :: String.t()
+  defp segment_file_path(segments_dir, segment_id) do
+    filename = :io_lib.format("segment_~18..0B.wal", [segment_id]) |> IO.iodata_to_binary()
+    Path.join(segments_dir, filename)
   end
 
   @spec read_entries_from_segments([non_neg_integer()]) ::

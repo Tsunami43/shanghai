@@ -286,10 +286,21 @@ defmodule Storage.Persistence.FileBackend do
     end
   end
 
-  # Private functions
+  @doc """
+  Syncs a directory so that entry changes within it (creates, renames,
+  deletes) are durable.
 
+  Callers that rename or delete files directly need this to make the change
+  survive a crash. Best-effort: filesystems that cannot sync a directory log a
+  warning and return `:ok`.
+
+  ## Examples
+
+      iex> FileBackend.sync_directory("/data/segments")
+      :ok
+  """
   @spec sync_directory(path()) :: :ok | {:error, term()}
-  defp sync_directory(dir_path) do
+  def sync_directory(dir_path) do
     # On Unix systems, syncing the directory ensures the rename is durable
     # This is a no-op on some systems, but important for crash safety
     case :file.open(dir_path, [:read]) do
