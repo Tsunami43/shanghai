@@ -1085,6 +1085,10 @@ curl http://localhost:9090/api/v1/kv/user:1
 Trigger a WAL compaction run. Returns `503` when compaction is not configured
 on the node.
 
+> **Status:** A run selects segment groups and logs its decisions, but the
+> merge step is not implemented yet, so no segments are rewritten or removed
+> and no space is reclaimed.
+
 **Request:**
 ```bash
 curl -X POST http://localhost:9090/api/v1/compaction
