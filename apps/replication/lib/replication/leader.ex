@@ -51,7 +51,7 @@ defmodule Replication.Leader do
   - `{:error, :timeout}` - Timeout waiting for consistency level
   - `{:error, :invalid_consistency_level}` - Invalid consistency level provided
   """
-  @spec write(String.t(), binary(), keyword()) :: {:ok, ReplicationOffset.t()} | {:error, atom()}
+  @spec write(String.t(), term(), keyword()) :: {:ok, ReplicationOffset.t()} | {:error, atom()}
   def write(group_id, data, opts \\ []) do
     timeout = Keyword.get(opts, :timeout, 5000)
 

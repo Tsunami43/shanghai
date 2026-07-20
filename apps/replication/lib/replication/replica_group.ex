@@ -127,23 +127,31 @@ defmodule Replication.ReplicaGroup do
   @spec mark_replica_lagging(t(), NodeId.t(), ReplicationOffset.t()) ::
           {:ok, t()} | {:error, atom()}
   def mark_replica_lagging(%__MODULE__{replicas: replicas} = group, node_id, current_offset) do
-    with {:ok, replica} <- Map.fetch(replicas, node_id),
-         {:ok, leader} <- get_leader_replica(group) do
-      updated_replica = Replica.mark_lagging(replica)
-      updated_replicas = Map.put(replicas, node_id, updated_replica)
-
-      event =
-        ReplicaFellBehind.new(group.group_id, node_id, current_offset, leader.offset)
-
-      updated_group = %{
-        group
-        | replicas: updated_replicas,
-          events: [event | group.events]
-      }
-
-      {:ok, updated_group}
-    else
+    case Map.fetch(replicas, node_id) do
+      {:ok, replica} -> apply_replica_lagging(group, replica, current_offset)
       :error -> {:error, :replica_not_found}
+    end
+  end
+
+  defp apply_replica_lagging(group, replica, current_offset) do
+    case get_leader_replica(group) do
+      {:ok, leader} ->
+        updated_replica = Replica.mark_lagging(replica)
+        updated_replicas = Map.put(group.replicas, replica.node_id, updated_replica)
+
+        event =
+          ReplicaFellBehind.new(group.group_id, replica.node_id, current_offset, leader.offset)
+
+        updated_group = %{
+          group
+          | replicas: updated_replicas,
+            events: [event | group.events]
+        }
+
+        {:ok, updated_group}
+
+      {:error, :no_leader} = error ->
+        error
     end
   end
 
