@@ -28,6 +28,9 @@ defmodule Replication.GroupCoordinatorTest do
         this_node: n2,
         members: [n1, n2, n3],
         up_nodes: up_fun,
+        # These members are fictional, so no real vote can reach them. This test
+        # covers role reconciliation, not quorum; quorum has its own tests.
+        elect: fn _group, _members, _candidate -> {:ok, 1} end,
         batch_size: 1
       )
 
