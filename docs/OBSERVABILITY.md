@@ -111,7 +111,7 @@ helper but no producer wired up yet.
 | Event | Measurements | Metadata |
 |-------|--------------|----------|
 | `[:shanghai, :replication, :lag]` | `offset_lag`, `time_lag_ms` | `group_id`, `follower_id`, `leader_id` |
-| `[:shanghai, :replication, :catchup]` *(defined, not yet emitted)* | `duration_ms`, `records_replicated` | `group_id`, `follower_id` |
+| `[:shanghai, :replication, :catchup]` | `duration_ms`, `records_replicated` | `group_id`, `follower_id` |
 
 #### Query Events
 

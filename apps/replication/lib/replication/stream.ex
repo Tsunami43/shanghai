@@ -192,8 +192,17 @@ defmodule Replication.Stream do
               "Catching up follower #{follower_node_id.value} with #{length(entries)} entries from #{from_offset.value}"
             )
 
+            started_at = System.monotonic_time(:millisecond)
+
             updated_follower =
               deliver_entries(state.group_id, follower_node_id, follower_state, entries)
+
+            Observability.Metrics.replication_catchup_completed(
+              System.monotonic_time(:millisecond) - started_at,
+              length(entries),
+              state.group_id,
+              follower_node_id
+            )
 
             updated_followers = Map.put(state.followers, follower_node_id, updated_follower)
             {:noreply, %{state | followers: updated_followers}}
