@@ -40,8 +40,8 @@ The WAL numbers below were measured on:
 > **Measure on a real filesystem.** `/tmp` is tmpfs on many Linux systems,
 > including this one. An fsync there is a memory barrier, not a disk flush, and
 > inflates WAL throughput by orders of magnitude. The repository's own test
-> suite uses `System.tmp_dir!()`, so it does *not* exercise real disk
-> durability.
+> suite uses `System.tmp_dir!()`, so by default it does *not* exercise real
+> disk durability - run `mix test.disk` to point it at a real filesystem.
 
 ### Reproducing
 
