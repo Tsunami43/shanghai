@@ -41,7 +41,7 @@ defmodule Replication.GroupCoordinator do
 
   alias CoreDomain.Types.NodeId
 
-  @role_opt_keys [:group_id, :this_node, :members, :up_nodes, :refresh_interval_ms]
+  @role_opt_keys [:group_id, :this_node, :members, :up_nodes, :elect, :refresh_interval_ms]
 
   @default_refresh_interval_ms 5_000
 
@@ -58,6 +58,10 @@ defmodule Replication.GroupCoordinator do
     nodes" when omitted.
   - `:up_nodes` - a `[NodeId.t()]` or a zero-arity function returning one, used as
     the membership source (default: `Cluster.Membership`).
+  - `:elect` - a 3-arity function `(group_id, members, candidate)` returning
+    `{:ok, epoch}` or `{:error, :no_quorum}`, used instead of running a real
+    election (default: `Replication.stand_for_election/3`). Tests use it to
+    exercise role reconciliation without a live cluster to vote.
   - `:refresh_interval_ms` - how often to re-subscribe (if not yet subscribed)
     and re-reconcile as a safety net against a missed event or a coordinator that
     started before `Cluster.Membership`. Default `#{@default_refresh_interval_ms}`;
@@ -108,6 +112,7 @@ defmodule Replication.GroupCoordinator do
       this_node: Keyword.get(opts, :this_node) || local_node_id(),
       allow_list: Keyword.get(opts, :members),
       up_nodes: Keyword.get(opts, :up_nodes),
+      elect: Keyword.get(opts, :elect),
       role_opts: Keyword.drop(opts, @role_opt_keys),
       role: :none,
       leader_id: nil,
@@ -185,6 +190,36 @@ defmodule Replication.GroupCoordinator do
     end
   end
 
+  # Becoming leader requires winning an election first. The vote runs BEFORE the
+  # old role is torn down, so this node still knows its own replication offset
+  # and voters can judge whether its log is complete enough to lead.
+  defp switch_role(state, :leader, leader_id, members) do
+    case stand_for_election(state) do
+      {:ok, epoch} ->
+        Replication.stop_group(state.group_id)
+
+        Logger.info(
+          "Coordinator: group #{state.group_id} -> leader (leader #{leader_id.value}" <>
+            epoch_suffix(epoch) <> ")"
+        )
+
+        start_role(state, leader_id, members, epoch)
+        commit_role(state, :leader, leader_id)
+
+      {:error, :no_quorum} ->
+        # Losing the vote means this node cannot know it is the only leader, so
+        # it takes no role at all rather than writing unfenced. The next
+        # reconcile or refresh tick will try again.
+        Replication.stop_group(state.group_id)
+
+        Logger.warning(
+          "Coordinator: group #{state.group_id} could not be promoted, no quorum; staying passive"
+        )
+
+        commit_role(state, :none, nil)
+    end
+  end
+
   defp switch_role(state, desired, leader_id, members) do
     # Tear down whatever role this node was running for the group before taking on
     # the new one, so we never run a stale leader/follower alongside the new role.
@@ -197,9 +232,13 @@ defmodule Replication.GroupCoordinator do
       role ->
         Logger.info("Coordinator: group #{state.group_id} -> #{role} (leader #{leader_id.value})")
 
-        start_role(state, leader_id, members)
+        start_role(state, leader_id, members, nil)
     end
 
+    commit_role(state, desired, leader_id)
+  end
+
+  defp commit_role(state, desired, leader_id) do
     Observability.Metrics.replication_role_changed(
       state.group_id,
       desired,
@@ -209,12 +248,38 @@ defmodule Replication.GroupCoordinator do
     %{state | role: desired, leader_id: leader_id}
   end
 
-  defp start_role(state, leader_id, members) do
+  # Fencing needs a fixed group size: a majority is only meaningful against the
+  # configured member list. Without one, "members" is just whoever is currently
+  # up, and an isolated node would trivially form a majority of itself - so the
+  # election is skipped and promotion stays unfenced, as it was before.
+  defp stand_for_election(%{allow_list: nil} = state) do
+    Logger.warning(
+      "Coordinator: group #{state.group_id} has no configured :members, " <>
+        "promoting without a quorum (unfenced)"
+    )
+
+    {:ok, nil}
+  end
+
+  defp stand_for_election(%{elect: elect} = state) when is_function(elect, 3) do
+    elect.(state.group_id, state.allow_list, state.this_node)
+  end
+
+  defp stand_for_election(state) do
+    Replication.stand_for_election(state.group_id, state.allow_list, state.this_node)
+  end
+
+  defp epoch_suffix(nil), do: ", unfenced"
+  defp epoch_suffix(epoch), do: ", epoch #{epoch}"
+
+  defp start_role(state, leader_id, members, epoch) do
     opts =
       state.role_opts
       |> Keyword.put(:members, members)
       |> Keyword.put(:leader_id, leader_id)
       |> Keyword.put(:this_node, state.this_node)
+
+    opts = if epoch, do: Keyword.put(opts, :epoch, epoch), else: opts
 
     Replication.start_group(state.group_id, opts)
   end
