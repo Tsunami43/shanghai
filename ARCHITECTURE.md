@@ -32,7 +32,7 @@ which is built yet. The table maps intent to what exists today.
 | Context | Status | Reality today |
 |---|---|---|
 | Core Domain | implemented | LSN, NodeId, ConsistencyLevel, LogEntry, Event |
-| Storage (WAL) | implemented | segments, index, rotation, snapshots, compaction; write/sync telemetry |
+| Storage (WAL) | implemented | segments, index, rotation, snapshots; write/sync telemetry; compaction selects segments but does not merge or reclaim yet |
 | Query | single-node | `Query.Store` (WAL-backed KV + recovery) and `Query.Cache` (hit-ratio metrics, config); conditional writes (`put_new`/`replace`/`getset`/`cas`), atomic bulk ops (`mset`/`mget`/`mdelete`/`delete_prefix`), `update`/`update_existing`/`get_or_store`, `scan`/`exists?`/`count_prefix`; routing/quorum are on the roadmap |
 | Cluster | in-node | `Cluster.Membership`/`Heartbeat`/`Gossip` (not the SWIM/phi-accrual/discovery module tree named below) |
 | Replication | in-node | `Leader`/`Follower`/`Stream`/`Monitor` with quorum acks; leader and follower persist to the WAL when it is running; not yet networked |
