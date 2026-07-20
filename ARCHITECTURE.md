@@ -32,7 +32,7 @@ which is built yet. The table maps intent to what exists today.
 | Context | Status | Reality today |
 |---|---|---|
 | Core Domain | implemented | LSN, NodeId, ConsistencyLevel, LogEntry, Event |
-| Storage (WAL) | implemented | segments, index, rotation, snapshots; write/sync telemetry; compaction selects segments but does not merge or reclaim yet |
+| Storage (WAL) | implemented | segments, index, rotation, snapshots; write/sync telemetry; compaction merges a selected group into one segment without discarding entries (no snapshot-based truncation) |
 | Query | local reads, replicated writes | `Query.Store` (WAL-backed KV + recovery) and `Query.Cache` (hit-ratio metrics, config); conditional writes (`put_new`/`replace`/`getset`/`cas`), atomic bulk ops (`mset`/`mget`/`mdelete`/`delete_prefix`), `update`/`update_existing`/`get_or_store`, `scan`/`exists?`/`count_prefix`; a store configured with `:replication_group` forwards each mutating write to its group leader via `Replication.write/3`; query-level routing/quorum are on the roadmap |
 | Cluster | distributed | `Cluster.Membership`/`Heartbeat`/`Gossip`/`Discovery` + deterministic `LeaderElection`; seed-node connect, gossip and anti-entropy membership sync run over Erlang distribution (not the SWIM/phi-accrual module tree named below) |
 | Replication | distributed | `Leader`/`Follower`/`Stream`/`Monitor` with quorum acks; entry delivery, offset acks and catch-up all run over Erlang distribution; per-group role assignment and leader failover via `GroupCoordinator`; leader and follower persist to the WAL when it is running; no Raft, no fencing epoch on promotion |

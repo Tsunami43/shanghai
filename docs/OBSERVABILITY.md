@@ -97,7 +97,7 @@ helper but no producer wired up yet.
 |-------|--------------|----------|
 | `[:shanghai, :storage, :wal, :write]` | `duration`, `bytes` | `segment_id` |
 | `[:shanghai, :storage, :wal, :sync]` | `duration` | `segment_id` |
-| `[:shanghai, :storage, :compaction, :complete]` *(defined, not yet emitted)* | `duration_ms`, `bytes_before`, `bytes_after` | `segment_ids` |
+| `[:shanghai, :storage, :compaction, :complete]` | `duration_ms`, `bytes_before`, `bytes_after` | `segment_ids` |
 
 #### Cluster Events
 
@@ -266,8 +266,9 @@ text exposition format, rendered by `AdminApi.Prometheus` from
 | `shanghai_compaction_runs_total` | counter | — |
 | `shanghai_compaction_bytes_reclaimed_total` | counter | — |
 
-> Both compaction counters stay at `0`: the compactor does not merge segments
-> yet, so it never emits `[:shanghai, :storage, :compaction, :complete]`.
+> `shanghai_compaction_bytes_reclaimed_total` counts only the per-segment file
+> headers dropped by merging. Compaction never discards entries, so the
+> reclaimed volume is small by design.
 | `shanghai_query_operations_total` | counter | `operation` |
 | `shanghai_query_operation_duration_ms` | summary | `operation` |
 | `shanghai_query_operation_errors_total` | counter | `operation` |

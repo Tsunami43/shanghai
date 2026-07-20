@@ -61,7 +61,7 @@ Durable, sequential write-ahead log with batching support.
 - **Segment-based** file layout (64 MB per segment)
 - **Batched writes** for 60x throughput improvement
 - **CRC32 checksums** for corruption detection
-- **Segment compaction** (selection implemented; merge and reclaim on the roadmap)
+- **Segment compaction** merges rotated segments; no entry is ever discarded
 
 **Throughput:** 250,000+ writes/sec (batched)
 **Latency:** P99 < 2ms
@@ -202,7 +202,8 @@ iex> Query.delete("user:1")
 **Storage Layer**
 - Write-Ahead Log with segment management
 - Crash recovery with torn write detection
-- Segment compaction (segment selection; merge/reclaim on the roadmap)
+- Segment compaction: merges a selected group into one segment, preserving
+  every entry (snapshot-based truncation is not implemented)
 
 **Storage (in progress)**
 - Batch writer component (not yet wired into the default write path)
