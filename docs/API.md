@@ -1,7 +1,7 @@
 # Shanghai API Reference
 
-**Version:** 1.2.0
-**Last Updated:** 2025-10-12
+**Version:** 0.2.0
+**Last Updated:** 2026-07-21
 
 Complete API reference for Shanghai distributed database system.
 
@@ -819,7 +819,7 @@ curl http://localhost:9090/api/v1/info
 ```json
 {
   "node_id": "node-1",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "elixir_version": "1.16.0",
   "otp_release": "26"
 }
@@ -1224,7 +1224,7 @@ shanghaictl config [--admin-url URL] [--format json]
 $ shanghaictl info
 
 Node:    node-1
-Version: 0.1.0
+Version: 0.2.0
 Elixir:  1.16.0
 OTP:     26
 ```

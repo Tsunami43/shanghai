@@ -52,7 +52,7 @@ sudo apt-get install build-essential git
 ### Build from Source
 
 ```bash
-git clone https://github.com/yourorg/shanghai.git
+git clone https://github.com/Tsunami43/shanghai.git
 cd shanghai
 mix deps.get
 mix compile
@@ -331,11 +331,10 @@ free -h
 
 **Common causes:**
 - Slow followers (buffering)
-- Subscriber leak (fixed in v1.2.0+)
+- Subscriber leak
 - Too many metrics
 
 **Solutions:**
-- Upgrade to v1.2.0+
 - Enable backpressure
 - Restart node (temporary)
 
@@ -423,7 +422,7 @@ Before going live:
 ## Support
 
 - Documentation: https://shanghai.readthedocs.io/
-- Issues: https://github.com/yourorg/shanghai/issues
+- Issues: https://github.com/Tsunami43/shanghai/issues
 - Slack: #shanghai-users
 
 ## See Also

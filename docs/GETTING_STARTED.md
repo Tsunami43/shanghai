@@ -55,7 +55,7 @@ Elixir 1.16.3 (compiled with Erlang/OTP 26)
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/yourorg/shanghai.git
+git clone https://github.com/Tsunami43/shanghai.git
 cd shanghai
 ```
 
@@ -611,7 +611,7 @@ Check out these examples:
 
 ### Community
 
-- GitHub Issues: https://github.com/yourorg/shanghai/issues
+- GitHub Issues: https://github.com/Tsunami43/shanghai/issues
 - Slack: #shanghai-users
 - Documentation: https://shanghai.readthedocs.io/
 

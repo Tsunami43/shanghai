@@ -45,10 +45,10 @@ In your `mix.exs`:
 def deps do
   [
     # Use Shanghai as a library
-    {:shanghai, "~> 1.2"}
+    {:shanghai, "~> 0.2"}
 
     # Or from GitHub
-    # {:shanghai, github: "yourorg/shanghai", tag: "v1.2.0"}
+    # {:shanghai, github: "Tsunami43/shanghai", tag: "v0.2.0"}
   ]
 end
 ```
@@ -397,7 +397,7 @@ class ShanghaiClient:
         self.base_url = base_url
 
     def write(self, data):
-        # Note: Admin API doesn't expose writes in v1.0
+        # Note: the Admin API does not expose writes
         # Use Erlang RPC instead
         pass
 
