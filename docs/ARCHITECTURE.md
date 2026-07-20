@@ -468,12 +468,16 @@ the followers it can still reach.
 majority of two, so it correctly refuses to promote. Fault tolerance needs at
 least three members, as with any quorum system.
 
+Votes are persisted before they are granted (atomic write, fsync, rename,
+directory fsync), so a node that restarts still remembers what it voted for and
+cannot vote twice in one epoch. If that write fails the vote is denied rather
+than granted. Set the location with `config :replication, :epoch_dir`; it
+defaults to `<data_root>/replication/epochs`. Configure neither and the store
+runs in memory and warns - the quorum guarantee then holds only while no member
+restarts.
+
 #### What this still is not
 
-- **Epochs are held in memory.** A node that restarts forgets the vote it
-  cast and may vote a second time in the same epoch, which can elect two
-  leaders in it. Closing this requires persisting the epoch before replying
-  to a vote.
 - **A group configured without `:members` runs unfenced.** A majority is only
   meaningful against a fixed group size; without one the old unqualified
   behaviour applies, and the coordinator warns about it.
