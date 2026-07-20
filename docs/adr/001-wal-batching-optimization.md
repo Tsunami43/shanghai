@@ -169,5 +169,5 @@ further append is queued, so a lone writer is never delayed by
 - [x] Add telemetry metrics for batch operations
 - [x] Group-commit in the Writer (instead of a separate BatchWriter)
 - [x] Document tuning recommendations for operators
-- [ ] Benchmark against different batch sizes and timeouts
+- [x] Benchmark against different batch sizes and timeouts (see docs/PERFORMANCE.md; batch_size 100 confirmed as the right default - 500 buys ~3%)
 and benchmarks confirm the expected performance improvements.
