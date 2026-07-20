@@ -139,7 +139,6 @@ Built-in metrics, logging, and monitoring.
 ### Reference
 
 - **[API Reference](docs/API.md)** - Complete API documentation
-- **[Deprecations](docs/DEPRECATIONS.md)** - Deprecated features and migration
 - **[ADRs](docs/adr/)** - Architecture decision records
 
 ## Design Principles
