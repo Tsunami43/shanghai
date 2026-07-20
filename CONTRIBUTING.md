@@ -48,6 +48,14 @@ mix credo --strict                 # linting
 The `mix quality` alias runs format/credo/dialyzer together; `mix test.all`
 runs every app's tests.
 
+**Testing durability on a real disk.** Tests write under `System.tmp_dir!/0`
+(`/tmp`), which is tmpfs on most Linux systems - there an `fsync` is a memory
+barrier, not a disk flush, so crash-recovery and group-commit tests do not
+exercise real durability. `mix test.disk` runs the whole suite against a real
+filesystem (`./tmp/test` by default, or `SHANGHAI_TEST_DIR`) by pointing
+`TMPDIR` at it. Run it when touching the WAL, fsync, recovery, or epoch
+persistence. Confirm the target is not tmpfs with `df -T`.
+
 - **English only.** All repository content (code, comments, docstrings, commit
   messages, and documentation) must be in English. CI enforces this.
 - **Keep docs honest.** When you change behavior, update the relevant docs so
