@@ -79,7 +79,9 @@ defmodule Storage.Supervisor do
          data_dir: segments_dir,
          node_id: node_id,
          segment_size_threshold: segment_size_threshold,
-         segment_time_threshold: segment_time_threshold
+         segment_time_threshold: segment_time_threshold,
+         batch_size: Application.get_env(:storage, :batch_size, 100),
+         batch_timeout_ms: Application.get_env(:storage, :batch_timeout_ms, 10)
        ]},
       {Storage.WAL.Reader, []},
 

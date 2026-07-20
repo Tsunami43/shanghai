@@ -5,6 +5,21 @@ defmodule Storage.WAL.Writer do
   Ensures durability through fsync and manages log segments with automatic rotation.
   All writes go through this process to maintain ordering and atomicity.
 
+  ## Group Commit
+
+  Entries are written to the segment file immediately but the expensive fsync is
+  amortized across a batch. A caller is only replied to once its entry is on
+  disk, so batching changes *when* fsync happens, never *if*:
+
+  - a batch is flushed as soon as no further append is already queued, so a
+    lone writer never waits for a timer
+  - under concurrent load the batch grows until `:batch_size` entries or
+    `:batch_timeout_ms` elapses, so one fsync covers many writes
+  - pending writes are always flushed before a rotation and on shutdown
+
+  A crash before the flush loses the un-fsynced entries, exactly as it would
+  without batching: no caller has been told those writes succeeded.
+
   ## Rotation Strategy
 
   Segments rotate when EITHER condition is met:
@@ -34,6 +49,10 @@ defmodule Storage.WAL.Writer do
   @default_segment_time_threshold 3600
   # Persist metadata every N appends
   @metadata_persist_interval 100
+  # Max entries sharing one fsync
+  @default_batch_size 100
+  # Max time an entry waits for its batch to fill
+  @default_batch_timeout_ms 10
 
   defmodule State do
     @moduledoc false
@@ -49,7 +68,11 @@ defmodule Storage.WAL.Writer do
             node_id: NodeId.t(),
             segment_size_threshold: non_neg_integer(),
             segment_time_threshold: non_neg_integer(),
-            append_count: non_neg_integer()
+            append_count: non_neg_integer(),
+            batch_size: pos_integer(),
+            batch_timeout_ms: non_neg_integer(),
+            pending: [{GenServer.from(), non_neg_integer()}],
+            flush_timer: reference() | nil
           }
 
     defstruct [
@@ -63,7 +86,11 @@ defmodule Storage.WAL.Writer do
       :node_id,
       :segment_size_threshold,
       :segment_time_threshold,
-      :append_count
+      :append_count,
+      :batch_size,
+      :batch_timeout_ms,
+      pending: [],
+      flush_timer: nil
     ]
   end
 
@@ -141,6 +168,9 @@ defmodule Storage.WAL.Writer do
     segment_time_threshold =
       Keyword.get(opts, :segment_time_threshold, @default_segment_time_threshold)
 
+    batch_size = Keyword.get(opts, :batch_size, @default_batch_size)
+    batch_timeout_ms = Keyword.get(opts, :batch_timeout_ms, @default_batch_timeout_ms)
+
     segments_dir = Path.join(data_dir, "segments")
     metadata_path = Path.join(data_dir, "wal_metadata.dat")
 
@@ -178,7 +208,11 @@ defmodule Storage.WAL.Writer do
           node_id: node_id,
           segment_size_threshold: segment_size_threshold,
           segment_time_threshold: segment_time_threshold,
-          append_count: 0
+          append_count: 0,
+          batch_size: batch_size,
+          batch_timeout_ms: batch_timeout_ms,
+          pending: [],
+          flush_timer: nil
         }
 
         Logger.info("WAL Writer initialized at LSN #{current_lsn}, segment #{current_segment_id}")
@@ -192,42 +226,32 @@ defmodule Storage.WAL.Writer do
   end
 
   @impl true
-  def handle_call({:append, data}, _from, state) do
+  def handle_call({:append, data}, from, state) do
     # Create log entry with next LSN
     lsn = state.current_lsn
     lsn_struct = LogSequenceNumber.new(lsn)
 
     entry = LogEntry.new(lsn_struct, data, state.node_id, %{})
 
-    # Append to current segment. `Segment.append_entry/2` emits the
-    # `[:shanghai, :storage, :wal, :write]` (and :sync) telemetry at the point
-    # of the actual disk write, so the Writer does not emit it again here.
-    case Segment.append_entry(state.current_segment_pid, entry) do
+    # Write now, fsync with the batch. `Segment.append_entry_no_sync/2` emits the
+    # `[:shanghai, :storage, :wal, :write]` telemetry at the point of the actual
+    # disk write, and the batch's `Segment.sync/1` emits the `:sync` event, so
+    # the Writer does not emit either here.
+    case Segment.append_entry_no_sync(state.current_segment_pid, entry) do
       {:ok, offset} ->
         # Update index
         :ok = SegmentIndex.insert(SegmentIndex, lsn, state.current_segment_id, offset)
 
-        # Increment LSN and append count
+        # Increment LSN and append count, and queue the caller's reply until the
+        # entry has been fsynced.
         new_state = %{
           state
           | current_lsn: lsn + 1,
-            append_count: state.append_count + 1
+            append_count: state.append_count + 1,
+            pending: [{from, lsn} | state.pending]
         }
 
-        # Check if we need to rotate (cache current time for checks)
-        current_time = System.monotonic_time(:second)
-        new_state = check_and_rotate(new_state, current_time)
-
-        # Periodically persist metadata
-        new_state =
-          if rem(new_state.append_count, @metadata_persist_interval) == 0 do
-            persist_metadata(new_state)
-            new_state
-          else
-            new_state
-          end
-
-        {:reply, {:ok, lsn}, new_state}
+        {:noreply, new_state |> maybe_flush() |> maybe_rotate() |> maybe_persist_metadata()}
 
       {:error, reason} ->
         Logger.error("Failed to append entry: #{inspect(reason)}")
@@ -247,7 +271,16 @@ defmodule Storage.WAL.Writer do
   end
 
   @impl true
+  def handle_info(:flush_timeout, state) do
+    {:noreply, state |> flush_pending() |> maybe_rotate()}
+  end
+
+  @impl true
   def terminate(_reason, state) do
+    # Never leave an acknowledged-but-unsynced write behind: callers are still
+    # blocked on their reply and the entries are not yet durable.
+    state = flush_pending(state)
+
     # Final metadata persist
     persist_metadata(state)
     Logger.info("WAL Writer shutting down at LSN #{state.current_lsn}")
@@ -255,6 +288,89 @@ defmodule Storage.WAL.Writer do
   end
 
   ## Private Functions
+
+  # Group commit: flush as soon as nothing else is queued, so a lone writer
+  # never waits on the timer, and cap the batch under concurrent load. When the
+  # batch stays open, a timer bounds how long the oldest entry waits.
+  @spec maybe_flush(State.t()) :: State.t()
+  defp maybe_flush(state) do
+    cond do
+      state.pending == [] -> state
+      mailbox_empty?() -> flush_pending(state)
+      length(state.pending) >= state.batch_size -> flush_pending(state)
+      true -> ensure_flush_timer(state)
+    end
+  end
+
+  @spec mailbox_empty?() :: boolean()
+  defp mailbox_empty? do
+    case Process.info(self(), :message_queue_len) do
+      {:message_queue_len, 0} -> true
+      _ -> false
+    end
+  end
+
+  @spec ensure_flush_timer(State.t()) :: State.t()
+  defp ensure_flush_timer(%State{flush_timer: nil} = state) do
+    timer = Process.send_after(self(), :flush_timeout, state.batch_timeout_ms)
+    %{state | flush_timer: timer}
+  end
+
+  defp ensure_flush_timer(state), do: state
+
+  # fsyncs once for the whole batch, then releases every waiting caller. A failed
+  # fsync means none of these writes are durable, so they all report an error.
+  @spec flush_pending(State.t()) :: State.t()
+  defp flush_pending(%State{pending: []} = state), do: cancel_flush_timer(state)
+
+  defp flush_pending(state) do
+    result = Segment.sync(state.current_segment_pid)
+
+    if match?({:error, _}, result) do
+      Logger.error("Failed to sync WAL batch: #{inspect(result)}")
+    end
+
+    state.pending
+    |> Enum.reverse()
+    |> Enum.each(fn {from, lsn} ->
+      case result do
+        :ok -> GenServer.reply(from, {:ok, lsn})
+        {:error, reason} -> GenServer.reply(from, {:error, {:sync_failed, reason}})
+      end
+    end)
+
+    cancel_flush_timer(%{state | pending: []})
+  end
+
+  @spec cancel_flush_timer(State.t()) :: State.t()
+  defp cancel_flush_timer(%State{flush_timer: nil} = state), do: state
+
+  defp cancel_flush_timer(state) do
+    Process.cancel_timer(state.flush_timer)
+    %{state | flush_timer: nil}
+  end
+
+  # Rotation retargets the segment that `flush_pending/1` fsyncs, so any queued
+  # write must be made durable in the old segment first.
+  @spec maybe_rotate(State.t()) :: State.t()
+  defp maybe_rotate(state) do
+    current_time = System.monotonic_time(:second)
+
+    if check_size_threshold(state) or check_time_threshold(state, current_time) do
+      state |> flush_pending() |> rotate_segment(current_time)
+    else
+      state
+    end
+  end
+
+  @spec maybe_persist_metadata(State.t()) :: State.t()
+  defp maybe_persist_metadata(state) do
+    if rem(state.append_count, @metadata_persist_interval) == 0 do
+      persist_metadata(state)
+    end
+
+    state
+  end
 
   # Reconciles the loaded metadata with the segment index (which rebuilds itself
   # from the segments on start-up). When the index holds an LSN at or beyond the
@@ -374,18 +490,6 @@ defmodule Storage.WAL.Writer do
       {:error, reason} ->
         Logger.warning("Failed to encode metadata: #{inspect(reason)}")
         {:error, reason}
-    end
-  end
-
-  @spec check_and_rotate(State.t(), integer()) :: State.t()
-  defp check_and_rotate(state, current_time) do
-    should_rotate =
-      check_size_threshold(state) or check_time_threshold(state, current_time)
-
-    if should_rotate do
-      rotate_segment(state, current_time)
-    else
-      state
     end
   end
 

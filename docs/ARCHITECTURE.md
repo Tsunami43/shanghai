@@ -48,7 +48,7 @@ Shanghai is a distributed, replicated log storage system built on the Erlang VM 
 
 Shanghai favors simple, understandable designs over complex optimizations. Each component has a single, well-defined responsibility.
 
-**Example**: Separate GenServers for Segment, Writer, BatchWriter rather than a monolithic storage engine.
+**Example**: Separate GenServers for Segment, Writer and Reader rather than a monolithic storage engine.
 
 ### 2. Fail-Fast Philosophy
 
@@ -133,7 +133,6 @@ The Storage subsystem manages durable, sequential write-ahead log storage.
 
 - **Storage.WAL.Segment**: Individual WAL file management
 - **Storage.WAL.Writer**: High-level write API
-- **Storage.WAL.BatchWriter**: Batched writes for throughput
 - **Storage.Compaction.Compactor**: Background segment compaction (merges a
   group into one segment; never discards entries)
 
@@ -146,10 +145,10 @@ The Storage subsystem manages durable, sequential write-ahead log storage.
 # With LSN tracking
 lsn = Storage.WAL.Writer.append!(data)
 Logger.info("Wrote at LSN #{lsn}")
-
-# Batched writes (higher throughput)
-{:ok, lsn} = Storage.WAL.BatchWriter.append(data)
 ```
+
+Writes are group-committed automatically: concurrent appends share one fsync,
+and each caller blocks until its own entry is durable.
 
 #### WAL File Format
 
@@ -338,19 +337,15 @@ Client
   ▼
 Storage.WAL.Writer
   │
-  │ (batching enabled?)
-  ├─ No ──> Storage.WAL.Segment
-  │           │
-  │           │ write + fsync
-  │           ▼
-  │         Disk
+  │ assign LSN, write entry (no fsync yet)
+  ▼
+Storage.WAL.Segment
   │
-  └─ Yes ──> Storage.WAL.BatchWriter
-              │
-              │ batch for 10ms or 100 entries
-              ▼
-            Storage.WAL.Segment
-              │
+  │ group commit: one fsync per batch
+  │ (flushed immediately when nothing else is queued)
+  ▼
+Disk
+  │
               │ write + fsync (batch)
               ▼
             Disk
@@ -392,7 +387,7 @@ Replication.Leader                 │
 
 Shanghai scales vertically through:
 
-- **Batch writes**: 60x throughput improvement
+- **Group commit**: concurrent writes share one fsync
 - **Async replication**: Non-blocking writes
 - **Concurrent segment writes**: Multiple WAL segments
 

@@ -311,48 +311,32 @@ lsn = Storage.WAL.Writer.append!("Important data")
 
 ---
 
-### Storage.WAL.BatchWriter
+### Batched writes (group commit)
 
-High-throughput batched writes to the WAL.
+Batching is built into the WAL writer, so `Storage.append/1` and
+`Storage.WAL.Writer.append/1` already amortize fsync. There is no separate
+batch-writer API to call.
 
-#### append/1
-
-Appends data using batching for higher throughput.
-
-**Signature:**
-```elixir
-@spec append(binary()) :: {:ok, lsn()} | {:error, reason}
-```
-
-**Parameters:**
-- `data` (binary): Data to append
-
-**Returns:**
-- Same as `Storage.WAL.Writer.append/1`
-
-**Example:**
-```elixir
-# Use BatchWriter for high-throughput workloads
-{:ok, lsn} = Storage.WAL.BatchWriter.append(data)
-```
-
-**Performance:**
-- Throughput: ~60,000 writes/sec (60x improvement)
-- Latency: P99 < 2ms (batched)
+A batch is flushed as soon as no further append is queued, so a lone writer is
+never delayed by the timer; under concurrent load the batch grows until
+`batch_size` entries or `batch_timeout_ms` elapses. Callers always block until
+their own entry is fsynced.
 
 **Configuration:**
 ```elixir
 # config/config.exs
-config :storage, :batch_writer,
-  batch_size: 100,       # Max entries per batch
+config :storage,
+  batch_size: 100,       # Max entries sharing one fsync
   batch_timeout_ms: 10   # Max wait before flush
 ```
 
-**Trade-off:** Slightly higher latency, much higher throughput.
+**Trade-off:** Under concurrent load, individual writes may wait slightly
+longer so that many can share one fsync.
 
-> **Status:** The batch writer is a standalone component and is not yet wired
-> into the default WAL write path; the config above has no effect until it is
-> integrated. See [Tuning](TUNING.md).
+> **Status:** Batching is built into `Storage.WAL.Writer`, so every
+> `Storage.append/1` already group-commits; there is no separate batch writer
+> to call. The throughput figure above is an unverified target. See
+> [Tuning](TUNING.md).
 
 ---
 

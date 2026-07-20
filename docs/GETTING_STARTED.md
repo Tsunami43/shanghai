@@ -329,13 +329,13 @@ end
 
 ### Batched Writes (High Throughput)
 
-For high throughput workloads, use `BatchWriter`:
+Batching is automatic - the WAL writer group-commits, so nothing extra is
+needed for high throughput workloads:
 
 ```elixir
-# BatchWriter automatically batches for 10ms or 100 entries
-{:ok, lsn} = Storage.WAL.BatchWriter.append(data)
-
-# Same API, ~60x higher throughput
+# Concurrent appends share a single fsync; each caller still blocks until
+# its own entry is durable.
+{:ok, lsn} = Storage.append(data)
 ```
 
 **When to use batching:**

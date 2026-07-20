@@ -133,7 +133,7 @@ Examples.BasicWAL.write_many(messages)
 
 ```elixir
 defmodule Examples.HighThroughput do
-  alias Storage.WAL.BatchWriter
+  alias Storage.WAL.Writer
 
   def generate_load(num_writes) do
     start_time = System.monotonic_time(:millisecond)
@@ -142,7 +142,7 @@ defmodule Examples.HighThroughput do
     |> Task.async_stream(
       fn i ->
         data = :erlang.term_to_binary(%{index: i, timestamp: System.system_time()})
-        BatchWriter.append(data)
+        Writer.append(data)
       end,
       max_concurrency: 100
     )

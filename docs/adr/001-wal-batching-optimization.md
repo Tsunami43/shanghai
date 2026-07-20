@@ -1,6 +1,6 @@
 # ADR 001: WAL Write Batching for Performance Optimization
 
-**Status:** Proposed
+**Status:** Accepted (implemented differently - see Outcome)
 **Date:** 2025-03-15
 **Author:** Shanghai Team
 **Context:** Phase 4 - Performance & Stability Work
@@ -146,16 +146,28 @@ Even with NVMe, batching still provides significant benefits.
 - MySQL InnoDB group commit: https://dev.mysql.com/doc/refman/8.0/en/innodb-redo-log.html
 - LevelDB WAL batching: https://github.com/google/leveldb/blob/main/db/db_impl.cc
 
+## Outcome
+
+Batching was implemented, but **not** as the standalone `Storage.WAL.BatchWriter`
+module this ADR proposed. That module was written and never wired in: it held a
+fixed `segment_pid` and did none of the work the write path owns - LSN
+assignment, `SegmentIndex` updates, segment rotation or metadata persistence -
+so it could not sit in front of `Storage.WAL.Writer` without duplicating them.
+
+Group commit now lives inside `Storage.WAL.Writer` itself, and the standalone
+module was removed. The durability contract is unchanged: a caller is replied
+to only after its entry is fsynced.
+
+One refinement over the original design: a batch is flushed as soon as no
+further append is queued, so a lone writer is never delayed by
+`batch_timeout_ms`. The timer only bounds waiting under concurrent load.
+
 ## Follow-up Actions
 
-- [ ] Implement `Segment.append_entry_no_sync/2` for write-only operations
-- [ ] Implement `Segment.sync/1` for fsync-only operations
-- [ ] Add telemetry metrics for batch operations
-- [ ] Update Writer to use BatchWriter
+- [x] Implement `Segment.append_entry_no_sync/2` for write-only operations
+- [x] Implement `Segment.sync/1` for fsync-only operations
+- [x] Add telemetry metrics for batch operations
+- [x] Group-commit in the Writer (instead of a separate BatchWriter)
+- [x] Document tuning recommendations for operators
 - [ ] Benchmark against different batch sizes and timeouts
-- [ ] Document tuning recommendations for operators
-
-## Notes
-
-This ADR will be updated to "Accepted" once the implementation is complete
 and benchmarks confirm the expected performance improvements.
