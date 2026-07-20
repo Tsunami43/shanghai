@@ -33,10 +33,13 @@ defmodule Replication.GroupCoordinator do
   Note the cost: a group of two cannot fail over, because one survivor is not a
   majority of two. Fault tolerance needs at least three members.
 
-  Limits worth knowing: epochs live in memory (see `Replication.Epoch`), a
-  group configured without `:members` runs unfenced because a majority needs a
-  fixed group size, and this is not Raft - there is no log matching or commit
-  index, so a new leader is not guaranteed to hold every acknowledged entry.
+  Votes are persisted before they are granted (see `Replication.Epoch`), so a
+  restart cannot undo one.
+
+  Limits worth knowing: a group configured without `:members` runs unfenced
+  because a majority needs a fixed group size, and this is not Raft - there is
+  no log matching or commit index, so a new leader is not guaranteed to hold
+  every acknowledged entry.
 
   A member id must equal the short Erlang node name: `Cluster.Membership` maps a
   `:nodedown` back to a member through `Cluster.Entities.Node.erlang_node_name/1`

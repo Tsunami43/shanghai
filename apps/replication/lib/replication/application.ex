@@ -28,17 +28,30 @@ defmodule Replication.Application do
     children =
       [
         # Registry for leader and follower processes
-        {Registry, keys: :unique, name: Replication.Registry},
-        # Per-group leadership epochs and votes. Started before anything that
-        # can stand for election or apply a replicated entry.
-        Replication.Epoch,
-        # Dynamic supervisor under which per-group leader/stream/follower processes
-        # are started via Replication.start_leader/2 and start_follower/2.
-        {DynamicSupervisor, strategy: :one_for_one, name: Replication.GroupSupervisor}
-      ] ++ monitor_children ++ coordinator_children()
+        {Registry, keys: :unique, name: Replication.Registry}
+      ] ++
+        epoch_children() ++
+        [
+          # Dynamic supervisor under which per-group leader/stream/follower
+          # processes are started via Replication.start_leader/2 and
+          # start_follower/2.
+          {DynamicSupervisor, strategy: :one_for_one, name: Replication.GroupSupervisor}
+        ] ++ monitor_children ++ coordinator_children()
 
     opts = [strategy: :one_for_one, name: Replication.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  # Per-group leadership epochs and votes, started before anything that can
+  # stand for election or apply a replicated entry. Disabled in the test env
+  # (see config/test.exs), where tests own this singleton so they can restart
+  # it to prove a vote is durable.
+  defp epoch_children do
+    if Application.get_env(:replication, :start_epoch, true) do
+      [Replication.Epoch]
+    else
+      []
+    end
   end
 
   # One GroupCoordinator per group configured via `config :replication, :groups`.

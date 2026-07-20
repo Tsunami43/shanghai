@@ -15,6 +15,14 @@ if config_env() != :test do
 
   config :storage, data_root: data_root
 
+  # Leadership epochs and votes must survive a restart, otherwise a node can
+  # vote twice in one epoch and two leaders can be elected in it. Defaults
+  # under the same data root; override to place it on its own volume.
+  config :replication,
+    epoch_dir:
+      System.get_env("SHANGHAI_EPOCH_DIR") ||
+        Path.join([data_root, "replication", "epochs"])
+
   # Seed nodes for Erlang-distribution discovery, from a comma-separated list of
   # `name@host` entries (e.g. "node-1@10.0.1.10,node-2@10.0.1.11").
   seed_nodes =
