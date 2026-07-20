@@ -32,7 +32,10 @@ defmodule Replication do
   """
   @spec start_leader(String.t(), keyword()) :: {:ok, pid()} | {:error, term()}
   def start_leader(group_id, opts \\ []) when is_binary(group_id) do
-    stream_opts = [group_id: group_id] ++ Keyword.take(opts, [:batch_size, :flush_interval_ms])
+    # The Stream serves exactly one leadership term, so its epoch is fixed for
+    # its lifetime and every entry it delivers is stamped with it.
+    stream_opts =
+      [group_id: group_id] ++ Keyword.take(opts, [:batch_size, :flush_interval_ms, :epoch])
 
     with {:ok, _stream} <- start_group_child({Stream, stream_opts}) do
       start_group_child({Leader, [group_id: group_id] ++ opts})

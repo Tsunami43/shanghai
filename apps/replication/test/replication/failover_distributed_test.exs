@@ -105,16 +105,19 @@ defmodule Replication.FailoverDistributedTest do
   end
 
   describe "leader failover across nodes" do
-    test "the survivor promotes itself when the leader's node dies" do
+    test "a surviving majority promotes a new leader when the leader's node dies" do
       group = "failover-#{:rand.uniform(10_000)}"
 
-      # Peer names double as member ids - see join/2.
-      {id_a, id_b} = {"shanghai_a", "shanghai_b"}
+      # Three members, because promotion now needs a quorum: killing one of
+      # three leaves a majority, and the survivors can elect. Peer names double
+      # as member ids - see join/2.
+      ids = [id_a, id_b, id_c] = ["shanghai_a", "shanghai_b", "shanghai_c"]
       {peer_a, node_a} = start_peer(:shanghai_a)
       {peer_b, node_b} = start_peer(:shanghai_b)
+      {peer_c, node_c} = start_peer(:shanghai_c)
 
       on_exit(fn ->
-        for peer <- [peer_a, peer_b] do
+        for peer <- [peer_a, peer_b, peer_c] do
           try do
             :peer.stop(peer)
           catch
@@ -125,28 +128,82 @@ defmodule Replication.FailoverDistributedTest do
 
       start_membership(node_a, id_a)
       start_membership(node_b, id_b)
+      start_membership(node_c, id_c)
 
       # Peers only auto-connect to the test node, so wire them to each other -
       # the job Cluster.Discovery does from seed nodes in a real deployment.
-      # Without this link there is no :nodedown to react to.
+      # Without these links there is no :nodedown to react to, and no vote can
+      # be collected either.
       true = :erpc.call(node_b, Node, :connect, [node_a])
+      true = :erpc.call(node_c, Node, :connect, [node_a])
+      true = :erpc.call(node_c, Node, :connect, [node_b])
 
-      # Both nodes must see both members before either can elect.
-      for node <- [node_a, node_b], id <- [id_a, id_b], do: join(node, id)
+      # Every node must see every member before any of them can elect.
+      for node <- [node_a, node_b, node_c], id <- ids, do: join(node, id)
 
-      start_coordinator(node_a, group, id_a, [id_a, id_b])
-      start_coordinator(node_b, group, id_b, [id_a, id_b])
+      for {node, id} <- [{node_a, id_a}, {node_b, id_b}, {node_c, id_c}] do
+        start_coordinator(node, group, id, ids)
+      end
 
       # Smallest member id wins the deterministic election.
       assert await_role(node_a, group, :leader) == :leader
       assert await_role(node_b, group, :follower) == :follower
+      assert await_role(node_c, group, :follower) == :follower
 
       # Kill the leader's entire node, not just its processes: the promotion
-      # has to come from :nodedown reaching the survivor's membership.
+      # has to come from :nodedown reaching the survivors' membership, and the
+      # new leader has to win a real vote from the remaining majority.
       :peer.stop(peer_a)
 
       assert await_role(node_b, group, :leader) == :leader,
-             "survivor did not promote after the leader's node died"
+             "the surviving majority did not elect a new leader"
+
+      assert await_role(node_c, group, :follower) == :follower
+    end
+
+    test "a minority that loses quorum refuses to promote" do
+      # The safety half of the same mechanism: with two of three members gone,
+      # the survivor is a minority and must NOT make itself writable, however
+      # much its local membership view says it is the smallest node up.
+      group = "minority-#{:rand.uniform(10_000)}"
+
+      ids = [id_a, id_b, id_c] = ["shanghai_a", "shanghai_b", "shanghai_c"]
+      {peer_a, node_a} = start_peer(:shanghai_a)
+      {peer_b, node_b} = start_peer(:shanghai_b)
+      {peer_c, node_c} = start_peer(:shanghai_c)
+
+      on_exit(fn ->
+        for peer <- [peer_a, peer_b, peer_c] do
+          try do
+            :peer.stop(peer)
+          catch
+            _, _ -> :ok
+          end
+        end
+      end)
+
+      start_membership(node_a, id_a)
+      start_membership(node_b, id_b)
+      start_membership(node_c, id_c)
+
+      true = :erpc.call(node_b, Node, :connect, [node_a])
+      true = :erpc.call(node_c, Node, :connect, [node_a])
+      true = :erpc.call(node_c, Node, :connect, [node_b])
+
+      for node <- [node_a, node_b, node_c], id <- ids, do: join(node, id)
+
+      for {node, id} <- [{node_a, id_a}, {node_b, id_b}, {node_c, id_c}] do
+        start_coordinator(node, group, id, ids)
+      end
+
+      assert await_role(node_a, group, :leader) == :leader
+
+      # Both of c's peers die: c is alone and cannot reach a majority of three.
+      :peer.stop(peer_a)
+      :peer.stop(peer_b)
+
+      assert await_role(node_c, group, :leader, 20) != :leader,
+             "an isolated minority must not promote itself to leader"
     end
   end
 end

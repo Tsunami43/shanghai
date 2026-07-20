@@ -29,7 +29,8 @@ defmodule Replication.Stream do
           followers: %{NodeId.t() => follower_state()},
           pending_entries: :queue.queue(),
           batch_size: pos_integer(),
-          flush_interval_ms: pos_integer()
+          flush_interval_ms: pos_integer(),
+          epoch: non_neg_integer() | nil
         }
 
   @default_batch_size 100
@@ -106,7 +107,11 @@ defmodule Replication.Stream do
       pending_entries: :queue.new(),
       history: [],
       batch_size: batch_size,
-      flush_interval_ms: flush_interval_ms
+      flush_interval_ms: flush_interval_ms,
+      # Leadership epoch stamped on every delivered entry. `nil` means this
+      # group runs unfenced (no configured member list), and followers then
+      # accept entries without an epoch check.
+      epoch: Keyword.get(opts, :epoch)
     }
 
     # Schedule periodic flush
@@ -195,7 +200,13 @@ defmodule Replication.Stream do
             started_at = System.monotonic_time(:millisecond)
 
             updated_follower =
-              deliver_entries(state.group_id, follower_node_id, follower_state, entries)
+              deliver_entries(
+                state.group_id,
+                follower_node_id,
+                follower_state,
+                entries,
+                state.epoch
+              )
 
             Observability.Metrics.replication_catchup_completed(
               System.monotonic_time(:millisecond) - started_at,
@@ -250,7 +261,13 @@ defmodule Replication.Stream do
       updated_followers =
         Map.new(state.followers, fn {follower_id, follower_state} ->
           {follower_id,
-           send_entries_to_follower(state.group_id, follower_id, follower_state, entries)}
+           send_entries_to_follower(
+             state.group_id,
+             follower_id,
+             follower_state,
+             entries,
+             state.epoch
+           )}
         end)
 
       last_offset = entries |> List.last() |> elem(0)
@@ -271,7 +288,7 @@ defmodule Replication.Stream do
   # state. `last_sent_offset` advances only to the last offset actually sent, and
   # stays put when nothing is sent or delivery fails, so undelivered entries are
   # re-attempted on the next flush.
-  defp send_entries_to_follower(group_id, follower_id, follower_state, entries) do
+  defp send_entries_to_follower(group_id, follower_id, follower_state, entries, epoch) do
     entries_to_send =
       Enum.filter(entries, fn {offset, _data} ->
         ReplicationOffset.compare(offset, follower_state.last_sent_offset) == :gt
@@ -282,18 +299,18 @@ defmodule Replication.Stream do
         follower_state
 
       to_send ->
-        deliver_entries(group_id, follower_id, follower_state, to_send)
+        deliver_entries(group_id, follower_id, follower_state, to_send, epoch)
     end
   end
 
-  defp deliver_entries(group_id, follower_id, follower_state, entries_to_send) do
+  defp deliver_entries(group_id, follower_id, follower_state, entries_to_send, epoch) do
     # Deliver to the follower on its own node: a local cast when it is us (or when
     # the node is unknown, e.g. single-node/test), an `:rpc.cast` to the follower's
     # node otherwise. Resolved once per batch from the cluster view.
     target = follower_node(follower_id)
 
     Enum.each(entries_to_send, fn {offset, data} ->
-      deliver_to(target, group_id, offset, data)
+      deliver_to(target, group_id, offset, data, epoch)
     end)
 
     last_sent = entries_to_send |> List.last() |> elem(0)
@@ -323,11 +340,11 @@ defmodule Replication.Stream do
     end
   end
 
-  defp deliver_to(target, group_id, offset, data) when target in [nil, node()] do
-    Replication.Follower.apply_entry(group_id, offset, data)
+  defp deliver_to(target, group_id, offset, data, epoch) when target in [nil, node()] do
+    Replication.Follower.apply_entry(group_id, offset, data, epoch)
   end
 
-  defp deliver_to(target, group_id, offset, data) do
-    :rpc.cast(target, Replication.Follower, :apply_entry, [group_id, offset, data])
+  defp deliver_to(target, group_id, offset, data, epoch) do
+    :rpc.cast(target, Replication.Follower, :apply_entry, [group_id, offset, data, epoch])
   end
 end

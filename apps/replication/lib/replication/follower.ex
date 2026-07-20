@@ -13,6 +13,7 @@ defmodule Replication.Follower do
   require Logger
 
   alias CoreDomain.Types.NodeId
+  alias Replication.Epoch
   alias Replication.ValueObjects.ReplicationOffset
   alias Storage.WAL.Writer
 
@@ -39,10 +40,18 @@ defmodule Replication.Follower do
 
   @doc """
   Applies a replicated entry from the leader.
+
+  `epoch` is the leadership epoch the entry was written under. An entry from an
+  epoch older than the highest this node has seen is rejected: its sender has
+  been superseded and is no longer the leader. `nil` means the group runs
+  unfenced and no check is applied.
+
+  The 3-arity form is retained so an entry from a node that predates fencing is
+  still accepted rather than silently dropped.
   """
-  @spec apply_entry(String.t(), ReplicationOffset.t(), binary()) :: :ok
-  def apply_entry(group_id, offset, data) do
-    GenServer.cast(via_tuple(group_id), {:apply_entry, offset, data})
+  @spec apply_entry(String.t(), ReplicationOffset.t(), binary(), non_neg_integer() | nil) :: :ok
+  def apply_entry(group_id, offset, data, epoch \\ nil) do
+    GenServer.cast(via_tuple(group_id), {:apply_entry, offset, data, epoch})
   end
 
   @doc """
@@ -91,7 +100,68 @@ defmodule Replication.Follower do
   end
 
   @impl true
-  def handle_cast({:apply_entry, offset, data}, state) do
+  def handle_cast({:apply_entry, offset, data, epoch}, state) do
+    if fenced_out?(state.group_id, epoch) do
+      # The sender has been superseded by a newer leadership epoch. Dropping the
+      # entry is the whole point of fencing: a demoted or partitioned-away
+      # leader must not be able to keep writing here.
+      Logger.warning(
+        "Follower rejected entry at offset #{offset.value} from stale epoch " <>
+          "#{inspect(epoch)}; current epoch is #{Epoch.current(state.group_id)}"
+      )
+
+      {:noreply, state}
+    else
+      apply_accepted_entry(offset, data, state)
+    end
+  end
+
+  @impl true
+  def handle_cast({:set_leader, leader_node_id}, state) do
+    Logger.info("Follower #{state.node_id.value} now following #{leader_node_id.value}")
+
+    updated_state = %{state | leader_node_id: leader_node_id}
+
+    # Report current offset to new leader
+    report_to_leader(updated_state)
+
+    {:noreply, updated_state}
+  end
+
+  @impl true
+  def handle_call(:current_offset, _from, state) do
+    {:reply, state.current_offset, state}
+  end
+
+  @impl true
+  def handle_info(:report_offset, state) do
+    report_to_leader(state)
+    schedule_report()
+    {:noreply, state}
+  end
+
+  # Private Functions
+
+  # Persists a replicated entry to the storage WAL when it is running; a no-op
+  # otherwise so replication still works in in-memory (test) mode.
+  defp apply_data(%{on_apply: {module, function, args}}, data) do
+    apply(module, function, args ++ [data])
+  end
+
+  defp apply_data(%{on_apply: nil}, data), do: persist_to_wal(data)
+
+  defp persist_to_wal(data) do
+    if is_pid(Process.whereis(Writer)) do
+      case Writer.append(data) do
+        {:ok, _lsn} -> :ok
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      :ok
+    end
+  end
+
+  defp apply_accepted_entry(offset, data, state) do
     # Verify offset is the next expected one
     expected_offset = ReplicationOffset.increment(state.current_offset)
 
@@ -143,48 +213,18 @@ defmodule Replication.Follower do
     end
   end
 
-  @impl true
-  def handle_cast({:set_leader, leader_node_id}, state) do
-    Logger.info("Follower #{state.node_id.value} now following #{leader_node_id.value}")
+  # An entry is fenced out when it carries an epoch older than the highest this
+  # node has seen. An entry at or above it is accepted, and a newer one is
+  # recorded so that anything still arriving from the previous leader is
+  # rejected from here on.
+  defp fenced_out?(_group_id, nil), do: false
 
-    updated_state = %{state | leader_node_id: leader_node_id}
-
-    # Report current offset to new leader
-    report_to_leader(updated_state)
-
-    {:noreply, updated_state}
-  end
-
-  @impl true
-  def handle_call(:current_offset, _from, state) do
-    {:reply, state.current_offset, state}
-  end
-
-  @impl true
-  def handle_info(:report_offset, state) do
-    report_to_leader(state)
-    schedule_report()
-    {:noreply, state}
-  end
-
-  # Private Functions
-
-  # Persists a replicated entry to the storage WAL when it is running; a no-op
-  # otherwise so replication still works in in-memory (test) mode.
-  defp apply_data(%{on_apply: {module, function, args}}, data) do
-    apply(module, function, args ++ [data])
-  end
-
-  defp apply_data(%{on_apply: nil}, data), do: persist_to_wal(data)
-
-  defp persist_to_wal(data) do
-    if is_pid(Process.whereis(Writer)) do
-      case Writer.append(data) do
-        {:ok, _lsn} -> :ok
-        {:error, reason} -> {:error, reason}
-      end
+  defp fenced_out?(group_id, epoch) do
+    if epoch < Epoch.current(group_id) do
+      true
     else
-      :ok
+      Epoch.observe(group_id, epoch)
+      false
     end
   end
 
