@@ -93,12 +93,5 @@ jobs:
     - name: Run Credo
       run: mix credo --strict
 
-    - name: Restore PLT cache
-      uses: actions/cache@v4
-      with:
-        path: priv/plts
-        key: ${{ runner.os }}-plt-${{ hashFiles('**/mix.lock') }}
-        restore-keys: ${{ runner.os }}-plt-
-
     - name: Run Dialyzer
-      run: mix dialyzer --format github || true
+      run: mix dialyzer --format github

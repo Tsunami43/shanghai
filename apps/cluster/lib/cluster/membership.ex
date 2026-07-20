@@ -56,7 +56,7 @@ defmodule Cluster.Membership do
   @doc """
   Gets the current cluster state.
   """
-  @spec get_cluster() :: Cluster.t()
+  @spec get_cluster() :: State.t()
   def get_cluster do
     GenServer.call(__MODULE__, :get_cluster)
   end

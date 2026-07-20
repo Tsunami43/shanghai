@@ -177,13 +177,8 @@ defmodule Storage do
   @spec compaction_status() :: map()
   def compaction_status do
     if is_pid(Process.whereis(CompactionScheduler)) do
-      case CompactionScheduler.stats() do
-        {:ok, stats} ->
-          %{running: true, enabled: stats.enabled, interval_ms: stats.interval}
-
-        _error ->
-          %{running: false}
-      end
+      {:ok, stats} = CompactionScheduler.stats()
+      %{running: true, enabled: stats.enabled, interval_ms: stats.interval}
     else
       %{running: false}
     end
