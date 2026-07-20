@@ -48,7 +48,8 @@ defmodule Shanghai.MixProject do
           cluster: :permanent,
           replication: :permanent,
           query: :permanent,
-          admin: :permanent
+          admin: :permanent,
+          admin_api: :permanent
         ]
       ]
     ]
