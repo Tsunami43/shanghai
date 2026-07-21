@@ -36,10 +36,16 @@ defmodule Replication.GroupCoordinator do
   Votes are persisted before they are granted (see `Replication.Epoch`), so a
   restart cannot undo one.
 
+  The election refuses a candidate less up-to-date than a voter, compared as
+  `(last_entry_epoch, offset)` - Raft's up-to-date rule - so a leader behind a
+  majority cannot be elected.
+
   Limits worth knowing: a group configured without `:members` runs unfenced
-  because a majority needs a fixed group size, and this is not Raft - there is
-  no log matching or commit index, so a new leader is not guaranteed to hold
-  every acknowledged entry.
+  because a majority needs a fixed group size, and this is still not Raft - it
+  has the election restriction but not log matching, so a follower never
+  truncates a divergent tail (the append-only storage cannot roll one back).
+  The practical contract is that a quorum-acknowledged write survives a
+  failover; an unacknowledged tail may not.
 
   A member id must equal the short Erlang node name: `Cluster.Membership` maps a
   `:nodedown` back to a member through `Cluster.Entities.Node.erlang_node_name/1`

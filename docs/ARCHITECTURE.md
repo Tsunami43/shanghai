@@ -450,7 +450,10 @@ it the smallest node up. Promotion runs an election:
 1. The candidate takes the next **epoch** - a monotonically increasing
    leadership term - and asks every configured member for a vote.
 2. A member grants at most one vote per epoch, and refuses a candidate whose
-   replication offset is behind its own.
+   log is less up-to-date than its own. "Up-to-date" is compared as
+   `(last_entry_epoch, offset)` lexicographically, the same rule Raft uses: a
+   higher last epoch wins regardless of offset, so a longer but staler log
+   cannot beat a shorter, fresher one.
 3. The candidate leads only with a **strict majority**. An unreachable member
    is a missing vote, so an isolated candidate loses and takes no role at all
    rather than writing unfenced. It retries on the next reconcile.
@@ -481,11 +484,21 @@ restarts.
 - **A group configured without `:members` runs unfenced.** A majority is only
   meaningful against a fixed group size; without one the old unqualified
   behaviour applies, and the coordinator warns about it.
-- **This is not Raft.** There is no log matching, no commit index and no
-  guarantee that a newly elected leader holds every acknowledged entry. The
-  completeness check compares replication offsets and is skipped when an
-  offset is unknown, so it narrows the window for lost writes rather than
-  closing it.
+- **This is not Raft.** The election restriction is Raft's - a candidate must
+  be at least as up-to-date by `(last_epoch, offset)` - which rules out
+  electing a leader that is behind a majority. What is still missing is Raft's
+  **log matching**: a follower checks only that offsets are contiguous, not
+  that its previous entry agrees with the leader's, and it never truncates a
+  divergent tail applied under a superseded leader. Two logs can therefore
+  share a `(last_epoch, offset)` yet differ at an earlier offset. Closing that
+  needs the leader to send a previous-entry `(offset, epoch)` for the follower
+  to verify, and the follower to truncate on mismatch - which in turn needs a
+  storage layer that can roll back applied entries. The WAL is append-only and
+  the query store applies mutations in place, so neither supports truncation
+  today; that is the concrete reason full log reconciliation is a separate
+  project rather than a finishing touch. In practice the contract is: a
+  quorum-acknowledged write is safe across a failover; an unacknowledged tail
+  may be lost or diverge, and the client was never told it committed.
 
 ## Performance Characteristics
 

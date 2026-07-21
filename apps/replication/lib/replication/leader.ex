@@ -24,7 +24,8 @@ defmodule Replication.Leader do
           pending_writes: %{reference() => map()},
           follower_offsets: %{NodeId.t() => ReplicationOffset.t()},
           replica_count: pos_integer(),
-          persist_wal: boolean()
+          persist_wal: boolean(),
+          epoch: non_neg_integer()
         }
 
   # Client API
@@ -77,6 +78,15 @@ defmodule Replication.Leader do
   end
 
   @doc """
+  Returns this leader's log position as `{epoch, offset}`, used by the election
+  up-to-date check when a sitting leader stands in a later epoch.
+  """
+  @spec position(String.t()) :: {non_neg_integer(), ReplicationOffset.t()}
+  def position(group_id) do
+    GenServer.call(via_tuple(group_id), :position)
+  end
+
+  @doc """
   Follower reports its current offset.
   """
   @spec report_offset(String.t(), NodeId.t(), ReplicationOffset.t()) :: :ok
@@ -102,7 +112,10 @@ defmodule Replication.Leader do
       # When false, the leader does not persist writes to the storage WAL, a
       # higher layer (e.g. the query store) owns durability and the WAL would
       # otherwise hold a duplicate copy of every replicated record.
-      persist_wal: Keyword.get(opts, :persist_wal, true)
+      persist_wal: Keyword.get(opts, :persist_wal, true),
+      # The leadership epoch this leader won. Every entry it writes carries it,
+      # and it is the epoch component of this node's log position.
+      epoch: Keyword.get(opts, :epoch, 0)
     }
 
     Logger.info("Leader started for group #{group_id} on node #{node_id.value}")
@@ -173,6 +186,10 @@ defmodule Replication.Leader do
   @impl true
   def handle_call(:current_offset, _from, state) do
     {:reply, state.current_offset, state}
+  end
+
+  def handle_call(:position, _from, state) do
+    {:reply, {state.epoch, state.current_offset}, state}
   end
 
   @impl true

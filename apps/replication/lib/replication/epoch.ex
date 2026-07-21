@@ -91,11 +91,20 @@ defmodule Replication.Epoch do
     GenServer.call(__MODULE__, {:observe, group_id, epoch})
   end
 
+  @typedoc """
+  A node's log position as `{last_entry_epoch, offset}`: the leadership epoch
+  the last entry was written under, then the offset. Compared lexicographically,
+  this is Raft's "up-to-date" ordering - a higher last epoch wins regardless of
+  offset, so a longer but staler log does not beat a shorter, fresher one.
+  """
+  @type position :: {non_neg_integer(), ReplicationOffset.t()} | nil
+
   @doc """
   Decides this node's vote for `candidate` standing for `epoch` in `group_id`.
 
   Granted only when `epoch` is strictly greater than the highest seen and the
-  candidate's `candidate_offset` is at least this node's `local_offset`. A
+  candidate's log is at least as up-to-date as this node's, compared by
+  `:candidate_position` against `:local_position` (see `t:position/0`). A
   granted vote advances the stored epoch, so the next candidate in the same
   epoch is refused.
   """
@@ -187,7 +196,7 @@ defmodule Replication.Epoch do
         # in it. Both mean the epoch is spent.
         {:denied, :already_voted}
 
-      behind?(candidate_offset(opts), local_offset(opts)) ->
+      behind?(candidate_position(opts), local_position(opts)) ->
         # Refusing here is what keeps a candidate missing acknowledged entries
         # from winning: it cannot collect a majority.
         {:denied, :behind_log}
@@ -216,17 +225,24 @@ defmodule Replication.Epoch do
     end
   end
 
-  # `nil` on either side means "offset unknown", in which case the completeness
-  # check cannot be applied and is skipped rather than guessed.
+  # `nil` on either side means the position is unknown, in which case the
+  # up-to-date check cannot be applied and is skipped rather than guessed.
+  # Otherwise positions compare lexicographically as {epoch, offset}: a higher
+  # last epoch is always more up-to-date, and offset only breaks a tie within
+  # the same epoch.
   defp behind?(nil, _local), do: false
   defp behind?(_candidate, nil), do: false
 
-  defp behind?(candidate, local) do
-    ReplicationOffset.compare(candidate, local) == :lt
+  defp behind?({cand_epoch, cand_offset}, {local_epoch, local_offset}) do
+    cond do
+      cand_epoch < local_epoch -> true
+      cand_epoch > local_epoch -> false
+      true -> ReplicationOffset.compare(cand_offset, local_offset) == :lt
+    end
   end
 
-  defp candidate_offset(opts), do: Keyword.get(opts, :candidate_offset)
-  defp local_offset(opts), do: Keyword.get(opts, :local_offset)
+  defp candidate_position(opts), do: Keyword.get(opts, :candidate_position)
+  defp local_position(opts), do: Keyword.get(opts, :local_position)
 
   defp stored_epoch(group_id) do
     case lookup(group_id) do

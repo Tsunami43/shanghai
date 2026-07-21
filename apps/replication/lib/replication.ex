@@ -213,12 +213,12 @@ defmodule Replication do
   in, so a candidate cannot influence the completeness check it is being judged
   by.
   """
-  @spec request_vote(String.t(), non_neg_integer(), NodeId.t(), ReplicationOffset.t() | nil) ::
+  @spec request_vote(String.t(), non_neg_integer(), NodeId.t(), Epoch.position()) ::
           Epoch.vote_result()
-  def request_vote(group_id, epoch, %NodeId{} = candidate, candidate_offset \\ nil) do
+  def request_vote(group_id, epoch, %NodeId{} = candidate, candidate_position \\ nil) do
     Epoch.grant_vote(group_id, epoch, candidate,
-      candidate_offset: candidate_offset,
-      local_offset: local_group_offset(group_id)
+      candidate_position: candidate_position,
+      local_position: local_group_position(group_id)
     )
   end
 
@@ -235,12 +235,12 @@ defmodule Replication do
           {:ok, non_neg_integer()} | {:error, :no_quorum}
   def stand_for_election(group_id, members, %NodeId{} = candidate) do
     epoch = Epoch.current(group_id) + 1
-    offset = local_group_offset(group_id)
+    position = local_group_position(group_id)
     needed = div(length(members), 2) + 1
 
     granted =
       members
-      |> Enum.map(&collect_vote(&1, group_id, epoch, candidate, offset, candidate))
+      |> Enum.map(&collect_vote(&1, group_id, epoch, candidate, position, candidate))
       |> Enum.count(&(&1 == :granted))
 
     if granted >= needed do
@@ -262,27 +262,27 @@ defmodule Replication do
   # Only the candidate itself votes locally. A member whose node cannot be
   # resolved is unreachable, NOT local: counting it as a local vote would let
   # this one node cast every member's ballot and manufacture its own quorum.
-  defp collect_vote(member, group_id, epoch, candidate, candidate_offset, this_node) do
+  defp collect_vote(member, group_id, epoch, candidate, candidate_position, this_node) do
     if NodeId.equal?(member, this_node) do
-      request_vote(group_id, epoch, candidate, candidate_offset)
+      request_vote(group_id, epoch, candidate, candidate_position)
     else
-      remote_vote(member_erlang_node(member), group_id, epoch, candidate, candidate_offset)
+      remote_vote(member_erlang_node(member), group_id, epoch, candidate, candidate_position)
     end
   end
 
   # A member whose Erlang node cannot be resolved is unreachable, not local.
   # Treating it as local would let this one node cast every member's ballot and
   # manufacture a quorum out of itself.
-  defp remote_vote(nil, _group_id, _epoch, _candidate, _candidate_offset) do
+  defp remote_vote(nil, _group_id, _epoch, _candidate, _candidate_position) do
     {:denied, :unreachable}
   end
 
-  defp remote_vote(target, group_id, epoch, candidate, candidate_offset) do
+  defp remote_vote(target, group_id, epoch, candidate, candidate_position) do
     case :rpc.call(target, __MODULE__, :request_vote, [
            group_id,
            epoch,
            candidate,
-           candidate_offset
+           candidate_position
          ]) do
       {:badrpc, reason} ->
         # An unreachable member simply does not vote.
@@ -294,15 +294,16 @@ defmodule Replication do
     end
   end
 
-  # This node's progress in the group: the leader's offset if it leads, the
-  # follower's if it follows, nil when it runs neither.
-  defp local_group_offset(group_id) do
+  # This node's log position `{epoch, offset}` in the group: the leader's if it
+  # leads, the follower's if it follows, nil when it runs neither (nothing to
+  # compare, so the vote's up-to-date check is skipped for this voter).
+  defp local_group_position(group_id) do
     cond do
       Registry.lookup(Replication.Registry, {:leader, group_id}) != [] ->
-        Leader.current_offset(group_id)
+        Leader.position(group_id)
 
       Registry.lookup(Replication.Registry, {:follower, group_id}) != [] ->
-        Follower.current_offset(group_id)
+        Follower.position(group_id)
 
       true ->
         nil

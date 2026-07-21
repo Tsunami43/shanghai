@@ -22,6 +22,7 @@ defmodule Replication.Follower do
           node_id: NodeId.t(),
           leader_node_id: NodeId.t() | nil,
           current_offset: ReplicationOffset.t(),
+          last_epoch: non_neg_integer(),
           last_report_at: integer()
         }
 
@@ -63,6 +64,15 @@ defmodule Replication.Follower do
   end
 
   @doc """
+  Returns this follower's log position as `{last_entry_epoch, offset}`, used by
+  the election up-to-date check.
+  """
+  @spec position(String.t()) :: {non_neg_integer(), ReplicationOffset.t()}
+  def position(group_id) do
+    GenServer.call(via_tuple(group_id), :position)
+  end
+
+  @doc """
   Sets the leader for this follower.
   """
   @spec set_leader(String.t(), NodeId.t()) :: :ok
@@ -83,6 +93,10 @@ defmodule Replication.Follower do
       node_id: node_id,
       leader_node_id: leader_node_id,
       current_offset: ReplicationOffset.zero(),
+      # Epoch of the last applied entry (0 before any, or for unfenced entries).
+      # Paired with current_offset it forms this node's log position for the
+      # election up-to-date check.
+      last_epoch: 0,
       last_report_at: System.monotonic_time(:millisecond),
       # Optional `{module, function, args}` invoked as `apply(m, f, args ++ [data])`
       # to apply each entry. Lets a higher layer (e.g. the query store) receive
@@ -112,7 +126,7 @@ defmodule Replication.Follower do
 
       {:noreply, state}
     else
-      apply_accepted_entry(offset, data, state)
+      apply_accepted_entry(offset, data, epoch, state)
     end
   end
 
@@ -131,6 +145,10 @@ defmodule Replication.Follower do
   @impl true
   def handle_call(:current_offset, _from, state) do
     {:reply, state.current_offset, state}
+  end
+
+  def handle_call(:position, _from, state) do
+    {:reply, {state.last_epoch, state.current_offset}, state}
   end
 
   @impl true
@@ -161,7 +179,7 @@ defmodule Replication.Follower do
     end
   end
 
-  defp apply_accepted_entry(offset, data, state) do
+  defp apply_accepted_entry(offset, data, epoch, state) do
     # Verify offset is the next expected one
     expected_offset = ReplicationOffset.increment(state.current_offset)
 
@@ -173,8 +191,13 @@ defmodule Replication.Follower do
           :ok ->
             Logger.debug("Follower applying entry at offset #{offset.value}")
 
-            # Update current offset
-            updated_state = %{state | current_offset: offset}
+            # Advance the position: offset and the epoch this entry carried
+            # (kept as-is when the entry was unfenced, i.e. epoch is nil).
+            updated_state = %{
+              state
+              | current_offset: offset,
+                last_epoch: epoch || state.last_epoch
+            }
 
             # Make applied replication observable, then report to leader and monitor.
             Observability.Metrics.replica_applied(offset.value, state.group_id, state.node_id)

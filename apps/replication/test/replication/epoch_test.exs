@@ -95,12 +95,12 @@ defmodule Replication.EpochTest do
     end
   end
 
-  describe "grant_vote/4 - log completeness" do
-    test "refuses a candidate whose offset is behind this node", %{group: group} do
+  describe "grant_vote/4 - log completeness by (epoch, offset)" do
+    test "refuses a candidate whose offset is behind within the same epoch", %{group: group} do
       assert {:denied, :behind_log} =
                Epoch.grant_vote(group, 1, NodeId.new("a"),
-                 candidate_offset: ReplicationOffset.new(3),
-                 local_offset: ReplicationOffset.new(7)
+                 candidate_position: {2, ReplicationOffset.new(3)},
+                 local_position: {2, ReplicationOffset.new(7)}
                )
 
       assert Epoch.current(group) == 0, "a denied vote must not advance the epoch"
@@ -109,22 +109,42 @@ defmodule Replication.EpochTest do
     test "grants when the candidate is level with this node", %{group: group} do
       assert :granted =
                Epoch.grant_vote(group, 1, NodeId.new("a"),
-                 candidate_offset: ReplicationOffset.new(7),
-                 local_offset: ReplicationOffset.new(7)
+                 candidate_position: {2, ReplicationOffset.new(7)},
+                 local_position: {2, ReplicationOffset.new(7)}
                )
     end
 
-    test "grants when the candidate is ahead", %{group: group} do
+    test "grants when the candidate is ahead by offset in the same epoch", %{group: group} do
       assert :granted =
                Epoch.grant_vote(group, 1, NodeId.new("a"),
-                 candidate_offset: ReplicationOffset.new(9),
-                 local_offset: ReplicationOffset.new(7)
+                 candidate_position: {2, ReplicationOffset.new(9)},
+                 local_position: {2, ReplicationOffset.new(7)}
                )
     end
 
-    test "skips the check when either offset is unknown", %{group: group} do
+    test "a higher last epoch beats a longer offset from a staler epoch", %{group: group} do
+      # The candidate has fewer entries but a fresher last epoch, so its log is
+      # more up-to-date - a longer but staler log must not win.
       assert :granted =
-               Epoch.grant_vote(group, 1, NodeId.new("a"), local_offset: ReplicationOffset.new(7))
+               Epoch.grant_vote(group, 1, NodeId.new("a"),
+                 candidate_position: {5, ReplicationOffset.new(2)},
+                 local_position: {4, ReplicationOffset.new(100)}
+               )
+    end
+
+    test "a staler last epoch loses even with a longer offset", %{group: group} do
+      assert {:denied, :behind_log} =
+               Epoch.grant_vote(group, 1, NodeId.new("a"),
+                 candidate_position: {4, ReplicationOffset.new(100)},
+                 local_position: {5, ReplicationOffset.new(2)}
+               )
+    end
+
+    test "skips the check when either position is unknown", %{group: group} do
+      assert :granted =
+               Epoch.grant_vote(group, 1, NodeId.new("a"),
+                 local_position: {2, ReplicationOffset.new(7)}
+               )
     end
   end
 
