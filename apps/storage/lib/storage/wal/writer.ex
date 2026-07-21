@@ -292,10 +292,12 @@ defmodule Storage.WAL.Writer do
   # Group commit: flush as soon as nothing else is queued, so a lone writer
   # never waits on the timer, and cap the batch under concurrent load. When the
   # batch stays open, a timer bounds how long the oldest entry waits.
+  #
+  # Only ever called right after an entry was queued, so `pending` is non-empty
+  # here; `flush_pending/1` still handles an empty batch safely on its own.
   @spec maybe_flush(State.t()) :: State.t()
   defp maybe_flush(state) do
     cond do
-      state.pending == [] -> state
       mailbox_empty?() -> flush_pending(state)
       length(state.pending) >= state.batch_size -> flush_pending(state)
       true -> ensure_flush_timer(state)
