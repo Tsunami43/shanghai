@@ -55,10 +55,11 @@ defmodule AdminApi.RouterTest do
 
     body = json(conn)
     assert body["status"] == "ready"
-    assert body["checks"]["cluster_membership"] == true
-    assert body["checks"]["replication_monitor"] == true
-    assert body["checks"]["query_store"] == true
-    assert body["checks"]["storage_segments"] == true
+    # Keys come from Admin.Health, the shared subsystem-health authority.
+    assert body["checks"]["cluster"] == true
+    assert body["checks"]["replication"] == true
+    assert body["checks"]["query"] == true
+    assert body["checks"]["storage"] == true
   end
 
   test "GET /api/v1 lists the available endpoints" do

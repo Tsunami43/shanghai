@@ -26,3 +26,6 @@ shanghai-*.tar
 # (with caching). Do not commit them.
 /priv/plts/
 
+
+# Built escript binary (mix escript.build in apps/shanghaictl)
+/apps/shanghaictl/shanghaictl

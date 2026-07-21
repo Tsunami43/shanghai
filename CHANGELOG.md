@@ -9,6 +9,22 @@ While the version is `0.x`, the public API may change between releases.
 Every entry describes what is actually implemented and verified, not what is
 planned. Capability targets that are not yet met are called out as such.
 
+## [Unreleased]
+
+### Changed
+
+- **`admin` is now a used library instead of a dead app.** It had a full,
+  tested subsystem-health aggregate (`Admin.Health`) that nothing called and an
+  empty supervisor. The empty `Admin.Application` is removed (it is now a
+  library app), and `admin_api`'s `/ready` probe delegates to `Admin.Health`,
+  so the HTTP layer and the health authority can no longer drift apart. The
+  `/ready` JSON `checks` keys are now `cluster`/`storage`/`replication`/`query`.
+- **`shanghaictl` builds as a standalone escript.** It is a client that talks
+  to the Admin API over HTTP, so it does not belong inside the server release.
+  `mix escript.build` in `apps/shanghaictl` produces the `shanghaictl` binary.
+  Its spurious dependencies on the server apps (`cluster`, `replication`) are
+  removed - they were booting a whole node just to run a CLI command.
+
 ## [0.2.0] - 2026-07-21
 
 The theme of this release is making the distributed core safe and the
@@ -90,5 +106,6 @@ The baseline before the 0.2.0 distributed-safety work.
 - Observability via telemetry and a Prometheus endpoint; an admin HTTP API and
   the `shanghaictl` CLI.
 
+[Unreleased]: https://github.com/Tsunami43/shanghai/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/Tsunami43/shanghai/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Tsunami43/shanghai/releases/tag/v0.1.0

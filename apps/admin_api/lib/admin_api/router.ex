@@ -22,19 +22,16 @@ defmodule AdminApi.Router do
   end
 
   # Readiness probe: is the node actually able to serve? Distinct from /health
-  # (liveness), it checks that the essential processes are running.
+  # (liveness), it checks that the essential subsystems are running. Delegates
+  # to `Admin.Health`, the single authority for what "healthy" means, so this
+  # endpoint and any other consumer cannot drift apart.
   get "/ready" do
-    checks = %{
-      "cluster_membership" => process_alive?(Cluster.Membership),
-      "replication_monitor" => process_alive?(Replication.Monitor),
-      "query_store" => process_alive?(Query.Store),
-      "storage_segments" => process_alive?(Storage.WAL.SegmentManager)
-    }
+    %{status: status, checks: checks} = Admin.Health.check()
+    checks = Map.new(checks, fn {name, up?} -> {Atom.to_string(name), up?} end)
 
-    if Enum.all?(checks, fn {_name, up?} -> up? end) do
-      send_json(conn, 200, %{status: "ready", checks: checks})
-    else
-      send_json(conn, 503, %{status: "not_ready", checks: checks})
+    case status do
+      :healthy -> send_json(conn, 200, %{status: "ready", checks: checks})
+      :degraded -> send_json(conn, 503, %{status: "not_ready", checks: checks})
     end
   end
 

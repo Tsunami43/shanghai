@@ -15,11 +15,11 @@ defmodule Admin.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
+  # A library app: it composes the other contexts (see `Admin.Health`) and owns
+  # no processes, so it has no `mod:` and starts no supervisor.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {Admin.Application, []}
+      extra_applications: [:logger]
     ]
   end
 
