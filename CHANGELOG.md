@@ -11,6 +11,16 @@ planned. Capability targets that are not yet met are called out as such.
 
 ## [Unreleased]
 
+### Added
+
+- **Startup fault-tolerance warning for replication groups.** A group's
+  configured size fixes how many failures it can survive
+  (`div(members - 1, 2)`), and the quorum math cannot be beaten - a two-member
+  group tolerates zero. The coordinator now assesses this at startup and warns
+  loudly when a group cannot fail over (one or two members) or is sized
+  suboptimally (even count), so a false-safety configuration is visible rather
+  than silent. Exposed as `Replication.GroupCoordinator.fault_tolerance/1`.
+
 ### Changed
 
 - **`admin` is now a used library instead of a dead app.** It had a full,

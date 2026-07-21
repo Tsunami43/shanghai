@@ -131,10 +131,61 @@ defmodule Replication.GroupCoordinator do
       refresh_ms: Keyword.get(opts, :refresh_interval_ms, @default_refresh_interval_ms)
     }
 
+    warn_fault_tolerance(state.group_id, state.allow_list)
+
     state = ensure_subscribed(state)
     schedule_refresh(state)
 
     {:ok, do_reconcile(state)}
+  end
+
+  @doc """
+  The number of member failures a group of `member_count` can survive while
+  still electing a leader: `div(member_count - 1, 2)`.
+
+  It is `0` for one or two members - which is why a two-member group cannot fail
+  over - and grows only at odd sizes, so an even group tolerates no more than
+  the odd size below it.
+  """
+  @spec fault_tolerance(non_neg_integer()) :: non_neg_integer()
+  def fault_tolerance(member_count) when member_count > 0, do: div(member_count - 1, 2)
+  def fault_tolerance(_), do: 0
+
+  # Warns once, at startup, when a group's configured size cannot actually
+  # tolerate a failure. The quorum math is fixed; the most we can do is make a
+  # false-safety configuration loud rather than silent.
+  defp warn_fault_tolerance(group_id, nil) do
+    Logger.warning(
+      "Replication group #{group_id} has no configured :members, so promotion is " <>
+        "unfenced - a partition can produce two writable leaders. Configure an odd " <>
+        "member count of 3 or more for safe failover."
+    )
+  end
+
+  defp warn_fault_tolerance(group_id, members) do
+    count = length(members)
+    tolerated = fault_tolerance(count)
+
+    cond do
+      count <= 2 ->
+        Logger.warning(
+          "Replication group #{group_id} has #{count} member(s) and tolerates 0 failures: " <>
+            "losing any member loses quorum and the group cannot fail over. Use 3+ members " <>
+            "for fault tolerance."
+        )
+
+      rem(count, 2) == 0 ->
+        Logger.warning(
+          "Replication group #{group_id} has an even member count (#{count}), which " <>
+            "tolerates #{tolerated} failures - the same as #{count - 1} members but needing " <>
+            "a larger quorum. Prefer an odd member count."
+        )
+
+      true ->
+        Logger.info(
+          "Replication group #{group_id}: #{count} members, tolerates #{tolerated} failure(s)."
+        )
+    end
   end
 
   @impl true
